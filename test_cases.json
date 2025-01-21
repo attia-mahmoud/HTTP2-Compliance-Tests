@@ -1,5 +1,14 @@
 [
   {
+    "id": 0,
+    "description": "Control.",
+    "client_frames": [
+      {
+        "type": "HEADERS"
+      }
+    ]
+  },
+  {
     "id": 1,
     "description": "HTTP/2 over TLS uses the 'h2' protocol identifier. The 'h2c' protocol identifier MUST NOT be sent by a client or selected by a server.",
     "tls_enabled": true,
