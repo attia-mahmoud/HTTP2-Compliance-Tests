@@ -1,8 +1,6 @@
 import requests
 import time
 import json
-import os
-from datetime import datetime
 
 def poll_status(status_url, interval=5, timeout=60):
     start_time = time.time()
@@ -10,15 +8,18 @@ def poll_status(status_url, interval=5, timeout=60):
     while time.time() - start_time < timeout:
         try:
             response = requests.get(status_url)
-            response.raise_for_status()
+            response.raise_for_status()  # Raise an error for HTTP errors
 
             data = response.json()
             status = data.get('status')
 
             if status == "completed":
+                print("Task completed. Result:")
+                print(data.get('result'))
                 return data.get('result')
             elif status == "failed":
-                print(f"Task failed. Error: {data.get('error')}")
+                print("Task failed. Error:")
+                print(data.get('error'))
                 return None
             else:
                 print(f"Task status: {status}. Checking again in {interval} seconds...")
@@ -32,115 +33,133 @@ def poll_status(status_url, interval=5, timeout=60):
     print("Polling timed out.")
     return None
 
-def run_test_case(test_case):
-    MASTER = "mahmoudmaster.admin.master.nopasaran.org"
-
-    WORKER_1 = "linodeaustralia.admin.worker.nopasaran.org"
-    WORKER_1_PORT = "7700"
-
-    WORKER_2 = "linodegermany.admin.worker.nopasaran.org"
-    WORKER_2_IP = "172.104.229.16"
-    WORKER_2_PORT = "7700"
-
-    variables = {
-        "master": MASTER,
-        "first-worker": WORKER_1,
-        "second-worker": WORKER_2,
-        "repository": "https://github.com/nopasaran-org/nopasaran-tests-trees",
-        "tests-tree": "http_2_conformance.png",
-        "task_url": "https://www.nopasaran.org/api/v1/tests-trees/task",
-        "variables": {
-            "Root": {
-                "Worker_1": {
-                    "role": "client",
-                    "client": "client",
-                    "server": "server",
-                    "host": WORKER_2_IP,
-                    "port": WORKER_1_PORT,
-                    "controller_conf_filename": "controller_configuration.json",
-                    "tls_enabled": test_case.get("tls_enabled", False),
-                    "tls_protocol": test_case.get("tls_protocol", "h2"),
-                    "connection_settings_client": test_case.get("connection_settings_client", {}),
-                    "connection_settings_server": test_case.get("connection_settings_server", {}),
-                    "client_frames": test_case.get("client_frames", []),
-                    "server_frames": test_case.get("server_frames", [])
-                },
-                "Worker_2": {
-                    "role": "server",
-                    "client": "client",
-                    "server": "server",
-                    "host": WORKER_2_IP,
-                    "port": WORKER_2_PORT,
-                    "controller_conf_filename": "controller_configuration.json",
-                    "tls_enabled": test_case.get("tls_enabled", False),
-                    "tls_protocol": test_case.get("tls_protocol", "h2"),
-                    "connection_settings_client": test_case.get("connection_settings_client", {}),
-                    "connection_settings_server": test_case.get("connection_settings_server", {}),
-                    "client_frames": test_case.get("client_frames", []),
-                    "server_frames": test_case.get("server_frames", [])
-                }
-            }
-        }
-    }
-
-    payload = {
-        "master": MASTER,
-        "first-worker": WORKER_1,
-        "second-worker": WORKER_2,
-        "repository": "https://github.com/nopasaran-org/nopasaran-tests-trees",
-        "tests-tree": "http_2_conformance.png",
-        "variables": variables
-    }
-
+def fetch_data(url):
     try:
-        response = requests.post(
-            "https://www.nopasaran.org/api/v1/tests-trees/task",
-            data=json.dumps(payload),
-            headers={'Content-Type': 'application/json'}
-        )
+        response = requests.get(url)
         response.raise_for_status()
-        
-        task_id = response.json().get('task_id')
-        if task_id:
-            status_url = f'https://www.nopasaran.org/api/v1/tests-trees/task/{task_id}'
-            return poll_status(status_url)
-        
+        return response.json()
     except requests.exceptions.RequestException as e:
-        print(f"Test case {test_case['id']} failed: {e}")
+        print(f"Request failed: {e}")
         return None
 
-def main():
-    # Create results directory if it doesn't exist
-    if not os.path.exists('results'):
-        os.makedirs('results')
+# Define the endpoint URLs
+base_url = 'https://www.nopasaran.org/api/v1/tests-trees'
 
-    # Load test cases
-    with open('test_cases.json', 'r') as f:
-        test_cases = json.load(f)
+tests_trees_url = f'{base_url}/repository'
+masters_url = f'{base_url}/operational-masters'
+workers_url = f'{base_url}/operational-workers'
+task_url = f'{base_url}/task'
 
-    # Create log file with timestamp
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    log_file = f'results/test_results_{timestamp}.json'
-    
-    results = {}
-    
-    # Run each test case
-    for test_case in test_cases:
-        print(f"Running test case {test_case['id']}: {test_case['description']}")
-        result = run_test_case(test_case)
-        results[test_case['id']] = {
-            'description': test_case['description'],
-            'result': result
+# Fetch scenarios and repository
+tests_trees_data = fetch_data(tests_trees_url)
+
+repository = "https://github.com/nopasaran-org/nopasaran-tests-trees"
+
+# PROXY_WITH_VERSION = "node"
+
+CLIENT_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
+CLIENT_PORT = "7700"
+
+SERVER_WORKER = "linodegermany.admin.worker.nopasaran.org"
+# SERVER_IP = "cloudflare.nopasaran.co"
+SERVER_IP = "172.104.229.16"
+SERVER_PORT = "7700"
+
+MASTER = "mahmoudmaster.admin.master.nopasaran.org"
+
+# Use command-line arguments for workers and port
+worker_1 = CLIENT_WORKER
+worker_1_port = CLIENT_PORT
+worker_2 = SERVER_WORKER
+worker_2_ip = SERVER_IP
+worker_2_port = SERVER_PORT
+master = MASTER
+
+tests_tree = "http_2_conformance.png"
+
+# Construct the variables dictionary
+variables = {
+    "Root": {
+        "Worker_1": {
+            "role": "client",
+            "client": "client",
+            "server": "server",
+            "host": worker_2_ip,
+            "port": worker_1_port,
+            "tls_enabled": "false",
+            "protocol": "h2",
+            "connection_settings_client": {},
+            "controller_conf_filename": "controller_configuration.json",
+            "client_frames": [
+                {
+                    "type": "HEADERS",
+                    "tests": [
+                        [
+                            {
+                                "function": "verifytype",
+                                "params": [
+                                    "RequestReceived"
+                                ]
+                            }
+                        ]
+                    ]
+                }
+            ],
+            "server_frames": []
+        },
+        "Worker_2": {
+            "role": "server",
+            "client": "client",
+            "server": "server",
+            "host": worker_2_ip,
+            "port": worker_2_port,
+            "tls_enabled": "false",
+            "protocol": "h2",
+            "connection_settings_server": {},
+            "controller_conf_filename": "controller_configuration.json",
+            "client_frames": [],
+            "server_frames": []
         }
-        
-        # Write results to file after each test
-        with open(log_file, 'w') as f:
-            json.dump(results, f, indent=2)
-        
-        # Wait between tests to avoid overwhelming the server
-        time.sleep(2)
+    }
+}
 
-    print(f"All test results have been saved to {log_file}")
+# Construct the payload for the task
+payload = {
+    "master": master,
+    "first-worker": worker_1,
+    "second-worker": worker_2,
+    "repository": repository,
+    "tests-tree": tests_tree,
+    "variables": variables
+}
 
-if __name__ == "__main__":
-    main()
+# Convert payload to JSON string
+payload_json = json.dumps(payload)
+
+try:
+    response = requests.post(
+        task_url,
+        data=payload_json,
+        headers={'Content-Type': 'application/json'}
+    )
+    response.raise_for_status()  # Raise an exception for HTTP errors
+    print("Request succeeded. Response:")
+    print(response.text)
+
+    # Extract task ID from the response
+    task_id = response.json().get('task_id')
+    if task_id:
+        status_url = f'{task_url}/{task_id}'
+        print(f"Task URL: {status_url}")
+        result = poll_status(status_url)
+
+        if result:
+            print("Final result retrieved:", result)
+        else:
+            print("Failed to retrieve the final result.")
+    else:
+        print("No task ID returned.")
+
+except requests.exceptions.RequestException as e:
+    print(response.content)
+    print(f"Request failed: {e}")
