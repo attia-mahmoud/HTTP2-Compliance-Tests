@@ -57,25 +57,17 @@ tests_trees_data = fetch_data(tests_trees_url)
 
 repository = "https://github.com/nopasaran-org/nopasaran-tests-trees"
 
-# PROXY_WITH_VERSION = "node"
+PROXY_WITH_VERSION = "Apache"
 
-CLIENT_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
-CLIENT_PORT = "7700"
+CLIENT_WORKER = "labworker1.admin.worker.nopasaran.org"
+CLIENT_PORT = "80"
 
-SERVER_WORKER = "linodegermany.admin.worker.nopasaran.org"
+SERVER_WORKER = "labworker2.admin.worker.nopasaran.org"
 # SERVER_IP = "cloudflare.nopasaran.co"
-SERVER_IP = "172.104.229.16"
-SERVER_PORT = "7700"
+SERVER_IP = "192.168.122.214"
+SERVER_PORT = "80"
 
 MASTER = "mahmoudmaster.admin.master.nopasaran.org"
-
-# Use command-line arguments for workers and port
-worker_1 = CLIENT_WORKER
-worker_1_port = CLIENT_PORT
-worker_2 = SERVER_WORKER
-worker_2_ip = SERVER_IP
-worker_2_port = SERVER_PORT
-master = MASTER
 
 tests_tree = "http_2_conformance.png"
 
@@ -88,7 +80,7 @@ if not os.path.exists('results'):
     os.makedirs('results')
 
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-filename = f"results/test_results_{timestamp}.json"
+filename = f"results/test_results_{timestamp}-{PROXY_WITH_VERSION}.json"
 all_results = {}
 
 for test_case in test_cases:
@@ -101,8 +93,8 @@ for test_case in test_cases:
                 "role": "client",
                 "client": "client",
                 "server": "server",
-                "host": worker_2_ip,
-                "port": worker_1_port,
+                "host": SERVER_WORKER,
+                "port": CLIENT_PORT,
                 "tls_enabled": test_case.get('tls_enabled', "false"),
                 "protocol": test_case.get('tls_protocol', "h2"),
                 "connection_settings_client": test_case.get('connection_settings_client', {}),
@@ -114,8 +106,8 @@ for test_case in test_cases:
                 "role": "server",
                 "client": "client",
                 "server": "server",
-                "host": worker_2_ip,
-                "port": worker_2_port,
+                "host": SERVER_WORKER,
+                "port": SERVER_PORT,
                 "tls_enabled": test_case.get('tls_enabled', "false"),
                 "protocol": test_case.get('tls_protocol', "h2"),
                 "connection_settings_server": test_case.get('connection_settings_server', {}),
@@ -128,9 +120,9 @@ for test_case in test_cases:
 
     # Construct the payload for the task
     payload = {
-        "master": master,
-        "first-worker": worker_1,
-        "second-worker": worker_2,
+        "master": MASTER,
+        "first-worker": CLIENT_WORKER,
+        "second-worker": SERVER_WORKER,
         "repository": repository,
         "tests-tree": tests_tree,
         "variables": variables
