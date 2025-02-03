@@ -835,42 +835,42 @@
     ]
   },
   {
-      "id": 47,
-      "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a)",
-      "client_frames": [
-        {
-          "type": "HEADERS",
-          "raw_frame": true,
-          "headers": {
-            ":method": "GET",
-            ":scheme": "http",
-            ":path": "/",
-            ":authority": "example.com",
-            "x-lf-start": "\nvalue",
-            "x-lf-middle": "val\nue",
-            "x-lf-end": "value\n"
-          }
+    "id": 47,
+    "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a)",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "raw_frame": true,
+        "headers": {
+          ":method": "GET",
+          ":scheme": "http",
+          ":path": "/",
+          ":authority": "example.com",
+          "x-lf-start": "\nvalue",
+          "x-lf-middle": "val\nue",
+          "x-lf-end": "value\n"
         }
-      ]
+      }
+    ]
   },
   {
-      "id": 48,
-      "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d)",
-      "client_frames": [
-        {
-          "type": "HEADERS",
-          "raw_frame": true,
-          "headers": {
-            ":method": "GET",
-            ":scheme": "http",
-            ":path": "/",
-            ":authority": "example.com",
-            "x-cr-start": "\rvalue",
-            "x-cr-middle": "val\rue",
-            "x-cr-end": "value\r"
-          }
+    "id": 48,
+    "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d)",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "raw_frame": true,
+        "headers": {
+          ":method": "GET",
+          ":scheme": "http",
+          ":path": "/",
+          ":authority": "example.com",
+          "x-cr-start": "\rvalue",
+          "x-cr-middle": "val\rue",
+          "x-cr-end": "value\r"
         }
-      ]
+      }
+    ]
   },
   {
     "id": 49,
@@ -1091,7 +1091,25 @@
   },
   {
     "id": 62,
-    "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1).",
+    "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with the same value.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "headers": {  
+          ":method": "GET",
+          ":scheme": "http",
+          ":path": "/",
+          ":authority": "example.com"
+        },
+        "duplicate_headers": {
+          ":authority": "example.com"
+        }
+      }
+    ]
+  },
+  {
+    "id": 63,
+    "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with different values.",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1108,8 +1126,8 @@
     ]
   },
   {
-    "id": 63,
-    "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1).",
+    "id": 64,
+    "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a response frame with the same value.",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1123,6 +1141,174 @@
         },
         "duplicate_headers": {
           ":status": "200"
+        }
+      }
+    ]
+  },
+  {
+    "id": 65,
+    "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a response frame with different values.",
+    "client_frames": [
+      {
+        "type": "HEADERS"
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "HEADERS",
+        "headers": {
+          ":status": "200"
+        },
+        "duplicate_headers": {
+          ":status": "201"
+        }
+      }
+    ]
+  },
+  {
+    "id": 66,
+    "description": "Clients MUST NOT generate a request with a Host header field that differs from the \":authority\" pseudo-header field.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "headers": {
+          ":method": "GET",
+          ":scheme": "http",
+          ":path": "/",
+          ":authority": "example.com",
+          "host": "nopasaran.com"
+        }
+      }
+    ]
+  },
+  {
+    "id": 67,
+    "description": "':authority' MUST NOT include the deprecated userinfo subcomponent for \"http\" or \"https\" schemed URIs.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "headers": {
+          ":method": "GET",
+          ":scheme": "http",
+          ":path": "/",
+          ":authority": "user:pass@example.com"
+        }
+      }
+    ]
+  },
+  {
+    "id": 68,
+    "description": "The \":path\" pseudo-header field MUST NOT be empty for \"http\" or \"https\" URIs; \"http\" or \"https\" URIs that do not contain a path component MUST include a value of '/'.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "headers": {
+          ":method": "GET",
+          ":scheme": "http",
+          ":path": "",
+          ":authority": "example.com"
+        }
+      }
+    ]
+  },
+  {
+    "id": 69,
+    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1).",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "headers": {
+          ":scheme": "http",
+          ":path": "/",
+          ":authority": "example.com"
+        }
+      }
+    ]
+  },
+  {
+    "id": 70,
+    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1).",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "headers": {
+          ":method": "GET",
+          ":path": "/",
+          ":authority": "example.com"
+        }
+      }
+    ]
+  },
+  {
+    "id": 71,
+    "description": "For HTTP/2 responses, a single \":status\" pseudo-header field is defined that carries the HTTP status code field. This pseudo-header field MUST be included in all responses, including interim responses; otherwise, the response is malformed.",
+    "client_frames": [
+      {
+        "type": "HEADERS"
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "HEADERS",
+        "headers": {
+          ":status": ""
+        }
+      }
+    ]
+  },
+  {
+    "id": 72,
+    "description": "A client cannot push. Thus, servers MUST treat the receipt of a PUSH_PROMISE frame as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "client_frames": [
+      {
+        "type": "PUSH_PROMISE"
+      }
+    ]
+  },
+  {
+    "id": 73,
+    "description": "In the PUSH_PROMISE frame, the server MUST include a method in the \":method\" pseudo-header field that is safe and cacheable.",
+    "client_frames": [
+      {
+        "type": "HEADERS"
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "PUSH_PROMISE",
+        "headers": {
+          ":method": "POST",
+          ":scheme": "http",
+          ":path": "/",
+          ":authority": "example.com"
+        }
+      }
+    ]
+  },
+  {
+    "id": 74,
+    "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "headers": {
+          ":method": "CONNECT",
+          ":scheme": "http",
+          ":path": "/",
+          ":authority": "example.com:80"
+        }
+      }
+    ]
+  },
+  {
+    "id": 75,
+    "description": "With the CONNECT method, The \":authority\" pseudo-header field contains the host and port to connect to",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "headers": {
+          ":method": "CONNECT",
+          ":authority": "example.com"
         }
       }
     ]
