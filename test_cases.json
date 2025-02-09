@@ -4,9 +4,37 @@
     "description": "Control.",
     "client_frames": [
       {
-        "type": "HEADERS"
+          "type": "HEADERS",
+          "tests": [
+              [
+                  {
+                      "function": "verifytype",
+                      "params": [
+                          "RequestReceived"
+                      ]
+                  }
+              ]
+          ]
       }
-    ]
+  ],
+  "server_frames": [
+      {
+          "type": "HEADERS",
+          "headers": {
+            ":status": "200"
+          },
+          "tests": [
+              [
+                  {
+                      "function": "verifytype",
+                      "params": [
+                          "ResponseReceived"
+                      ]
+                  }
+              ]
+          ]
+      }
+  ]
   },
   {
     "id": 1,
