@@ -60,12 +60,15 @@ repository = "https://github.com/nopasaran-org/nopasaran-tests-trees"
 PROXY_WITH_VERSION = "Apache"
 
 CLIENT_WORKER = "labworker1.admin.worker.nopasaran.org"
-CLIENT_PORT = "80"
+# The port the proxy is listening on
+PROXY_PORT = "80"
+
+PROXY_IP = "192.168.122.133"
 
 SERVER_WORKER = "labworker2.admin.worker.nopasaran.org"
-# SERVER_IP = "cloudflare.nopasaran.co"
-SERVER_IP = "192.168.122.214"
-SERVER_PORT = "80"
+# the address the server is listening on
+SERVER_IP = "0.0.0.0"
+SERVER_PORT = "8080"
 
 MASTER = "mahmoudmaster.admin.master.nopasaran.org"
 
@@ -93,27 +96,27 @@ for test_case in test_cases:
                 "role": "client",
                 "client": "client",
                 "server": "server",
-                "host": SERVER_WORKER,
-                "port": CLIENT_PORT,
-                "tls_enabled": test_case.get('tls_enabled', "false"),
-                "protocol": test_case.get('tls_protocol', "h2"),
-                "connection_settings_client": test_case.get('connection_settings_client', {}),
+                "host": PROXY_IP,
+                "port": PROXY_PORT,
+                "tls_enabled": test_case.get("tls_enabled", "false"),
+                "protocol": test_case.get("tls_protocol", "h2"),
+                "connection_settings_client": test_case.get("connection_settings_client", {}),
                 "controller_conf_filename": "controller_configuration.json",
-                "client_frames": test_case.get('client_frames', []),
-                "server_frames": []
+                "client_frames": test_case.get("client_frames", []),
+                "server_frames": test_case.get("server_frames", [])
             },
             "Worker_2": {
                 "role": "server",
                 "client": "client",
                 "server": "server",
-                "host": SERVER_WORKER,
+                "host": SERVER_IP,
                 "port": SERVER_PORT,
-                "tls_enabled": test_case.get('tls_enabled', "false"),
-                "protocol": test_case.get('tls_protocol', "h2"),
-                "connection_settings_server": test_case.get('connection_settings_server', {}),
+                "tls_enabled": test_case.get("tls_enabled", "false"),
+                "protocol": test_case.get("tls_protocol", "h2"),
+                "connection_settings_server": test_case.get("connection_settings_server", {}),
                 "controller_conf_filename": "controller_configuration.json",
-                "client_frames": [],
-                "server_frames": test_case.get('server_frames', [])
+                "client_frames": test_case.get("client_frames", []),
+                "server_frames": test_case.get("server_frames", [])
             }
         }
     }
