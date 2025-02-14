@@ -38,12 +38,10 @@
   },
   {
     "id": 1,
-    "description": "HTTP/2 over TLS uses the 'h2' protocol identifier. The 'h2c' protocol identifier MUST NOT be sent by a client or selected by a server.",
-    "tls_enabled": true,
-    "tls_protocol": "h2c",
+    "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "client_frames": [
       {
-        "type": "HEADERS"
+        "type": "DATA"
       }
     ]
   },
@@ -88,11 +86,8 @@
   },
   {
     "id": 5,
-    "description": "SETTINGS frame MUST be the first frame the server sends in the HTTP/2 connection.",
-    "connection_settings_server": {
-      "skip_initial_settings": true
-    },
-    "client_frames": [
+    "description": "If this stream (initially in the idle state) is initiated by the server, as described in Section 5.1.1, then receiving a HEADERS frame MUST also be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "server_frames": [
       {
         "type": "HEADERS"
       }
@@ -100,25 +95,43 @@
   },
   {
     "id": 6,
-    "description": "The SETTINGS frames received from server as part of the connection preface MUST be acknowledged by the client (see Section 6.5.3) after sending the connection preface.",
-    "connection_settings_client": {
-      "skip_initial_settings_ack": true
-    },
+    "description": "An endpoint MUST NOT send any type of frame other than HEADERS, RST_STREAM, or PRIORITY in the reserved (local) state.",
     "client_frames": [
       {
-        "type": "HEADERS"
+        "type": "SETTINGS",
+        "settings": {
+          "ENABLE_PUSH": 1
+        }
+      },
+      {
+        "type": "HEADERS",
+        "stream_id": 1
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "PUSH_PROMISE",
+        "promised_stream_id": 2
+      },
+      {
+        "type": "DATA"
       }
     ]
   },
   {
     "id": 7,
-    "description": "The SETTINGS frames received from client as part of the connection preface MUST be acknowledged (see Section 6.5.3) after sending the connection preface.",
-    "connection_settings_server": {
-      "skip_initial_settings_ack": true
-    },
+    "description": "If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED.",
     "client_frames": [
       {
-        "type": "HEADERS"
+        "type": "HEADERS",
+        "stream_id": 1,
+        "flags": {
+          "END_STREAM": true
+        }
+      },
+      {
+        "type": "DATA",
+        "stream_id": 1
       }
     ]
   },
@@ -256,9 +269,6 @@
       },
       {
         "type": "RST_STREAM",
-        "flags": {
-          "END_STREAM": true
-        },
         "stream_id": 1
       }
     ],
@@ -451,6 +461,23 @@
     "client_frames": [
       {
         "type": "HEADERS"
+      },
+      {
+        "type": "SETTINGS",
+        "settings": {
+          "ENABLE_PUSH": 0
+        },
+        "tests": [
+          [
+            {
+              "function": "verifysettings",
+              "params": [
+                "2",
+                "ChangedSetting(setting=2, original_value=1, new_value=0)"
+              ]
+            }
+          ]
+        ]
       }
     ],
     "server_frames": [
@@ -458,7 +485,18 @@
         "type": "SETTINGS",
         "settings": {
           "ENABLE_PUSH": 1
-        }
+        },
+        "tests": [
+          [
+            {
+              "function": "verifysettings",
+              "params": [
+                "2",
+                "ChangedSetting(setting=2, original_value=0, new_value=1)"
+              ]
+            }
+          ]
+        ]
       }
     ]
   },
@@ -546,14 +584,8 @@
   },
   {
     "id": 29,
-    "description": "A receiver MUST treat the receipt of a PUSH_PROMISE that promises an illegal stream identifier (Section 5.1.1) as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "description": "The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Odd-numbered Stream ID (Invalid for Server))",
     "client_frames": [
-      {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
-      },
       {
         "type": "HEADERS",
         "stream_id": 1
@@ -563,7 +595,7 @@
       {
         "type": "PUSH_PROMISE",
         "stream_id": 1,
-        "promised_stream_id": 0
+        "promised_stream_id": 3
       }
     ]
   },
@@ -649,13 +681,14 @@
   },
   {
     "id": 37,
-    "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set.",
+    "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using HEADERS frame with END_HEADERS flag set)",
     "client_frames": [
       {
         "type": "HEADERS",
         "stream_id": 1,
         "flags": {
-          "END_STREAM": false
+          "END_STREAM": false,
+          "END_HEADERS": true
         }
       },
       {
@@ -666,7 +699,7 @@
   },
   {
     "id": 38,
-    "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set.",
+    "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using PUSH_PROMISE frame with END_HEADERS flag set)",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -691,7 +724,7 @@
   },
   {
     "id": 39,
-    "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set.",
+    "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using CONTINUATION frame with END_HEADERS flag set)",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -704,6 +737,9 @@
       {
         "type": "CONTINUATION",
         "stream_id": 1,
+        "flags": {
+          "END_HEADERS": true
+        },
         "headers": {
           "accept": "application/json"
         }
@@ -720,21 +756,18 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
         "flags": {
           "END_STREAM": false
         }
       },
       {
         "type": "DATA",
-        "stream_id": 1,
         "flags": {
           "END_STREAM": false
         }
       },
       {
         "type": "TRAILERS",
-        "stream_id": 1,
         "headers": {
           ":path": "/"
         }
@@ -864,7 +897,7 @@
   },
   {
     "id": 47,
-    "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a)",
+    "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the start of the value)",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -874,16 +907,14 @@
           ":scheme": "http",
           ":path": "/",
           ":authority": "example.com",
-          "x-lf-start": "\nvalue",
-          "x-lf-middle": "val\nue",
-          "x-lf-end": "value\n"
+          "x-lf-start": "\nvalue"
         }
       }
     ]
   },
   {
     "id": 48,
-    "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d)",
+    "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the start of the value)",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -893,9 +924,7 @@
           ":scheme": "http",
           ":path": "/",
           ":authority": "example.com",
-          "x-cr-start": "\rvalue",
-          "x-cr-middle": "val\rue",
-          "x-cr-end": "value\r"
+          "x-cr-start": "\rvalue"
         }
       }
     ]
@@ -1241,7 +1270,7 @@
   },
   {
     "id": 69,
-    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1).",
+    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :method missing)",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1255,7 +1284,7 @@
   },
   {
     "id": 70,
-    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1).",
+    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :scheme missing)",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1279,7 +1308,7 @@
       {
         "type": "HEADERS",
         "headers": {
-          ":status": ""
+          "date": "2024-01-01"
         }
       }
     ]
@@ -1289,7 +1318,13 @@
     "description": "A client cannot push. Thus, servers MUST treat the receipt of a PUSH_PROMISE frame as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "client_frames": [
       {
-        "type": "PUSH_PROMISE"
+        "type": "HEADERS",
+        "stream_id": 1
+      },
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promise_stream_id": 2
       }
     ]
   },
@@ -1315,7 +1350,7 @@
   },
   {
     "id": 74,
-    "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted.",
+    "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted. (Tested with both present)",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1337,6 +1372,675 @@
         "headers": {
           ":method": "CONNECT",
           ":authority": "example.com"
+        }
+      }
+    ]
+  },
+  {
+    "id": 76,
+    "description": "An endpoint MUST NOT send frames other than PRIORITY on a closed stream.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 1,
+        "flags": {
+          "END_STREAM": false
+        }
+      },
+      {
+        "type": "RST_STREAM",
+        "stream_id": 1
+      },
+      {
+        "type": "HEADERS",
+        "stream_id": 1
+      }
+    ]
+  },
+  {
+    "id": 77,
+    "description": "RST_STREAM frames MUST NOT be sent for a stream in the 'idle' state.",
+    "client_frames": [
+      {
+        "type": "RST_STREAM",
+        "stream_id": 1
+      }
+    ]
+  },
+  {
+    "id": 78,
+    "description": "RST_STREAM frames MUST be associated with a stream.",
+    "client_frames": [
+      {
+        "type": "RST_STREAM"
+      }
+    ]
+  },
+  {
+    "id": 79,
+    "description": "Implementations MUST discard frames that have unknown or unsupported types.",
+    "client_frames": [
+      {
+        "type": "UNKNOWN",
+        "stream_id": 1,
+        "frame_type_id": 99,
+        "payload": "test payload"
+      }
+    ]
+  },
+  {
+    "id": 80,
+    "description": "DATA frames MUST be associated with a stream.",
+    "client_frames": [
+      {
+        "type": "DATA",
+        "stream_id": 1
+      }
+    ]
+  },
+  {
+    "id": 81,
+    "description": "If a DATA frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "client_frames": [
+      {
+        "type": "HEADERS"
+      },
+      {
+        "type": "DATA",
+        "stream_id": 0
+      }
+    ]
+  },
+  {
+    "id": 82,
+    "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the idle state.)",
+    "client_frames": [
+      {
+        "type": "DATA",
+        "stream_id": 1
+      }
+    ]
+  },
+  {
+    "id": 83,
+    "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 1
+      },
+      {
+        "type": "DATA",
+        "stream_id": 1,
+        "flags": {
+          "END_STREAM": true
+        }
+      },
+      {
+        "type": "DATA",
+        "stream_id": 1
+      }
+    ]
+  },
+  {
+    "id": 84,
+    "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.)",
+    "client_frames": [
+      {
+        "type": "HEADERS"
+      },
+      {
+        "type": "RST_STREAM",
+        "stream_id": 1
+      },
+      {
+        "type": "DATA",
+        "stream_id": 1
+      }
+    ]
+  },
+  {
+    "id": 85,
+    "description": "A HEADERS frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "flags": {
+          "END_HEADERS": false
+        },
+        "stream_id": 1
+      },
+      {
+        "type": "DATA",
+        "stream_id": 1
+      }
+    ]
+  },
+  {
+    "id": 86,
+    "description": "If a HEADERS frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 0
+      }
+    ]
+  },
+  {
+    "id": 87,
+    "description": "A SETTINGS frame MUST be sent by both endpoints at the start of a connection and MAY be sent at any other time by either endpoint over the lifetime of the connection. (Tested from the client side.)",
+    "connection_settings_client": {
+      "skip_initial_settings": true
+    },
+    "client_frames": [
+      {
+        "type": "HEADERS"
+      }
+    ]
+  },
+  {
+    "id": 88,
+    "description": "Unsupported settings MUST be ignored.",
+    "client_frames": [
+      {
+        "type": "SETTINGS",
+        "settings": {
+          "12345": 16777216
+        }
+      }
+    ]
+  },
+  {
+    "id": 89,
+    "description": "The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Already Used Stream ID)",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 1
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promised_stream_id": 2
+      },
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promised_stream_id": 2
+      }
+    ]
+  },
+  {
+    "id": 90,
+    "description": "The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Lower Stream ID)",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 1
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promised_stream_id": 4
+      },
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promised_stream_id": 2
+      }
+    ]
+  },
+  {
+    "id": 91,
+    "description": "A PUSH_PROMISE frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 1
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promised_stream_id": 2,
+        "flags": {
+          "END_HEADERS": false
+        }
+      },
+      {
+        "type": "DATA",
+        "stream_id": 1
+      }
+    ]
+  },
+  {
+    "id": 92,
+    "description": "PUSH_PROMISE frames MUST only be sent on a peer-initiated stream that is in either the 'open' or 'half-closed (remote)' state. (Testing Idle Stream)",
+    "client_frames": [
+      {
+        "type": "SETTINGS",
+        "settings": {
+          "ENABLE_PUSH": 1
+        }
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promised_stream_id": 2
+      }
+    ]
+  },
+  {
+    "id": 93,
+    "description": "PUSH_PROMISE frames MUST only be sent on a peer-initiated stream that is in either the 'open' or 'half-closed (remote)' state. (Testing Server-Initiated Stream)",
+    "client_frames": [
+      {
+        "type": "SETTINGS",
+        "settings": {
+          "ENABLE_PUSH": 1
+        }
+      },
+      {
+        "type": "HEADERS",
+        "stream_id": 1
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promised_stream_id": 2
+      },
+      {
+        "type": "HEADERS",
+        "stream_id": 2
+      },
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 2,
+        "promised_stream_id": 4
+      }
+    ]
+  },
+  {
+    "id": 94,
+    "description": "PUSH_PROMISE frames MUST only be sent on a peer-initiated stream that is in either the 'open' or 'half-closed (remote)' state. (Half-closed (local))",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 1,
+        "flags": {
+          "END_STREAM": false
+        }
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 1,
+        "headers": {
+          ":status": "200"
+        }
+      },
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promised_stream_id": 2
+      }
+    ]
+  },
+  {
+    "id": 95,
+    "description": "PUSH_PROMISE frames MUST only be sent on a peer-initiated stream that is in either the 'open' or 'half-closed (remote)' state. (Closed stream)",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 1,
+        "flags": {
+          "END_STREAM": true
+        }
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 1,
+        "flags": {
+          "END_STREAM": true
+        }
+      },
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promised_stream_id": 2
+      }
+    ]
+  },
+  {
+    "id": 96,
+    "description": "PUSH_PROMISE MUST NOT be sent if the SETTINGS_ENABLE_PUSH setting of the peer endpoint is set to 0.",
+    "client_frames": [
+      {
+        "type": "SETTINGS",
+        "settings": {
+          "ENABLE_PUSH": 0
+        }
+      },
+      {
+        "type": "HEADERS",
+        "stream_id": 1,
+        "flags": {
+          "END_STREAM": false
+        }
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promised_stream_id": 2
+      }
+    ]
+  },
+  {
+    "id": 97,
+    "description": "Receivers of a GOAWAY frame MUST NOT open additional streams on the connection, although a new connection can be established for new streams.",
+    "client_frames": [
+      {
+        "type": "GOAWAY"
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 2
+      }
+    ]
+  },
+  {
+    "id": 98,
+    "description": "The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 1
+      },
+      {
+        "type": "DATA",
+        "stream_id": 1,
+        "payload_size": 2147483647
+      }
+    ]
+  },
+  {
+    "id": 99,
+    "description": "CONTINUATION frames MUST be associated with a stream.",
+    "client_frames": [
+      {
+        "type": "CONTINUATION",
+        "stream_id": 1
+      }
+    ]
+  },
+  {
+    "id": 100,
+    "description": "If the END_HEADERS flag is not set, this frame MUST be followed by another CONTINUATION frame. A receiver MUST treat the receipt of any other type of frame or a frame on a different stream as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 1,
+        "flags": {
+          "END_HEADERS": false
+        }
+      },
+      {
+        "type": "DATA"
+      }
+    ] 
+  },
+  {
+    "id": 101,
+    "description": "Other frames (from any stream) MUST NOT occur between the HEADERS frame and any CONTINUATION frames that might follow.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 1,
+        "flags": {
+          "END_HEADERS": false
+        }
+      },
+      {
+        "type": "DATA"
+      },
+      {
+        "type": "CONTINUATION",
+        "stream_id": 1
+      }
+    ]
+  },
+  {
+    "id": 102,
+    "description": "An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving the HEADERS frame that opens a request or after receiving a final (non-informational) status code MUST treat the corresponding request or response as malformed (Section 8.1.1).",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "flags": {
+          "END_STREAM": false
+        }
+      },
+      {
+        "type": "HEADERS",
+        "headers": {
+          "accept": "text/html"
+        },
+        "flags": {
+          "END_STREAM": false
+        }
+      }
+    ]
+  },
+  {
+    "id": 103,
+    "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the middle of the value)",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "raw_frame": true,
+        "headers": {
+          ":method": "GET",
+          ":scheme": "http",
+          ":path": "/",
+          ":authority": "example.com",
+          "x-lf-middle": "val\nue"
+        }
+      }
+    ]
+  },
+  {
+    "id": 104,
+    "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value)",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "raw_frame": true,
+        "headers": {
+          ":method": "GET",
+          ":scheme": "http",
+          ":path": "/",
+          ":authority": "example.com",
+          "x-lf-end": "value\n"
+        }
+      }
+    ]
+  },
+  {
+    "id": 105,
+    "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value)",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "raw_frame": true,
+        "headers": {
+          ":method": "GET",
+          ":scheme": "http",
+          ":path": "/",
+          ":authority": "example.com",
+          "x-cr-middle": "val\rue"
+        }
+      }
+    ]
+  },
+  {
+    "id": 106,
+    "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value)",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "raw_frame": true,
+        "headers": {
+          ":method": "GET",
+          ":scheme": "http",
+          ":path": "/",
+          ":authority": "example.com",
+          "x-cr-end": "value\r"
+        }
+      }
+    ]
+  },
+  {
+    "id": 107,
+    "description": "Pseudo-header fields MUST NOT appear in a trailer section.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "flags": {
+          "END_STREAM": false
+        }
+      },
+      {
+        "type": "DATA",
+        "flags": {
+          "END_STREAM": false
+        }
+      },
+      {
+        "type": "TRAILERS",
+        "headers": {
+          ":path": "/"
+        }
+      }
+    ]
+  },
+  {
+    "id": 108,
+    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing)",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "headers": {
+          ":method": "GET",
+          ":scheme": "http",
+          ":authority": "example.com"
+        }
+      }
+    ]
+  },
+  {
+    "id": 109,
+    "description": "Promised requests MUST be safe (see Section 9.2.1 of [HTTP]) and cacheable (see Section 9.2.3 of [HTTP]).",
+    "client_frames": [
+      {
+        "type": "HEADERS"
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "PUSH_PROMISE",
+        "headers": {
+          ":method": "POST",
+          ":scheme": "http",
+          ":path": "/",
+          ":authority": "example.com"
+        }
+      }
+    ]
+  },
+  {
+    "id": 110,
+    "description": "PUSH_PROMISE frames MUST NOT be sent by the client.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 1
+      },
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promise_stream_id": 2
+      }
+    ]
+  },
+  {
+    "id": 111,
+    "description": "The header fields in PUSH_PROMISE and any subsequent CONTINUATION frames MUST be a valid and complete set of request header fields.",
+    "client_frames": [
+      {
+        "type": "HEADERS"
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "PUSH_PROMISE",
+        "headers": {
+          ":method": "GET",
+          ":scheme": "http",
+          ":authority": "example.com"
+        }
+      }
+    ]
+  },
+  {
+    "id": 112,
+    "description": "The header fields in PUSH_PROMISE and any subsequent CONTINUATION frames MUST be a valid and complete set of request header fields.",
+    "server_frames": [
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promised_stream_id": 2
+      }
+    ]
+  },
+  {
+    "id": 113,
+    "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted. (Tested with only :scheme present)",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "headers": {
+          ":method": "CONNECT",
+          ":scheme": "http",
+          ":authority": "example.com:80"
+        }
+      }
+    ]
+  },
+  {
+    "id": 114,
+    "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted. (Tested with only :path present)",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "headers": {
+          ":method": "CONNECT",
+          ":path": "/",
+          ":authority": "example.com:80"
         }
       }
     ]
