@@ -46,8 +46,7 @@
 
 
 **Section 5.1.2 (Stream Concurrency):**
-   25. "Endpoints MUST NOT exceed the limit set by their peer."
-   26. "An endpoint that receives a HEADERS frame that causes its advertised concurrent stream limit to be exceeded MUST treat this as a stream error (Section 5.4.2) of type PROTOCOL_ERROR or REFUSED_STREAM."
+   25. "Endpoints MUST NOT exceed the limit set by their peer. An endpoint that receives a HEADERS frame that causes its advertised concurrent stream limit to be exceeded MUST treat this as a stream error (Section 5.4.2) of type PROTOCOL_ERROR or REFUSED_STREAM."
 
 **Section 5.2.1 (Flow-Control Principles):**
    27. "A sender MUST respect flow-control limits imposed by a receiver."

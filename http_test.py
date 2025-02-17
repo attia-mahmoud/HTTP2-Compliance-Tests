@@ -57,7 +57,14 @@ tests_trees_data = fetch_data(tests_trees_url)
 
 repository = "https://github.com/nopasaran-org/nopasaran-tests-trees"
 
-PROXY_WITH_VERSION = "Apache"
+list_of_proxies = [
+    {"PROXY_WITH_VERSION": "Apache", "PROXY_PORT": "80"},
+    {"PROXY_WITH_VERSION": "HAproxy", "PROXY_PORT": "80"},
+    {"PROXY_WITH_VERSION": "Node", "PROXY_PORT": "80"},
+    {"PROXY_WITH_VERSION": "Nghttpx", "PROXY_PORT": "80"}
+]
+
+PROXY_WITH_VERSION = "Caddy"
 
 CLIENT_WORKER = "labworker1.admin.worker.nopasaran.org"
 # The port the proxy is listening on
@@ -68,7 +75,7 @@ PROXY_IP = "192.168.122.133"
 SERVER_WORKER = "labworker2.admin.worker.nopasaran.org"
 # the address the server is listening on
 SERVER_IP = "0.0.0.0"
-SERVER_PORT = "8080"
+SERVER_PORT = "80"
 
 MASTER = "mahmoudmaster.admin.master.nopasaran.org"
 
@@ -82,8 +89,13 @@ with open('test_cases.json', 'r') as f:
 if not os.path.exists('results'):
     os.makedirs('results')
 
-timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-filename = f"results/test_results_{timestamp}-{PROXY_WITH_VERSION}.json"
+# Create proxy-specific directory
+proxy_dir = os.path.join('results', PROXY_WITH_VERSION)
+if not os.path.exists(proxy_dir):
+    os.makedirs(proxy_dir)
+
+timestamp = datetime.datetime.now().strftime("%d_%b_%H_%M")
+filename = f"{proxy_dir}/test_results_{timestamp}.json"
 all_results = {}
 
 for test_case in test_cases:

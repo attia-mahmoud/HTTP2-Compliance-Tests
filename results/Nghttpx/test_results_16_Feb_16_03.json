@@ -23,24 +23,19 @@
     }
   },
   "1": {
-    "description": "HTTP/2 over TLS uses the 'h2' protocol identifier. The 'h2c' protocol identifier MUST NOT be sent by a client or selected by a server.",
+    "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
+      "Worker_1": null,
       "Worker_2": {
-        "State": "FINAL",
+        "State": "TIMEOUT",
         "Variables": {
-          "server_result": "Frames were received but no tests were defined.",
-          "client_result": "No test frames were received or expected",
-          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
-          "sent_frames": "[]"
-        }
-      },
-      "Worker_1": {
-        "State": "FINAL",
-        "Variables": {
-          "client_result": "No test frames were received or expected",
-          "server_result": "Frames were received but no tests were defined.",
-          "frames_received": "[]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
         }
       }
     }
@@ -129,70 +124,72 @@
     }
   },
   "5": {
-    "description": "SETTINGS frame MUST be the first frame the server sends in the HTTP/2 connection.",
+    "description": "If this stream (initially in the idle state) is initiated by the server, as described in Section 5.1.1, then receiving a HEADERS frame MUST also be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
-      "Worker_2": {
-        "State": "FINAL",
+      "Worker_1": {
+        "State": "TIMEOUT",
         "Variables": {
-          "server_result": "Frames were received but no tests were defined.",
-          "client_result": "No test frames were received or expected",
-          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>]]",
-          "sent_frames": "[]"
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
         }
       },
-      "Worker_1": {
-        "State": "FINAL",
+      "Worker_2": {
+        "State": "TIMEOUT",
         "Variables": {
-          "client_result": "No test frames were received or expected",
-          "server_result": "Frames were received but no tests were defined.",
-          "frames_received": "[]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection",
+          "result": "TIMEOUT"
         }
       }
     }
   },
   "6": {
-    "description": "The SETTINGS frames received from server as part of the connection preface MUST be acknowledged by the client (see Section 6.5.3) after sending the connection preface.",
+    "description": "An endpoint MUST NOT send any type of frame other than HEADERS, RST_STREAM, or PRIORITY in the reserved (local) state.",
     "result": {
-      "Worker_2": {
-        "State": "FINAL",
-        "Variables": {
-          "server_result": "Frames were received but no tests were defined.",
-          "client_result": "No test frames were received or expected",
-          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
-          "sent_frames": "[]"
-        }
-      },
+      "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "TIMEOUT",
         "Variables": {
-          "client_result": "No test frames were received or expected",
-          "server_result": "Frames were received but no tests were defined.",
-          "frames_received": "[]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 1}}, {'type': 'HEADERS', 'stream_id': 1}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
         }
       }
     }
   },
   "7": {
-    "description": "The SETTINGS frames received from client as part of the connection preface MUST be acknowledged (see Section 6.5.3) after sending the connection preface.",
+    "description": "If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED.",
     "result": {
+      "Worker_1": null,
       "Worker_2": {
-        "State": "FINAL",
+        "State": "TIMEOUT",
         "Variables": {
-          "server_result": "Frames were received but no tests were defined.",
-          "client_result": "No test frames were received or expected",
-          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
-          "sent_frames": "[]"
-        }
-      },
-      "Worker_1": {
-        "State": "FINAL",
-        "Variables": {
-          "client_result": "No test frames were received or expected",
-          "server_result": "Frames were received but no tests were defined.",
-          "frames_received": "[]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
+          "server": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>], [<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
         }
       }
     }
@@ -251,15 +248,6 @@
   "10": {
     "description": "A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving.",
     "result": {
-      "Worker_2": {
-        "State": "FINAL",
-        "Variables": {
-          "server_result": "Frames were received but no tests were defined.",
-          "client_result": "No test frames were received or expected",
-          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
-          "sent_frames": "[]"
-        }
-      },
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
@@ -267,6 +255,21 @@
           "server_result": "Frames were received but no tests were defined.",
           "frames_received": "[]",
           "sent_frames": "[{'type': 'HEADERS', 'reserved_bit': True}]"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
+          "sent_frames": "[]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
         }
       }
     }
@@ -370,7 +373,7 @@
           "result": "TIMEOUT",
           "client_val": "client",
           "role": "client",
-          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}, 'stream_id': 1}, {'type': 'RST_STREAM', 'flags': {'END_STREAM': True}, 'stream_id': 1}]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}, 'stream_id': 1}, {'type': 'RST_STREAM', 'stream_id': 1}]",
           "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
           "event": "TIMEOUT",
           "result_received": "NULL"
@@ -639,22 +642,33 @@
   "23": {
     "description": "A server MUST NOT explicitly set this value (SETTINGS_ENABLE_PUSH) to 1. A server MAY choose to omit this setting (SETTINGS_ENABLE_PUSH) when it sends a SETTINGS frame, but if a server does include a value, it MUST be 0.",
     "result": {
-      "Worker_2": {
-        "State": "FINAL",
+      "Worker_1": {
+        "State": "TIMEOUT",
         "Variables": {
-          "server_result": "Frames were received but no tests were defined.",
-          "client_result": "Frames were received but no tests were defined.",
-          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
-          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 1}}]"
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 0}, 'tests': [[{'function': 'verifysettings', 'params': ['2', 'ChangedSetting(setting=2, original_value=1, new_value=0)']}]]}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
         }
       },
-      "Worker_1": {
-        "State": "FINAL",
+      "Worker_2": {
+        "State": "TIMEOUT",
         "Variables": {
-          "client_result": "Frames were received but no tests were defined.",
-          "server_result": "Frames were received but no tests were defined.",
-          "frames_received": "[[<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>], [<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 1}, 'tests': [[{'function': 'verifysettings', 'params': ['2', 'ChangedSetting(setting=2, original_value=0, new_value=1)']}]]}]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
         }
       }
     }
@@ -662,22 +676,33 @@
   "24": {
     "description": "A server MUST NOT send a PUSH_PROMISE frame if it receives the SETTINGS_ENABLE_PUSH (0x02) parameter set to a value of 0.",
     "result": {
-      "Worker_2": {
-        "State": "FINAL",
+      "Worker_1": {
+        "State": "TIMEOUT",
         "Variables": {
-          "server_result": "Frames were received but no tests were defined.",
-          "client_result": "Frames were received but no tests were defined.",
-          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>], [<SettingsAcknowledged changed_settings:{}>]]",
-          "sent_frames": "[{'type': 'PUSH_PROMISE', 'stream_id': 1, 'promised_stream_id': 2}]"
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 0}}, {'type': 'HEADERS', 'stream_id': 1}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
         }
       },
-      "Worker_1": {
-        "State": "FINAL",
+      "Worker_2": {
+        "State": "TIMEOUT",
         "Variables": {
-          "client_result": "Frames were received but no tests were defined.",
-          "server_result": "Frames were received but no tests were defined.",
-          "frames_received": "[[<SettingsAcknowledged changed_settings:{}>]]",
-          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 0}}, {'type': 'HEADERS', 'stream_id': 1}]"
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>], [<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'stream_id': 1, 'promised_stream_id': 2}]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
         }
       }
     }
@@ -778,33 +803,6 @@
   "28": {
     "description": "If the Stream Identifier field of a PUSH_PROMISE frame specifies the value 0x00, a recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
-      "Worker_2": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      }
-    }
-  },
-  "29": {
-    "description": "A receiver MUST treat the receipt of a PUSH_PROMISE that promises an illegal stream identifier (Section 5.1.1) as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
-    "result": {
       "Worker_1": {
         "State": "TIMEOUT",
         "Variables": {
@@ -828,10 +826,33 @@
           "server": null,
           "ctrl": null,
           "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>], [<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
-          "sent_frames": "[{'type': 'PUSH_PROMISE', 'stream_id': 1, 'promised_stream_id': 0}]",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'stream_id': 0, 'promised_stream_id': 2}]",
           "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
           "event": "TIMEOUT",
           "result_received": "NULL"
+        }
+      }
+    }
+  },
+  "29": {
+    "description": "The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Odd-numbered Stream ID (Invalid for Server))",
+    "result": {
+      "Worker_2": {
+        "State": "FINAL",
+        "Variables": {
+          "server_result": "Frames were received but no tests were defined.",
+          "client_result": "Frames were received but no tests were defined.",
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'stream_id': 1, 'promised_stream_id': 3}]"
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "client_result": "Frames were received but no tests were defined.",
+          "server_result": "Frames were received but no tests were defined.",
+          "frames_received": "[[<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1}]"
         }
       }
     }
@@ -1054,7 +1075,7 @@
     }
   },
   "37": {
-    "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set.",
+    "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using HEADERS frame with END_HEADERS flag set)",
     "result": {
       "Worker_1": {
         "State": "TIMEOUT",
@@ -1064,7 +1085,7 @@
           "result": "TIMEOUT",
           "client_val": "client",
           "role": "client",
-          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False}}, {'type': 'CONTINUATION', 'stream_id': 1}]",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False, 'END_HEADERS': True}}, {'type': 'CONTINUATION', 'stream_id': 1}]",
           "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
           "event": "TIMEOUT",
           "result_received": "NULL"
@@ -1088,7 +1109,7 @@
     }
   },
   "38": {
-    "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set.",
+    "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using PUSH_PROMISE frame with END_HEADERS flag set)",
     "result": {
       "Worker_2": {
         "State": "TIMEOUT",
@@ -1117,7 +1138,7 @@
     }
   },
   "39": {
-    "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set.",
+    "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using CONTINUATION frame with END_HEADERS flag set)",
     "result": {
       "Worker_1": {
         "State": "TIMEOUT",
@@ -1127,7 +1148,7 @@
           "result": "TIMEOUT",
           "client_val": "client",
           "role": "client",
-          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False, 'END_HEADERS': False}}, {'type': 'CONTINUATION', 'stream_id': 1, 'headers': {'accept': 'application/json'}}, {'type': 'CONTINUATION', 'stream_id': 1}]",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False, 'END_HEADERS': False}}, {'type': 'CONTINUATION', 'stream_id': 1, 'flags': {'END_HEADERS': True}, 'headers': {'accept': 'application/json'}}, {'type': 'CONTINUATION', 'stream_id': 1}]",
           "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
           "event": "TIMEOUT",
           "result_received": "NULL"
@@ -1161,7 +1182,7 @@
           "result": "TIMEOUT",
           "client_val": "client",
           "role": "client",
-          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False}}, {'type': 'DATA', 'stream_id': 1, 'flags': {'END_STREAM': False}}, {'type': 'TRAILERS', 'stream_id': 1, 'headers': {':path': '/'}}]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}}, {'type': 'DATA', 'flags': {'END_STREAM': False}}, {'type': 'TRAILERS', 'headers': {':path': '/'}}]",
           "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
           "event": "TIMEOUT",
           "result_received": "NULL"
@@ -1371,7 +1392,7 @@
     }
   },
   "47": {
-    "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a)",
+    "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the start of the value)",
     "result": {
       "Worker_1": {
         "State": "TIMEOUT",
@@ -1381,7 +1402,7 @@
           "result": "TIMEOUT",
           "client_val": "client",
           "role": "client",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-lf-start': '\\nvalue', 'x-lf-middle': 'val\\nue', 'x-lf-end': 'value\\n'}}]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-lf-start': '\\nvalue'}}]",
           "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
           "event": "TIMEOUT",
           "result_received": "NULL"
@@ -1402,7 +1423,7 @@
     }
   },
   "48": {
-    "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d)",
+    "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the start of the value)",
     "result": {
       "Worker_1": {
         "State": "TIMEOUT",
@@ -1412,7 +1433,7 @@
           "result": "TIMEOUT",
           "client_val": "client",
           "role": "client",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-cr-start': '\\rvalue', 'x-cr-middle': 'val\\rue', 'x-cr-end': 'value\\r'}}]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-cr-start': '\\rvalue'}}]",
           "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
           "event": "TIMEOUT",
           "result_received": "NULL"
@@ -1940,12 +1961,18 @@
         }
       },
       "Worker_1": {
-        "State": "FINAL",
+        "State": "TIMEOUT",
         "Variables": {
-          "client_result": "No test frames were received or expected",
-          "server_result": "Frames were received but no tests were defined.",
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "client": null,
+          "ctrl": null,
           "frames_received": "[]",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'host': 'nopasaran.com'}}]"
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'host': 'nopasaran.com'}}]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
         }
       }
     }
@@ -2005,7 +2032,7 @@
     }
   },
   "69": {
-    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1).",
+    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :method missing)",
     "result": {
       "Worker_1": {
         "State": "TIMEOUT",
@@ -2036,7 +2063,7 @@
     }
   },
   "70": {
-    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1).",
+    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :scheme missing)",
     "result": {
       "Worker_1": {
         "State": "TIMEOUT",
@@ -2069,6 +2096,15 @@
   "71": {
     "description": "For HTTP/2 responses, a single \":status\" pseudo-header field is defined that carries the HTTP status code field. This pseudo-header field MUST be included in all responses, including interim responses; otherwise, the response is malformed.",
     "result": {
+      "Worker_2": {
+        "State": "FINAL",
+        "Variables": {
+          "server_result": "Frames were received but no tests were defined.",
+          "client_result": "Frames were received but no tests were defined.",
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {'date': '2024-01-01'}}]"
+        }
+      },
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
@@ -2076,21 +2112,6 @@
           "server_result": "Frames were received but no tests were defined.",
           "frames_received": "[[<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
           "sent_frames": "[{'type': 'HEADERS'}]"
-        }
-      },
-      "Worker_2": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "result": "TIMEOUT",
-          "client_val": "client",
-          "role": "server",
-          "server": null,
-          "ctrl": null,
-          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':status': ''}}]",
-          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
-          "event": "TIMEOUT",
-          "result_received": "NULL"
         }
       }
     }
@@ -2106,7 +2127,7 @@
           "result": "TIMEOUT",
           "client_val": "client",
           "role": "client",
-          "sent_frames": "[{'type': 'PUSH_PROMISE'}]",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1}, {'type': 'PUSH_PROMISE', 'stream_id': 1, 'promise_stream_id': 2}]",
           "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
           "event": "TIMEOUT",
           "result_received": "NULL"
@@ -2115,13 +2136,16 @@
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
-          "ctrl": null,
-          "role": "server",
+          "result": "TIMEOUT",
           "client_val": "client",
-          "event": "TIMEOUT",
+          "role": "server",
           "server": null,
-          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
-          "result": "TIMEOUT"
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <SettingsAcknowledged changed_settings:{}>], [<ConnectionTerminated error_code:4, last_stream_id:0, additional_data:None>]]",
+          "sent_frames": "[]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
         }
       }
     }
@@ -2156,7 +2180,7 @@
     }
   },
   "74": {
-    "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted.",
+    "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted. (Tested with both present)",
     "result": {
       "Worker_1": {
         "State": "TIMEOUT",
@@ -2205,6 +2229,1108 @@
           "server_result": "Frames were received but no tests were defined.",
           "frames_received": "[]",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':authority': 'example.com'}}]"
+        }
+      }
+    }
+  },
+  "76": {
+    "description": "An endpoint MUST NOT send frames other than PRIORITY on a closed stream.",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False}}, {'type': 'RST_STREAM', 'stream_id': 1}, {'type': 'HEADERS', 'stream_id': 1}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <SettingsAcknowledged changed_settings:{}>], [<ConnectionTerminated error_code:4, last_stream_id:0, additional_data:None>], []]",
+          "sent_frames": "[]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      }
+    }
+  },
+  "77": {
+    "description": "RST_STREAM frames MUST NOT be sent for a stream in the 'idle' state.",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'RST_STREAM', 'stream_id': 1}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "78": {
+    "description": "RST_STREAM frames MUST be associated with a stream.",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'RST_STREAM'}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "79": {
+    "description": "Implementations MUST discard frames that have unknown or unsupported types.",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'UNKNOWN', 'stream_id': 1, 'frame_type_id': 99, 'payload': 'test payload'}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "80": {
+    "description": "DATA frames MUST be associated with a stream.",
+    "result": {
+      "Worker_1": null,
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "81": {
+    "description": "If a DATA frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "result": {
+      "Worker_1": null,
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "server": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>], [<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      }
+    }
+  },
+  "82": {
+    "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the idle state.)",
+    "result": {
+      "Worker_1": null,
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "83": {
+    "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)",
+    "result": {
+      "Worker_1": null,
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "server": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>], [<StreamReset stream_id:1, error_code:0, remote_reset:True>], [<ConnectionTerminated error_code:4, last_stream_id:0, additional_data:None>]]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      }
+    }
+  },
+  "84": {
+    "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.)",
+    "result": {
+      "Worker_1": null,
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "server": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <SettingsAcknowledged changed_settings:{}>], [<ConnectionTerminated error_code:4, last_stream_id:0, additional_data:None>], []]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      }
+    }
+  },
+  "85": {
+    "description": "A HEADERS frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream.",
+    "result": {
+      "Worker_1": null,
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "86": {
+    "description": "If a HEADERS frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 0}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "87": {
+    "description": "A SETTINGS frame MUST be sent by both endpoints at the start of a connection and MAY be sent at any other time by either endpoint over the lifetime of the connection. (Tested from the client side.)",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'HEADERS'}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "88": {
+    "description": "Unsupported settings MUST be ignored.",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'12345': 16777216}}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "89": {
+    "description": "The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Already Used Stream ID)",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'stream_id': 1, 'promised_stream_id': 2}, {'type': 'PUSH_PROMISE', 'stream_id': 1, 'promised_stream_id': 2}]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "client": null,
+          "ctrl": null,
+          "frames_received": "[[<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1}]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      }
+    }
+  },
+  "90": {
+    "description": "The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Lower Stream ID)",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'stream_id': 1, 'promised_stream_id': 4}, {'type': 'PUSH_PROMISE', 'stream_id': 1, 'promised_stream_id': 2}]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "client_result": "Frames were received but no tests were defined.",
+          "server_result": "Frames were received but no tests were defined.",
+          "frames_received": "[[<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1}]"
+        }
+      }
+    }
+  },
+  "91": {
+    "description": "A PUSH_PROMISE frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream.",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'stream_id': 1, 'promised_stream_id': 2, 'flags': {'END_HEADERS': False}}, {'type': 'DATA', 'stream_id': 1}]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "client_result": "Frames were received but no tests were defined.",
+          "server_result": "Frames were received but no tests were defined.",
+          "frames_received": "[[<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1}]"
+        }
+      }
+    }
+  },
+  "92": {
+    "description": "PUSH_PROMISE frames MUST only be sent on a peer-initiated stream that is in either the 'open' or 'half-closed (remote)' state. (Testing Idle Stream)",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 1}}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "93": {
+    "description": "PUSH_PROMISE frames MUST only be sent on a peer-initiated stream that is in either the 'open' or 'half-closed (remote)' state. (Testing Server-Initiated Stream)",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 1}}, {'type': 'HEADERS', 'stream_id': 1}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>], [<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'stream_id': 1, 'promised_stream_id': 2}, {'type': 'HEADERS', 'stream_id': 2}, {'type': 'PUSH_PROMISE', 'stream_id': 2, 'promised_stream_id': 4}]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      }
+    }
+  },
+  "94": {
+    "description": "PUSH_PROMISE frames MUST only be sent on a peer-initiated stream that is in either the 'open' or 'half-closed (remote)' state. (Half-closed (local))",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <SettingsAcknowledged changed_settings:{}>]]",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'headers': {':status': '200'}}, {'type': 'PUSH_PROMISE', 'stream_id': 1, 'promised_stream_id': 2}]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "client_result": "Frames were received but no tests were defined.",
+          "server_result": "Frames were received but no tests were defined.",
+          "frames_received": "[[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False}}]"
+        }
+      }
+    }
+  },
+  "95": {
+    "description": "PUSH_PROMISE frames MUST only be sent on a peer-initiated stream that is in either the 'open' or 'half-closed (remote)' state. (Closed stream)",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': True}}, {'type': 'PUSH_PROMISE', 'stream_id': 1, 'promised_stream_id': 2}]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "client_result": "Frames were received but no tests were defined.",
+          "server_result": "Frames were received but no tests were defined.",
+          "frames_received": "[[<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': True}}]"
+        }
+      }
+    }
+  },
+  "96": {
+    "description": "PUSH_PROMISE MUST NOT be sent if the SETTINGS_ENABLE_PUSH setting of the peer endpoint is set to 0.",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 0}}, {'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False}}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <SettingsAcknowledged changed_settings:{}>], [<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'stream_id': 1, 'promised_stream_id': 2}]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      }
+    }
+  },
+  "97": {
+    "description": "Receivers of a GOAWAY frame MUST NOT open additional streams on the connection, although a new connection can be established for new streams.",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'GOAWAY'}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "98": {
+    "description": "The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver.",
+    "result": {
+      "Worker_1": null,
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "server": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>], [<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      }
+    }
+  },
+  "99": {
+    "description": "CONTINUATION frames MUST be associated with a stream.",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'CONTINUATION', 'stream_id': 1}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "100": {
+    "description": "If the END_HEADERS flag is not set, this frame MUST be followed by another CONTINUATION frame. A receiver MUST treat the receipt of any other type of frame or a frame on a different stream as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "result": {
+      "Worker_1": null,
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "101": {
+    "description": "Other frames (from any stream) MUST NOT occur between the HEADERS frame and any CONTINUATION frames that might follow.",
+    "result": {
+      "Worker_1": null,
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "102": {
+    "description": "An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving the HEADERS frame that opens a request or after receiving a final (non-informational) status code MUST treat the corresponding request or response as malformed (Section 8.1.1).",
+    "result": {
+      "Worker_1": null,
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "server": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <SettingsAcknowledged changed_settings:{}>], [<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      }
+    }
+  },
+  "103": {
+    "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the middle of the value)",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-lf-middle': 'val\\nue'}}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "104": {
+    "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value)",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-lf-end': 'value\\n'}}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "105": {
+    "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value)",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-cr-middle': 'val\\rue'}}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "106": {
+    "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value)",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-cr-end': 'value\\r'}}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "107": {
+    "description": "Pseudo-header fields MUST NOT appear in a trailer section.",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}}, {'type': 'DATA', 'flags': {'END_STREAM': False}}, {'type': 'TRAILERS', 'headers': {':path': '/'}}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <SettingsAcknowledged changed_settings:{}>], [<ConnectionTerminated error_code:4, last_stream_id:0, additional_data:None>], []]",
+          "sent_frames": "[]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      }
+    }
+  },
+  "108": {
+    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing)",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':authority': 'example.com'}}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "109": {
+    "description": "Promised requests MUST be safe (see Section 9.2.1 of [HTTP]) and cacheable (see Section 9.2.3 of [HTTP]).",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'headers': {':method': 'POST', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}}]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "client": null,
+          "ctrl": null,
+          "frames_received": "[[<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "sent_frames": "[{'type': 'HEADERS'}]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      }
+    }
+  },
+  "110": {
+    "description": "PUSH_PROMISE frames MUST NOT be sent by the client.",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1}, {'type': 'PUSH_PROMISE', 'stream_id': 1, 'promise_stream_id': 2}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <SettingsAcknowledged changed_settings:{}>], [<ConnectionTerminated error_code:4, last_stream_id:0, additional_data:None>]]",
+          "sent_frames": "[]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      }
+    }
+  },
+  "111": {
+    "description": "The header fields in PUSH_PROMISE and any subsequent CONTINUATION frames MUST be a valid and complete set of request header fields.",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "server",
+          "server": null,
+          "ctrl": null,
+          "frames_received": "[[<RemoteSettingsChanged changed_settings:{ChangedSetting(setting=3, original_value=None, new_value=100), ChangedSetting(setting=4, original_value=65535, new_value=65535), ChangedSetting(setting=9, original_value=None, new_value=1), ChangedSetting(setting=2, original_value=1, new_value=0)}>, <WindowUpdated stream_id:0, delta:2147418112>, <RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'localhost'), ('via', '2 nghttpx')]>, <StreamEnded stream_id:1>, <SettingsAcknowledged changed_settings:{}>]]",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'headers': {':method': 'GET', ':scheme': 'http', ':authority': 'example.com'}}]",
+          "state": "EXCHANGING_SYNC_SERVER_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "client_result": "Frames were received but no tests were defined.",
+          "server_result": "Frames were received but no tests were defined.",
+          "frames_received": "[[<StreamReset stream_id:1, error_code:0, remote_reset:True>]]",
+          "sent_frames": "[{'type': 'HEADERS'}]"
+        }
+      }
+    }
+  },
+  "112": {
+    "description": "The header fields in PUSH_PROMISE and any subsequent CONTINUATION frames MUST be a valid and complete set of request header fields.",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "113": {
+    "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted. (Tested with only :scheme present)",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':scheme': 'http', ':authority': 'example.com:80'}}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "114": {
+    "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted. (Tested with only :path present)",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "client": null,
+          "ctrl": null,
+          "result": "TIMEOUT",
+          "client_val": "client",
+          "role": "client",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':path': '/', ':authority': 'example.com:80'}}]",
+          "state": "EXCHANGING_SYNC_CLIENT_FRAMES_SENT",
+          "event": "TIMEOUT",
+          "result_received": "NULL"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
+          "result": "TIMEOUT"
         }
       }
     }
