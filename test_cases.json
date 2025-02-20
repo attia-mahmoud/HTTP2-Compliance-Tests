@@ -87,9 +87,15 @@
   {
     "id": 5,
     "description": "If this stream (initially in the idle state) is initiated by the server, as described in Section 5.1.1, then receiving a HEADERS frame MUST also be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
-    "server_frames": [
+    "client_frames": [
       {
         "type": "HEADERS"
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 2
       }
     ]
   },
@@ -111,10 +117,12 @@
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
+        "stream_id": 1,
         "promised_stream_id": 2
       },
       {
-        "type": "DATA"
+        "type": "DATA",
+        "stream_id": 2
       }
     ]
   },
