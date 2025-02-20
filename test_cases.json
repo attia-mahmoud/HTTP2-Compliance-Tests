@@ -104,14 +104,11 @@
     "description": "An endpoint MUST NOT send any type of frame other than HEADERS, RST_STREAM, or PRIORITY in the reserved (local) state.",
     "client_frames": [
       {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
-      },
-      {
         "type": "HEADERS",
-        "stream_id": 1
+        "stream_id": 1,
+        "flags": {
+          "END_STREAM": false
+        }
       }
     ],
     "server_frames": [
