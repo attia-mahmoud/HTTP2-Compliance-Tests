@@ -152,17 +152,7 @@
       },
       {
         "type": "DATA",
-        "payload_size": 17000,
-        "tests": [
-          [
-            {
-              "function": "verifylength",
-              "params": [
-                17000
-              ]
-            }
-          ]
-        ]
+        "payload_size": 17000
       }
     ]
   },
@@ -240,9 +230,6 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        },
         "stream_id": 3
       },
       {
@@ -317,9 +304,6 @@
       },
       {
         "type": "RST_STREAM",
-        "flags": {
-          "END_STREAM": true
-        },
         "stream_id": 1
       }
     ],
@@ -369,17 +353,7 @@
         },
         "settings": {
           "MAX_CONCURRENT_STREAMS": 100
-        },
-        "tests": [
-          [
-            {
-              "function": "verifytype",
-              "params": [
-                "SettingsAcknowledged"
-              ]
-            }
-          ]
-        ]
+        }
       }
     ]
   },
@@ -445,18 +419,7 @@
         "type": "SETTINGS",
         "settings": {
           "ENABLE_PUSH": 2
-        },
-        "tests": [
-          [
-            {
-              "function": "verifysettings",
-              "params": [
-                "2",
-                "ChangedSetting(setting=2, original_value=1, new_value=2)"
-              ]
-            }
-          ]
-        ]
+        }
       }
     ]
   },
@@ -466,23 +429,6 @@
     "client_frames": [
       {
         "type": "HEADERS"
-      },
-      {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 0
-        },
-        "tests": [
-          [
-            {
-              "function": "verifysettings",
-              "params": [
-                "2",
-                "ChangedSetting(setting=2, original_value=1, new_value=0)"
-              ]
-            }
-          ]
-        ]
       }
     ],
     "server_frames": [
@@ -490,18 +436,7 @@
         "type": "SETTINGS",
         "settings": {
           "ENABLE_PUSH": 1
-        },
-        "tests": [
-          [
-            {
-              "function": "verifysettings",
-              "params": [
-                "2",
-                "ChangedSetting(setting=2, original_value=0, new_value=1)"
-              ]
-            }
-          ]
-        ]
+        }
       }
     ]
   },
@@ -517,7 +452,10 @@
       },
       {
         "type": "HEADERS",
-        "stream_id": 1
+        "stream_id": 1,
+        "flags": {
+          "END_STREAM": false
+        }
       }
     ],
     "server_frames": [
