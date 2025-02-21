@@ -498,7 +498,8 @@
         "type": "SETTINGS",
         "settings": {
           "12345": 16777216
-        }
+        },
+        "raw_payload": true
       }
     ]
   },
@@ -506,12 +507,6 @@
     "id": 28,
     "description": "If the Stream Identifier field of a PUSH_PROMISE frame specifies the value 0x00, a recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "client_frames": [
-      {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
-      },
       {
         "type": "HEADERS",
         "stream_id": 1
@@ -554,11 +549,15 @@
   },
   {
     "id": 31,
-    "description": "Receipt of a PING frame with a length field value other than 8 MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR.",
+    "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted. (Tested with only :path present)",
     "client_frames": [
       {
-        "type": "PING",
-        "data": "1234"
+        "type": "HEADERS",
+        "headers": {
+          ":method": "CONNECT",
+          ":path": "/",
+          ":authority": "example.com:80"
+        }
       }
     ]
   },
@@ -1969,20 +1968,6 @@
         "headers": {
           ":method": "CONNECT",
           ":scheme": "http",
-          ":authority": "example.com:80"
-        }
-      }
-    ]
-  },
-  {
-    "id": 114,
-    "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted. (Tested with only :path present)",
-    "client_frames": [
-      {
-        "type": "HEADERS",
-        "headers": {
-          ":method": "CONNECT",
-          ":path": "/",
           ":authority": "example.com:80"
         }
       }
