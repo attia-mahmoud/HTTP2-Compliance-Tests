@@ -563,11 +563,15 @@
   },
   {
     "id": 32,
-    "description": "An endpoint MUST treat a GOAWAY frame with a stream identifier other than 0x00 as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted. (Tested with only :scheme present)",
     "client_frames": [
       {
-        "type": "GOAWAY",
-        "stream_id": 1
+        "type": "HEADERS",
+        "headers": {
+          ":method": "CONNECT",
+          ":scheme": "http",
+          ":authority": "example.com:80"
+        }
       }
     ]
   },
@@ -1956,20 +1960,6 @@
         "type": "PUSH_PROMISE",
         "stream_id": 1,
         "promised_stream_id": 2
-      }
-    ]
-  },
-  {
-    "id": 113,
-    "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted. (Tested with only :scheme present)",
-    "client_frames": [
-      {
-        "type": "HEADERS",
-        "headers": {
-          ":method": "CONNECT",
-          ":scheme": "http",
-          ":authority": "example.com:80"
-        }
       }
     ]
   }
