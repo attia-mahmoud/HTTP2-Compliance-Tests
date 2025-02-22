@@ -68,8 +68,6 @@ list_of_proxies = [
     {"PROXY": "Node", "PROXY_PORT": "7707", "tls_enabled": "false"}
 ]
 
-PROXY_WITH_VERSION = "Mitmproxy"
-
 CLIENT_WORKER = "labworker1.admin.worker.nopasaran.org"
 
 PROXY_IP = "192.168.122.133"
