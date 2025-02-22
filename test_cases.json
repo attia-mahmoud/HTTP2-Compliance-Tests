@@ -1403,19 +1403,22 @@
   },
   {
     "id": 83,
-    "description": "PUSH_PROMISE frames MUST NOT be sent by the client.",
+    "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)",
     "client_frames": [
       {
         "type": "HEADERS",
+        "stream_id": 1
+      },
+      {
+        "type": "DATA",
         "stream_id": 1,
         "flags": {
-          "END_STREAM": false
+          "END_STREAM": true
         }
       },
       {
-        "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promise_stream_id": 2
+        "type": "DATA",
+        "stream_id": 1
       }
     ]
   },
@@ -1424,7 +1427,10 @@
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.)",
     "client_frames": [
       {
-        "type": "HEADERS"
+        "type": "HEADERS",
+        "flags": {
+          "END_STREAM": false
+        }
       },
       {
         "type": "RST_STREAM",
@@ -1443,7 +1449,8 @@
       {
         "type": "HEADERS",
         "flags": {
-          "END_HEADERS": false
+          "END_HEADERS": false,
+          "END_STREAM": false
         },
         "stream_id": 1
       },
@@ -1493,7 +1500,10 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1
+        "stream_id": 1,
+        "flags": {
+          "END_STREAM": false
+        }
       }
     ],
     "server_frames": [
@@ -1515,7 +1525,10 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1
+        "stream_id": 1,
+        "flags": {
+          "END_STREAM": false
+        }
       }
     ],
     "server_frames": [
@@ -1537,7 +1550,10 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1
+        "stream_id": 1,
+        "flags": {
+          "END_STREAM": false
+        }
       }
     ],
     "server_frames": [
@@ -1557,111 +1573,6 @@
   },
   {
     "id": 92,
-    "description": "PUSH_PROMISE frames MUST only be sent on a peer-initiated stream that is in either the 'open' or 'half-closed (remote)' state. (Testing Idle Stream)",
-    "client_frames": [
-      {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
-      }
-    ],
-    "server_frames": [
-      {
-        "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promised_stream_id": 2
-      }
-    ]
-  },
-  {
-    "id": 93,
-    "description": "PUSH_PROMISE frames MUST only be sent on a peer-initiated stream that is in either the 'open' or 'half-closed (remote)' state. (Testing Server-Initiated Stream)",
-    "client_frames": [
-      {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
-      },
-      {
-        "type": "HEADERS",
-        "stream_id": 1
-      }
-    ],
-    "server_frames": [
-      {
-        "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promised_stream_id": 2
-      },
-      {
-        "type": "HEADERS",
-        "stream_id": 2
-      },
-      {
-        "type": "PUSH_PROMISE",
-        "stream_id": 2,
-        "promised_stream_id": 4
-      }
-    ]
-  },
-  {
-    "id": 94,
-    "description": "PUSH_PROMISE frames MUST only be sent on a peer-initiated stream that is in either the 'open' or 'half-closed (remote)' state. (Half-closed (local))",
-    "client_frames": [
-      {
-        "type": "HEADERS",
-        "stream_id": 1,
-        "flags": {
-          "END_STREAM": false
-        }
-      }
-    ],
-    "server_frames": [
-      {
-        "type": "HEADERS",
-        "stream_id": 1,
-        "headers": {
-          ":status": "200"
-        }
-      },
-      {
-        "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promised_stream_id": 2
-      }
-    ]
-  },
-  {
-    "id": 95,
-    "description": "PUSH_PROMISE frames MUST only be sent on a peer-initiated stream that is in either the 'open' or 'half-closed (remote)' state. (Closed stream)",
-    "client_frames": [
-      {
-        "type": "HEADERS",
-        "stream_id": 1,
-        "flags": {
-          "END_STREAM": true
-        }
-      }
-    ],
-    "server_frames": [
-      {
-        "type": "HEADERS",
-        "stream_id": 1,
-        "flags": {
-          "END_STREAM": true
-        }
-      },
-      {
-        "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promised_stream_id": 2
-      }
-    ]
-  },
-  {
-    "id": 96,
     "description": "PUSH_PROMISE MUST NOT be sent if the SETTINGS_ENABLE_PUSH setting of the peer endpoint is set to 0.",
     "client_frames": [
       {
@@ -1687,22 +1598,7 @@
     ]
   },
   {
-    "id": 97,
-    "description": "Receivers of a GOAWAY frame MUST NOT open additional streams on the connection, although a new connection can be established for new streams.",
-    "client_frames": [
-      {
-        "type": "GOAWAY"
-      }
-    ],
-    "server_frames": [
-      {
-        "type": "HEADERS",
-        "stream_id": 2
-      }
-    ]
-  },
-  {
-    "id": 98,
+    "id": 93,
     "description": "The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver.",
     "client_frames": [
       {
@@ -1717,7 +1613,7 @@
     ]
   },
   {
-    "id": 99,
+    "id": 94,
     "description": "CONTINUATION frames MUST be associated with a stream.",
     "client_frames": [
       {
@@ -1727,14 +1623,15 @@
     ]
   },
   {
-    "id": 100,
+    "id": 95,
     "description": "If the END_HEADERS flag is not set, this frame MUST be followed by another CONTINUATION frame. A receiver MUST treat the receipt of any other type of frame or a frame on a different stream as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "client_frames": [
       {
         "type": "HEADERS",
         "stream_id": 1,
         "flags": {
-          "END_HEADERS": false
+          "END_HEADERS": false,
+          "END_STREAM": false
         }
       },
       {
@@ -1743,14 +1640,15 @@
     ] 
   },
   {
-    "id": 101,
+    "id": 96,
     "description": "Other frames (from any stream) MUST NOT occur between the HEADERS frame and any CONTINUATION frames that might follow.",
     "client_frames": [
       {
         "type": "HEADERS",
         "stream_id": 1,
         "flags": {
-          "END_HEADERS": false
+          "END_HEADERS": false,
+          "END_STREAM": false
         }
       },
       {
@@ -1763,7 +1661,7 @@
     ]
   },
   {
-    "id": 102,
+    "id": 97,
     "description": "An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving the HEADERS frame that opens a request or after receiving a final (non-informational) status code MUST treat the corresponding request or response as malformed (Section 8.1.1).",
     "client_frames": [
       {
@@ -1774,9 +1672,6 @@
       },
       {
         "type": "HEADERS",
-        "headers": {
-          "accept": "text/html"
-        },
         "flags": {
           "END_STREAM": false
         }
@@ -1784,7 +1679,7 @@
     ]
   },
   {
-    "id": 103,
+    "id": 98,
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the middle of the value)",
     "client_frames": [
       {
@@ -1801,7 +1696,7 @@
     ]
   },
   {
-    "id": 104,
+    "id": 99,
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value)",
     "client_frames": [
       {
@@ -1818,7 +1713,7 @@
     ]
   },
   {
-    "id": 105,
+    "id": 100,
     "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value)",
     "client_frames": [
       {
@@ -1835,7 +1730,7 @@
     ]
   },
   {
-    "id": 106,
+    "id": 101,
     "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value)",
     "client_frames": [
       {
@@ -1852,17 +1747,11 @@
     ]
   },
   {
-    "id": 107,
+    "id": 102,
     "description": "Pseudo-header fields MUST NOT appear in a trailer section.",
     "client_frames": [
       {
         "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
-      },
-      {
-        "type": "DATA",
         "flags": {
           "END_STREAM": false
         }
@@ -1876,7 +1765,7 @@
     ]
   },
   {
-    "id": 108,
+    "id": 103,
     "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing)",
     "client_frames": [
       {
@@ -1890,11 +1779,14 @@
     ]
   },
   {
-    "id": 109,
+    "id": 104,
     "description": "Promised requests MUST be safe (see Section 9.2.1 of [HTTP]) and cacheable (see Section 9.2.3 of [HTTP]).",
     "client_frames": [
       {
-        "type": "HEADERS"
+        "type": "HEADERS",
+        "flags": {
+          "END_STREAM": false
+        }
       }
     ],
     "server_frames": [
@@ -1906,6 +1798,21 @@
           ":path": "/",
           ":authority": "example.com"
         }
+      }
+    ]
+  },
+  {
+    "id": 105,
+    "description": "PUSH_PROMISE frames MUST NOT be sent by the client.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 1
+      },
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promise_stream_id": 2
       }
     ]
   }
