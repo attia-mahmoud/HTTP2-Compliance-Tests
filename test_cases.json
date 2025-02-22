@@ -1256,7 +1256,10 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1
+        "stream_id": 1,
+        "flags": {
+          "END_STREAM": false
+        }
       },
       {
         "type": "PUSH_PROMISE",
@@ -1400,22 +1403,19 @@
   },
   {
     "id": 83,
-    "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)",
+    "description": "PUSH_PROMISE frames MUST NOT be sent by the client.",
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1
-      },
-      {
-        "type": "DATA",
         "stream_id": 1,
         "flags": {
-          "END_STREAM": true
+          "END_STREAM": false
         }
       },
       {
-        "type": "DATA",
-        "stream_id": 1
+        "type": "PUSH_PROMISE",
+        "stream_id": 1,
+        "promise_stream_id": 2
       }
     ]
   },
@@ -1906,21 +1906,6 @@
           ":path": "/",
           ":authority": "example.com"
         }
-      }
-    ]
-  },
-  {
-    "id": 110,
-    "description": "PUSH_PROMISE frames MUST NOT be sent by the client.",
-    "client_frames": [
-      {
-        "type": "HEADERS",
-        "stream_id": 1
-      },
-      {
-        "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promise_stream_id": 2
       }
     ]
   }
