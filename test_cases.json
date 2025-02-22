@@ -670,29 +670,20 @@
   },
   {
     "id": 39,
-    "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using CONTINUATION frame with END_HEADERS flag set)",
+    "description": "The header fields in PUSH_PROMISE and any subsequent CONTINUATION frames MUST be a valid and complete set of request header fields.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 1,
-        "flags": {
-          "END_STREAM": false,
-          "END_HEADERS": false
-        }
-      },
+        "type": "HEADERS"
+      }
+    ],
+    "server_frames": [
       {
-        "type": "CONTINUATION",
-        "stream_id": 1,
-        "flags": {
-          "END_HEADERS": true
-        },
+        "type": "PUSH_PROMISE",
         "headers": {
-          "accept": "application/json"
+          ":method": "GET",
+          ":scheme": "http",
+          ":authority": "example.com"
         }
-      },
-      {
-        "type": "CONTINUATION",
-        "stream_id": 1
       }
     ]
   },
@@ -1930,36 +1921,6 @@
         "type": "PUSH_PROMISE",
         "stream_id": 1,
         "promise_stream_id": 2
-      }
-    ]
-  },
-  {
-    "id": 111,
-    "description": "The header fields in PUSH_PROMISE and any subsequent CONTINUATION frames MUST be a valid and complete set of request header fields.",
-    "client_frames": [
-      {
-        "type": "HEADERS"
-      }
-    ],
-    "server_frames": [
-      {
-        "type": "PUSH_PROMISE",
-        "headers": {
-          ":method": "GET",
-          ":scheme": "http",
-          ":authority": "example.com"
-        }
-      }
-    ]
-  },
-  {
-    "id": 112,
-    "description": "The header fields in PUSH_PROMISE and any subsequent CONTINUATION frames MUST be a valid and complete set of request header fields.",
-    "server_frames": [
-      {
-        "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promised_stream_id": 2
       }
     ]
   }
