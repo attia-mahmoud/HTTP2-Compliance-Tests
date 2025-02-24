@@ -2542,5 +2542,219 @@
         }
       }
     }
+  },
+  "97": {
+    "description": "An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving the HEADERS frame that opens a request or after receiving a final (non-informational) status code MUST treat the corresponding request or response as malformed (Section 8.1.1).",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred after 5s while waiting for client connection at 0.0.0.0:8080. No client connection was established.",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'trailing HEADERS frame MUST have END_STREAM flag set'.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}}, {'type': 'HEADERS', 'flags': {'END_STREAM': False}}]"
+        }
+      }
+    }
+  },
+  "98": {
+    "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the middle of the value)",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred after 5s while waiting for client connection at 0.0.0.0:8080. No client connection was established.",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-lf-middle': 'val\\nue'}}]"
+        }
+      }
+    }
+  },
+  "99": {
+    "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value)",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred after 5s while waiting for client connection at 0.0.0.0:8080. No client connection was established.",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-lf-end': 'value\\n'}}]"
+        }
+      }
+    }
+  },
+  "100": {
+    "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value)",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred after 5s while waiting for client connection at 0.0.0.0:8080. No client connection was established.",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-cr-middle': 'val\\rue'}}]"
+        }
+      }
+    }
+  },
+  "101": {
+    "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value)",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred after 5s while waiting for client connection at 0.0.0.0:8080. No client connection was established.",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-cr-end': 'value\\r'}}]"
+        }
+      }
+    }
+  },
+  "102": {
+    "description": "Pseudo-header fields MUST NOT appear in a trailer section.",
+    "result": {
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "role": "client",
+          "client_val": "client",
+          "controller_conf_filename": "controller_configuration.json",
+          "event": "TIMEOUT",
+          "ctrl": "NULL",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "role": "server",
+          "client_val": "client",
+          "controller_conf_filename": "controller_configuration.json",
+          "event": "TIMEOUT",
+          "ctrl": "NULL",
+          "result": "TIMEOUT"
+        }
+      }
+    }
+  },
+  "103": {
+    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing)",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred after 5s while waiting for client connection at 0.0.0.0:8080. No client connection was established.",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':authority': 'example.com'}}]"
+        }
+      }
+    }
+  },
+  "104": {
+    "description": "Promised requests MUST be safe (see Section 9.2.1 of [HTTP]) and cacheable (see Section 9.2.3 of [HTTP]).",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred after 5s while waiting for client connection at 0.0.0.0:8080. No client connection was established.",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}}]"
+        }
+      }
+    }
+  },
+  "105": {
+    "description": "PUSH_PROMISE frames MUST NOT be sent by the client.",
+    "result": {
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'received PUSH_PROMISE frame'.",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1}, {'type': 'PUSH_PROMISE', 'stream_id': 1, 'promise_stream_id': 2}]"
+        }
+      },
+      "Worker_2": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_SERVER",
+        "Variables": {
+          "result": "Client_Received_Error_From_Proxy",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', '192.168.122.214:8080'), (':path', '/'), ('x-forwarded-proto', 'http'), ('x-forwarded-for', '192.168.122.148'), ('via', '2 localhost')]>, <StreamReset stream_id:1, error_code:None, remote_reset:True>]"
+        }
+      }
+    }
   }
 }
