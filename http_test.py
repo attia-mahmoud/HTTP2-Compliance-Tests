@@ -58,21 +58,21 @@ tests_trees_data = fetch_data(tests_trees_url)
 repository = "https://github.com/nopasaran-org/nopasaran-tests-trees"
 
 list_of_proxies = [
-    {"PROXY": "Apache", "PROXY_PORT": "7700", "tls_enabled": "false"},
-    {"PROXY": "Caddy", "PROXY_PORT": "7701", "tls_enabled": "false"},
-    {"PROXY": "Envoy", "PROXY_PORT": "7702", "tls_enabled": "false"},
-    {"PROXY": "H2O", "PROXY_PORT": "7703", "tls_enabled": "false"},
-    {"PROXY": "HAproxy", "PROXY_PORT": "7704", "tls_enabled": "false"},
-    {"PROXY": "Mitmproxy", "PROXY_PORT": "7705", "tls_enabled": "true"},
-    {"PROXY": "Nghttpx", "PROXY_PORT": "7706", "tls_enabled": "false"},
-    {"PROXY": "Node", "PROXY_PORT": "7707", "tls_enabled": "false"}
+    # {"PROXY": "Apache", "PROXY_PORT": "7700", "tls_enabled": "false"}
+    # {"PROXY": "Caddy", "PROXY_PORT": "7701", "tls_enabled": "false"}
+    # {"PROXY": "Envoy", "PROXY_PORT": "7702", "tls_enabled": "false"}
+    {"PROXY": "H2O", "PROXY_PORT": "7703", "tls_enabled": "true"}
+    # {"PROXY": "HAproxy", "PROXY_PORT": "7704", "tls_enabled": "false"},
+    # {"PROXY": "Mitmproxy", "PROXY_PORT": "7705", "tls_enabled": "true"},
+    # {"PROXY": "Nghttpx", "PROXY_PORT": "7706", "tls_enabled": "false"},
+    # {"PROXY": "Node", "PROXY_PORT": "7707", "tls_enabled": "false"}
 ]
 
-CLIENT_WORKER = "labworker1.admin.worker.nopasaran.org"
+CLIENT_WORKER = "labworker3.admin.worker.nopasaran.org"
 
 PROXY_IP = "192.168.122.133"
 
-SERVER_WORKER = "labworker2.admin.worker.nopasaran.org"
+SERVER_WORKER = "labworker4.admin.worker.nopasaran.org"
 # the address the server is listening on
 SERVER_IP = "0.0.0.0"
 SERVER_PORT = "8080"

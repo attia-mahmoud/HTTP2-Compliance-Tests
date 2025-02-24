@@ -1,15 +1,45 @@
 {
   "0": {
     "description": "Control.",
-    "result": null
+    "result": {
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_SERVER_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Server_Received_Error_From_Proxy",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-length', '0'), ('date', 'Mon, 24 Feb 2025 06:59:05 GMT'), ('server', 'Apache/2.4.62 (Ubuntu)')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'tests': [[{'function': 'verifytype', 'params': ['RequestReceived']}]]}]"
+        }
+      },
+      "Worker_2": {
+        "State": "FINAL",
+        "Variables": {
+          "server_result": "Test 1 passed successfully. Matching frame: <RequestReceived stream_id:1, headers:[(':scheme', 'http'), (':authority', 'localhost'), (':path', '/'), (':method', 'GET'), ('te', 'trailers'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-host', 'localhost'), ('x-forwarded-server', '192.168.122.133')]>",
+          "client_result": "Test 1 passed successfully. Matching frame: <ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-length', '0'), ('date', 'Mon, 24 Feb 2025 06:59:05 GMT'), ('server', 'Apache/2.4.62 (Ubuntu)')]>",
+          "frames_received": "[<WindowUpdated stream_id:0, delta:1073676288>, <RequestReceived stream_id:1, headers:[(':scheme', 'http'), (':authority', 'localhost'), (':path', '/'), (':method', 'GET'), ('te', 'trailers'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-host', 'localhost'), ('x-forwarded-server', '192.168.122.133')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':status': '200'}, 'tests': [[{'function': 'verifytype', 'params': ['ResponseReceived']}]]}]"
+        }
+      }
+    }
   },
   "1": {
     "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
-      "Worker_2": null,
-      "Worker_1": {
-        "State": "FINAL",
+      "Worker_2": {
+        "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred after 5s while waiting for client connection at 0.0.0.0:8080. No client connection was established.",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'DATA'}]"
         }
       }
@@ -18,7 +48,18 @@
   "2": {
     "description": "Client must send connection preface after TLS establishment",
     "result": {
-      "Worker_2": null,
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred after 5s while waiting for client connection at 0.0.0.0:8080. No client connection was established.",
+          "result": "TIMEOUT"
+        }
+      },
       "Worker_1": {
         "State": "TIMEOUT",
         "Variables": {
@@ -27,7 +68,7 @@
           "client_val": "client",
           "role": "client",
           "event": "TIMEOUT",
-          "msg": "Timeout occurred while waiting for preface",
+          "msg": "Timeout after 5s while waiting for peer's preface (SETTINGS frame)",
           "frames": null,
           "result": "TIMEOUT"
         }
@@ -37,17 +78,22 @@
   "3": {
     "description": "the connection preface starts with the string: PRI * HTTP/2.0\\r\\n\\r\\nSM\\r\\n\\r\\n",
     "result": {
-      "Worker_2": null,
       "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "msg": "Expected SETTINGS frame for preface but received error instead",
+          "frames": "[]"
+        }
+      },
+      "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
-          "client": null,
           "ctrl": null,
+          "role": "server",
           "client_val": "client",
-          "role": "client",
           "event": "TIMEOUT",
-          "msg": "Timeout occurred while waiting for preface",
-          "frames": null,
+          "server": null,
+          "msg": "Timeout occurred after 5s while waiting for client connection at 0.0.0.0:8080. No client connection was established.",
           "result": "TIMEOUT"
         }
       }
@@ -56,11 +102,23 @@
   "4": {
     "description": "Client preface must include a SETTINGS frame",
     "result": {
-      "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "FINAL",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'SETTINGS expected'.",
+          "sent_frames": "[{'type': 'HEADERS'}]"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred after 5s while waiting for client connection at 0.0.0.0:8080. No client connection was established.",
+          "result": "TIMEOUT"
         }
       }
     }
@@ -68,30 +126,64 @@
   "5": {
     "description": "If this stream (initially in the idle state) is initiated by the server, as described in Section 5.1.1, then receiving a HEADERS frame MUST also be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
-      "Worker_2": null,
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+      "Worker_2": {
+        "State": "FINAL",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'request HEADERS: client received request'.",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 2, 'headers': {':status': '200'}}]",
+          "frames_received": "[<WindowUpdated stream_id:0, delta:1073676288>, <RequestReceived stream_id:1, headers:[(':scheme', 'http'), (':authority', 'localhost'), (':path', '/'), (':method', 'GET'), ('te', 'trailers'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-host', 'localhost'), ('x-forwarded-server', '192.168.122.133')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_SERVER_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Server_Received_Error_From_Proxy",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '503'), ('content-length', '374'), ('content-type', 'text/html; charset=iso-8859-1'), ('date', 'Mon, 24 Feb 2025 07:00:43 GMT'), ('server', 'Apache/2.4.62 (Ubuntu)')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
+          "sent_frames": "[{'type': 'HEADERS'}]"
         }
       }
     }
   },
   "6": {
     "description": "An endpoint MUST NOT send any type of frame other than HEADERS, RST_STREAM, or PRIORITY in the reserved (local) state.",
-    "result": null
-  },
-  "7": {
-    "description": "If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED.",
     "result": {
-      "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "TIMEOUT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "client": null,
+          "ctrl": null,
+          "client_val": "client",
+          "role": "client",
+          "result": "TIMEOUT",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False}}]",
+          "server_frames": [
+            {
+              "type": "PUSH_PROMISE",
+              "stream_id": 1,
+              "promised_stream_id": 2
+            },
+            {
+              "type": "DATA",
+              "stream_id": 2
+            }
+          ],
+          "event": "TIMEOUT",
+          "frames_received": "[]"
+        }
+      },
+      "Worker_2": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_SERVER_FRAMES_SENT_SERVER",
+        "Variables": {
+          "result": "Client_Failed_To_Receive_All_Frames",
+          "frames_received": "[<WindowUpdated stream_id:0, delta:1073676288>, <RequestReceived stream_id:1, headers:[(':scheme', 'http'), (':authority', 'localhost'), (':path', '/'), (':method', 'GET'), ('te', 'trailers'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-host', 'localhost'), ('x-forwarded-server', '192.168.122.133')]>]",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'stream_id': 1, 'promised_stream_id': 2}, {'type': 'DATA', 'stream_id': 2}]"
         }
       }
     }
+  },
+  "7": {
+    "description": "If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED.",
+    "result": null
   },
   "8": {
     "description": "Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE",
@@ -100,6 +192,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 6. Additional data: b'too large frame size'.",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}}, {'type': 'DATA', 'payload_size': 17000}]"
         }
       }
@@ -110,9 +203,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'UNKNOWN', 'stream_id': 1, 'frame_type_id': 99, 'payload': 'test payload'}]"
         }
       }
     }
@@ -122,9 +216,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'reserved_bit': True}]"
         }
       }
     }
@@ -132,11 +227,26 @@
   "11": {
     "description": "Streams initiated by a client MUST use odd-numbered stream identifiers.",
     "result": {
-      "Worker_2": null,
-      "Worker_1": {
-        "State": "FINAL",
+      "Worker_2": {
+        "State": "TIMEOUT",
         "Variables": {
-          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 2, 'tests': [[{'function': 'verifystreamid', 'params': ['2']}]]}]"
+          "role": "server",
+          "client_val": "client",
+          "controller_conf_filename": "controller_configuration.json",
+          "event": "TIMEOUT",
+          "ctrl": "NULL",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "role": "client",
+          "client_val": "client",
+          "controller_conf_filename": "controller_configuration.json",
+          "event": "TIMEOUT",
+          "ctrl": "NULL",
+          "result": "TIMEOUT"
         }
       }
     }
@@ -144,11 +254,26 @@
   "12": {
     "description": "Streams initiated by a server MUST use even-numbered stream identifiers.",
     "result": {
-      "Worker_2": null,
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+      "Worker_2": {
+        "State": "TIMEOUT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "role": "server",
+          "client_val": "client",
+          "controller_conf_filename": "controller_configuration.json",
+          "event": "TIMEOUT",
+          "ctrl": "NULL",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "role": "client",
+          "client_val": "client",
+          "controller_conf_filename": "controller_configuration.json",
+          "event": "TIMEOUT",
+          "ctrl": "NULL",
+          "result": "TIMEOUT"
         }
       }
     }
@@ -158,8 +283,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'HEADERS', 'stream_id': 3}, {'type': 'HEADERS', 'stream_id': 1, 'tests': [[{'function': 'verifystreamid', 'params': ['1']}]]}]"
         }
       }
@@ -170,9 +296,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}, 'stream_id': 1}, {'type': 'RST_STREAM', 'stream_id': 1}]"
         }
       }
     }
@@ -184,6 +311,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'PRIORITY: stream_id == 0'.",
           "sent_frames": "[{'type': 'PRIORITY', 'stream_id': 0, 'tests': [[{'function': 'verifystreamid', 'params': ['0']}]]}]"
         }
       }
@@ -194,9 +322,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}, 'stream_id': 1}, {'type': 'RST_STREAM', 'stream_id': 1}]"
         }
       }
     }
@@ -208,6 +337,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'RST_STREAM: stream_id == 0'.",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}, 'stream_id': 1}, {'type': 'RST_STREAM', 'stream_id': 0, 'tests': [[{'function': 'verifystreamid', 'params': ['0']}]]}]"
         }
       }
@@ -220,6 +350,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 6. Additional data: None.",
           "sent_frames": "[{'type': 'SETTINGS', 'flags': {'ACK': True}, 'settings': {'MAX_CONCURRENT_STREAMS': 100}}]"
         }
       }
@@ -232,6 +363,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 6. Additional data: None.",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}, 'stream_id': 1}, {'type': 'RST_STREAM', 'stream_id': 1, 'payload_length': 5}]"
         }
       }
@@ -244,6 +376,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'SETTINGS: stream_id != 0'.",
           "sent_frames": "[{'type': 'SETTINGS', 'stream_id': 1, 'settings': {'MAX_CONCURRENT_STREAMS': 100}, 'tests': [[{'function': 'verifystreamid', 'params': ['1']}]]}]"
         }
       }
@@ -256,6 +389,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 6. Additional data: None.",
           "sent_frames": "[{'type': 'SETTINGS', 'extra_bytes': 5, 'settings': {'MAX_CONCURRENT_STREAMS': 100}}]"
         }
       }
@@ -266,8 +400,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 2}}]"
         }
       }
@@ -278,9 +413,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS'}]"
         }
       }
     }
@@ -290,9 +426,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 0}}, {'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False}}]"
         }
       }
     }
@@ -302,8 +439,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'SETTINGS', 'settings': {'INITIAL_WINDOW_SIZE': 2147483648}}]"
         }
       }
@@ -316,6 +454,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'SETTINGS: invalid SETTINGS_MAX_FRAME_SIZE'.",
           "sent_frames": "[{'type': 'SETTINGS', 'settings': {'MAX_FRAME_SIZE': 16777216}}]"
         }
       }
@@ -326,9 +465,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'12345': 16777216}, 'raw_payload': True}]"
         }
       }
     }
@@ -338,9 +478,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1}]"
         }
       }
     }
@@ -350,9 +491,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1}]"
         }
       }
     }
@@ -362,8 +504,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'PING', 'stream_id': 1}]"
         }
       }
@@ -374,9 +517,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':path': '/', ':authority': 'example.com:80'}}]"
         }
       }
     }
@@ -386,9 +530,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':scheme': 'http', ':authority': 'example.com:80'}}]"
         }
       }
     }
@@ -398,8 +543,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'WINDOW_UPDATE', 'increment': 0}]"
         }
       }
@@ -412,6 +558,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 3. Additional data: None.",
           "sent_frames": "[{'type': 'WINDOW_UPDATE', 'increment': 2147483647}]"
         }
       }
@@ -422,8 +569,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'SETTINGS', 'settings': {'INITIAL_WINDOW_SIZE': 2147483648}}]"
         }
       }
@@ -436,6 +584,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'unexpected non-CONTINUATION frame or stream_id is invalid'.",
           "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False, 'END_HEADERS': False}}, {'type': 'CONTINUATION', 'stream_id': 0}]"
         }
       }
@@ -444,11 +593,26 @@
   "37": {
     "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using HEADERS frame with END_HEADERS flag set)",
     "result": {
-      "Worker_2": null,
-      "Worker_1": {
-        "State": "FINAL",
+      "Worker_2": {
+        "State": "TIMEOUT",
         "Variables": {
-          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False, 'END_HEADERS': True}}, {'type': 'CONTINUATION', 'stream_id': 1}]"
+          "role": "server",
+          "client_val": "client",
+          "controller_conf_filename": "controller_configuration.json",
+          "event": "TIMEOUT",
+          "ctrl": "NULL",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "role": "client",
+          "client_val": "client",
+          "controller_conf_filename": "controller_configuration.json",
+          "event": "TIMEOUT",
+          "ctrl": "NULL",
+          "result": "TIMEOUT"
         }
       }
     }
@@ -458,9 +622,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1}]"
         }
       }
     }
@@ -470,24 +635,35 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS'}]"
         }
       }
     }
   },
   "40": {
     "description": "Trailers MUST NOT include pseudo-header fields (Section 8.3).",
-    "result": null
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}}, {'type': 'DATA', 'flags': {'END_STREAM': False}}, {'type': 'TRAILERS', 'headers': {':path': '/'}}]"
+        }
+      }
+    }
   },
   "41": {
     "description": "Field names MUST be converted to lowercase when constructing an HTTP/2 message.",
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'headers': {':METHOD': 'GET', ':SCHEME': 'http', ':PATH': '/', ':AUTHORITY': 'example.com'}}]"
         }
       }
@@ -498,9 +674,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x\\x08y': 'backspace', 'x\\ty': 'horizontal-tab', 'x\\ny': 'line-feed', 'x\\x0by': 'vertical-tab', 'x\\x0cy': 'form-feed', 'x\\ry': 'carriage-return', 'x\\x1by': 'escape'}}]"
         }
       }
     }
@@ -508,11 +685,26 @@
   "43": {
     "description": "Field names MUST NOT contain ASCII SP (0x20)",
     "result": {
-      "Worker_2": null,
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+      "Worker_2": {
+        "State": "TIMEOUT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "role": "server",
+          "client_val": "client",
+          "controller_conf_filename": "controller_configuration.json",
+          "event": "TIMEOUT",
+          "ctrl": "NULL",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "role": "client",
+          "client_val": "client",
+          "controller_conf_filename": "controller_configuration.json",
+          "event": "TIMEOUT",
+          "ctrl": "NULL",
+          "result": "TIMEOUT"
         }
       }
     }
@@ -522,9 +714,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'user\\x7fagent': 'del-char'}}]"
         }
       }
     }
@@ -534,9 +727,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x\u00a8y': 'diaeresis', 'x\u00b0y': 'degree-sign', 'x\u00b8y': 'cedilla', 'x\u00c0y': 'latin-a-grave', 'x\u00c8y': 'latin-e-grave', 'x\u00d0y': 'latin-eth', 'x\u00d8y': 'latin-o-stroke', 'x\u00e0y': 'latin-a-grave-small', 'x\u00e8y': 'latin-e-grave-small', 'x\u00f0y': 'latin-eth-small', 'x\u00f8y': 'latin-o-stroke-small', 'x\u00fay': 'latin-u-acute-small', 'x\u00fcy': 'latin-u-diaeresis-small', 'x\u00fey': 'latin-thorn-small', 'x\u00ffy': 'latin-y-diaeresis-small'}}]"
         }
       }
     }
@@ -546,9 +740,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x:y': 'invalid-colon'}}]"
         }
       }
     }
@@ -558,9 +753,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-lf-start': '\\nvalue'}}]"
         }
       }
     }
@@ -570,9 +766,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-cr-start': '\\rvalue'}}]"
         }
       }
     }
@@ -582,9 +779,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-leading-space': ' value'}}]"
         }
       }
     }
@@ -594,9 +792,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-trailing-space': 'value '}}]"
         }
       }
     }
@@ -606,8 +805,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'connection': 'keep-alive'}}]"
         }
       }
@@ -618,9 +818,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'proxy-connection': 'keep-alive'}}]"
         }
       }
     }
@@ -630,9 +831,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'keep-alive': 'timeout=5'}}]"
         }
       }
     }
@@ -640,26 +842,12 @@
   "54": {
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2)",
     "result": {
+      "Worker_2": null,
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
-      "Worker_2": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'transfer-encoding': 'chunked'}}]"
         }
       }
     }
@@ -669,8 +857,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'upgrade': 'h2c'}}]"
         }
       }
@@ -681,8 +870,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'te': 'gzip'}}]"
         }
       }
@@ -693,8 +883,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', ':version': '2.0'}}]"
         }
       }
@@ -705,9 +896,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS'}]"
         }
       }
     }
@@ -717,8 +909,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', ':status': '200'}}]"
         }
       }
@@ -729,8 +922,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {'accept': '*/*', ':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}}]"
         }
       }
@@ -741,9 +935,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS'}]"
         }
       }
     }
@@ -753,8 +948,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}, 'duplicate_headers': {':authority': 'example.com'}}]"
         }
       }
@@ -763,26 +959,12 @@
   "63": {
     "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with different values.",
     "result": {
+      "Worker_2": null,
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
-      "Worker_2": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}, 'duplicate_headers': {':authority': 'nopasaran.com'}}]"
         }
       }
     }
@@ -792,9 +974,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS'}]"
         }
       }
     }
@@ -804,9 +987,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS'}]"
         }
       }
     }
@@ -816,9 +1000,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'host': 'nopasaran.com'}}]"
         }
       }
     }
@@ -828,9 +1013,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'user:pass@example.com'}}]"
         }
       }
     }
@@ -840,9 +1026,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '', ':authority': 'example.com'}}]"
         }
       }
     }
@@ -852,9 +1039,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':scheme': 'http', ':path': '/', ':authority': 'example.com'}}]"
         }
       }
     }
@@ -864,9 +1052,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':path': '/', ':authority': 'example.com'}}]"
         }
       }
     }
@@ -876,9 +1065,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS'}]"
         }
       }
     }
@@ -890,6 +1080,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'PUSH_PROMISE: push disabled'.",
           "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False}}, {'type': 'PUSH_PROMISE', 'stream_id': 1, 'promise_stream_id': 2}]"
         }
       }
@@ -900,9 +1091,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS'}]"
         }
       }
     }
@@ -912,9 +1104,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':scheme': 'http', ':path': '/', ':authority': 'example.com:80'}}]"
         }
       }
     }
@@ -924,9 +1117,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':authority': 'example.com'}}]"
         }
       }
     }
@@ -938,6 +1132,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 0. Additional data: b'timeout'.",
           "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False}}, {'type': 'RST_STREAM', 'stream_id': 1}, {'type': 'HEADERS', 'stream_id': 1}]"
         }
       }
@@ -948,8 +1143,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'RST_STREAM', 'stream_id': 1}]"
         }
       }
@@ -962,6 +1158,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'RST_STREAM: stream in idle'.",
           "sent_frames": "[{'type': 'RST_STREAM'}]"
         }
       }
@@ -972,9 +1169,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'UNKNOWN', 'stream_id': 1, 'frame_type_id': 99, 'payload': 'test payload'}]"
         }
       }
     }
@@ -986,6 +1184,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'DATA: stream in idle'.",
           "sent_frames": "[{'type': 'DATA', 'stream_id': 1}]"
         }
       }
@@ -998,6 +1197,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'DATA: stream_id == 0'.",
           "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'stream_id': 0}]"
         }
       }
@@ -1010,6 +1210,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'DATA: stream in idle'.",
           "sent_frames": "[{'type': 'DATA', 'stream_id': 1}]"
         }
       }
@@ -1020,9 +1221,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "FINAL",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 5. Additional data: b'DATA: stream in half-closed(remote)'.",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1}, {'type': 'DATA', 'stream_id': 1, 'flags': {'END_STREAM': True}}]"
         }
       }
     }
@@ -1032,9 +1234,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}}, {'type': 'RST_STREAM', 'stream_id': 1}, {'type': 'DATA', 'stream_id': 1}]"
         }
       }
     }
@@ -1046,6 +1249,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'unexpected non-CONTINUATION frame or stream_id is invalid'.",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False, 'END_STREAM': False}, 'stream_id': 1}, {'type': 'DATA', 'stream_id': 1}]"
         }
       }
@@ -1058,6 +1262,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'request HEADERS: stream_id == 0'.",
           "sent_frames": "[{'type': 'HEADERS', 'stream_id': 0}]"
         }
       }
@@ -1068,9 +1273,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "FINAL",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'SETTINGS expected'.",
+          "sent_frames": "[{'type': 'HEADERS'}]"
         }
       }
     }
@@ -1080,9 +1286,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'12345': 16777216}}]"
         }
       }
     }
@@ -1092,9 +1299,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False}}]"
         }
       }
     }
@@ -1104,9 +1312,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False}}]"
         }
       }
     }
@@ -1116,9 +1325,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_STREAM': False}}]"
         }
       }
     }
@@ -1126,11 +1336,26 @@
   "92": {
     "description": "PUSH_PROMISE MUST NOT be sent if the SETTINGS_ENABLE_PUSH setting of the peer endpoint is set to 0.",
     "result": {
-      "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "TIMEOUT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "role": "client",
+          "client_val": "client",
+          "controller_conf_filename": "controller_configuration.json",
+          "event": "TIMEOUT",
+          "ctrl": "NULL",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "role": "server",
+          "client_val": "client",
+          "controller_conf_filename": "controller_configuration.json",
+          "event": "TIMEOUT",
+          "ctrl": "NULL",
+          "result": "TIMEOUT"
         }
       }
     }
@@ -1147,8 +1372,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'CONTINUATION', 'stream_id': 1}]"
         }
       }
@@ -1161,6 +1387,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'unexpected non-CONTINUATION frame or stream_id is invalid'.",
           "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_HEADERS': False, 'END_STREAM': False}}, {'type': 'DATA'}]"
         }
       }
@@ -1173,6 +1400,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'unexpected non-CONTINUATION frame or stream_id is invalid'.",
           "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1, 'flags': {'END_HEADERS': False, 'END_STREAM': False}}, {'type': 'DATA'}]"
         }
       }
@@ -1183,8 +1411,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}}, {'type': 'HEADERS', 'flags': {'END_STREAM': False}}]"
         }
       }
@@ -1195,9 +1424,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-lf-middle': 'val\\nue'}}]"
         }
       }
     }
@@ -1207,9 +1437,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-lf-end': 'value\\n'}}]"
         }
       }
     }
@@ -1219,9 +1450,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-cr-middle': 'val\\rue'}}]"
         }
       }
     }
@@ -1231,9 +1463,10 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-cr-end': 'value\\r'}}]"
         }
       }
     }
@@ -1243,8 +1476,9 @@
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}}, {'type': 'TRAILERS', 'headers': {':path': '/'}}]"
         }
       }
@@ -1252,24 +1486,17 @@
   },
   "103": {
     "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing)",
-    "result": {
-      "Worker_2": null,
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
-        "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
-        }
-      }
-    }
+    "result": null
   },
   "104": {
     "description": "Promised requests MUST be safe (see Section 9.2.1 of [HTTP]) and cacheable (see Section 9.2.3 of [HTTP]).",
     "result": {
       "Worker_2": null,
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Control_Channel_Timeout_After_Client_Frames_Sent"
+          "result": "Server_Failed_To_Start_or_Receive_All_Frames",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': False}}]"
         }
       }
     }
@@ -1281,6 +1508,7 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: b'PUSH_PROMISE: push disabled'.",
           "sent_frames": "[{'type': 'HEADERS', 'stream_id': 1}, {'type': 'PUSH_PROMISE', 'stream_id': 1, 'promise_stream_id': 2}]"
         }
       }
