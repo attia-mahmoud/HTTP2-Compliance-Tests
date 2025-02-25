@@ -13,45 +13,81 @@ def get_latest_file(directory):
     return max(files, key=os.path.getctime)
 
 def analyze_results(filename):
-    """Analyze a single result file and return all Worker_2 messages."""
+    """Analyze a single result file and categorize results as dropped, error, or other."""
     with open(filename, 'r') as f:
         data = json.load(f)
     
-    timeout_count = 0
+    dropped_count = 0
+    error_count = 0
     test_results = {}
     test_messages = {}
     
-    target_messages = [
-        "Timeout occurred while waiting for client connection. Proxy dropped client's frames.",  # Worker_2
-        "Proxy returned an error"  # Worker_1
-    ]
-    
     for test_id, test_data in data.items():
-        # Check Worker_2 result
-        worker_2 = test_data.get('result', {}).get('Worker_2', {})
-        worker_1 = test_data.get('result', {}).get('Worker_1', {})
+        if not test_data or not test_data.get('result'):
+            test_results[test_id] = "other"
+            test_messages[test_id] = "No result data"
+            continue
         
+        result = test_data['result']
+        is_dropped = False
+        is_error = False
         message = ""
         
-        # Check Worker_2 first
-        if isinstance(worker_2, dict):
-            variables = worker_2.get('Variables', {})
-            message = variables.get('msg', '')
-        
-        # If no matching message from Worker_2, check Worker_1
-        if message not in target_messages and isinstance(worker_1, dict):
-            message = worker_1.get('Variables', {}).get('msg', '')
-        
-        # Record if either target message was found
-        if message in target_messages:
-            timeout_count += 1
-            test_results[test_id] = True
+
+        worker1 = result['Worker_1']
+        if worker1:
+            vars1 = worker1.get('Variables', {})
         else:
-            test_results[test_id] = False
+            vars1 = {}
+
+        worker2 = result['Worker_2']
+        if worker2:
+            vars2 = worker2.get('Variables', {})
+        else:
+            vars2 = {}
+        
+
+        if vars1.get('msg', '').startswith("Connection terminated by peer"):
+            is_error = True
+            message = vars1['msg']
+
+        elif vars2.get('msg', '').startswith("Connection terminated by peer"):
+            is_error = True
+            message = vars2['msg']
+            
+        elif vars1.get('msg', '') == "Timeout after 5s while waiting for peer's preface (SETTINGS frame)":
+            is_dropped = True
+            message = vars1['msg']
+
+        elif vars1.get('msg', '') == "Expected SETTINGS frame for preface but received error instead":
+            is_error = True
+            message = vars1['msg']
+
+        elif vars2.get('msg', '').startswith("Timeout occurred after 5s while waiting for client connection"):
+            is_dropped = True
+            message = vars2['msg']
+
+        elif worker1 and worker1.get('State', '') in ['CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT', 'CONTROL_CHANNEL_TIMEOUT_SERVER_FRAMES_SENT_CLIENT']:
+            is_dropped = True
+            message = vars1['result']
+
+        elif worker2 and worker2.get('State', '') in ['CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_SERVER', 'CONTROL_CHANNEL_TIMEOUT_SERVER_FRAMES_SENT_SERVER']:
+            is_dropped = True
+            message = vars2['result']
+
+        # Store results
+        if is_dropped:
+            test_results[test_id] = "dropped"
+            dropped_count += 1
+        elif is_error:
+            test_results[test_id] = "error"
+            error_count += 1
+        else:
+            test_results[test_id] = "other"
         
         test_messages[test_id] = message
-            
-    return timeout_count, test_results, test_messages
+    
+    return dropped_count, error_count, test_results, test_messages
 
 def create_markdown_table(headers, data):
     """Create a markdown table with equal column widths."""
@@ -82,10 +118,8 @@ def create_markdown_table(headers, data):
 
 def create_proxy_correlation_matrix(test_results, output_directory):
     """Create a Pearson correlation matrix visualization of proxy test results."""
-    # Create output directory if it doesn't exist
     os.makedirs(output_directory, exist_ok=True)
     
-    # Get all test IDs and proxies
     test_ids = sorted(list(set().union(*[results.keys() for results in test_results.values()])),
                      key=lambda x: int(x) if x.isdigit() else float('inf'))
     proxies = list(test_results.keys())
@@ -94,8 +128,9 @@ def create_proxy_correlation_matrix(test_results, output_directory):
     matrix_data = np.zeros((len(proxies), len(test_ids)))
     for i, proxy in enumerate(proxies):
         for j, test_id in enumerate(test_ids):
-            # Convert boolean results to numeric values (True = 1, False = 0)
-            matrix_data[i][j] = 1 if test_results[proxy].get(test_id, False) else 0
+            # Convert result to numeric value (1 for success, 0 for dropped/error)
+            result = test_results[proxy].get(test_id, "other")
+            matrix_data[i][j] = 1 if result == "other" else 0
     
     # Calculate correlation matrix
     correlation_matrix = np.corrcoef(matrix_data)
@@ -149,24 +184,18 @@ def create_proxy_vector_graph(test_results, output_directory):
         # Collect results for this test
         test_results_row = []
         for proxy in proxies:
-            result = '✓' if proxy in test_results and test_results[proxy].get(test_id, False) else ''
-            test_results_row.append(result)
+            # Convert result to binary (1 for success, 0 for dropped/error)
+            result = test_results[proxy].get(test_id, "other")
+            test_results_row.append(1 if result == "other" else 0)
         
         # Check consistency
-        unique_results = set(test_results_row)
-        if len(unique_results) == 1:  # All proxies behaved the same way
+        if len(set(test_results_row)) == 1:  # All proxies behaved the same way
             consistent_tests.add(test_id)
         
-        # Check if there's an outlier
-        check_count = test_results_row.count('✓')
-        empty_count = test_results_row.count('')
-        
-        # If exactly one different from the others
-        if (check_count == 1 and empty_count == len(proxies) - 1) or \
-           (check_count == len(proxies) - 1 and empty_count == 1):
-            # Find the outlier proxy
+        # Check if there's an outlier (exactly one different from others)
+        if sum(test_results_row) == 1 or sum(test_results_row) == len(proxies) - 1:
             for i, result in enumerate(test_results_row):
-                if (check_count == 1 and result == '✓') or (empty_count == 1 and result == ''):
+                if result != (sum(test_results_row) > len(proxies)/2):
                     outliers[test_id] = proxies[i]
     
     # Plot vectors for each proxy
@@ -177,7 +206,8 @@ def create_proxy_vector_graph(test_results, output_directory):
         x_values = range(1, len(test_ids) + 1)
         
         for j, test_id in enumerate(test_ids, 1):
-            y_val = 1 if test_results[proxy].get(str(test_id), False) else 0
+            result = test_results[proxy].get(str(test_id), "other")
+            y_val = 1 if result == "other" else 0
             y_values.append(y_val)
             
             # Check if this point is an outlier
@@ -243,47 +273,40 @@ def create_proxy_vector_graph(test_results, output_directory):
                 dpi=300, bbox_inches='tight')
     plt.close()
 
-def create_proxy_timeout_pies(test_results, output_directory):
-    """Create pie charts showing timeout vs no-timeout proportions for each proxy."""
-    # Create output directory if it doesn't exist
+def create_proxy_result_pies(test_results, output_directory):
+    """Create pie charts showing dropped vs error vs other proportions for each proxy."""
     os.makedirs(output_directory, exist_ok=True)
     
-    # Get proxies
     proxies = list(test_results.keys())
-    
-    # Calculate number of rows and columns for subplot grid
     n_charts = len(proxies)
-    n_cols = 3  # You can adjust this number to change the layout
+    n_cols = 3
     n_rows = (n_charts + n_cols - 1) // n_cols
     
-    # Create figure
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 5*n_rows))
-    fig.suptitle('Timeout vs No-Timeout Distribution by Proxy', fontsize=16, y=0.95)
+    fig.suptitle('Result Distribution by Proxy', fontsize=16, y=0.95)
     
-    # Flatten axes array for easier iteration
     if n_rows > 1:
         axes = axes.flatten()
     
-    # Colors for the pie charts
-    colors = ['#ff6b6b', '#4ecdc4']  # Red for timeouts, Green for no timeouts
+    colors = ['#ff6b6b', '#ffd93d', '#4ecdc4']  # Red for dropped, Yellow for errors, Green for other
     
-    # Create pie chart for each proxy
     for i, proxy in enumerate(proxies):
-        # Count timeouts and no timeouts
+        # Count categories
         total_tests = len(test_results[proxy])
-        timeouts = sum(1 for result in test_results[proxy].values() if result)
-        no_timeouts = total_tests - timeouts
+        dropped = sum(1 for result in test_results[proxy].values() if result == "dropped")
+        errors = sum(1 for result in test_results[proxy].values() if result == "error")
+        other = total_tests - dropped - errors
         
         # Calculate percentages
-        timeout_pct = (timeouts / total_tests) * 100
-        no_timeout_pct = (no_timeouts / total_tests) * 100
+        dropped_pct = (dropped / total_tests) * 100
+        error_pct = (errors / total_tests) * 100
+        other_pct = (other / total_tests) * 100
         
-        # Data for pie chart
-        sizes = [timeout_pct, no_timeout_pct]
-        labels = [f'Timeout\n{timeouts} ({timeout_pct:.1f}%)', 
-                 f'No Timeout\n{no_timeouts} ({no_timeout_pct:.1f}%)']
+        sizes = [dropped_pct, error_pct, other_pct]
+        labels = [f'Dropped\n{dropped} ({dropped_pct:.1f}%)', 
+                 f'Error\n{errors} ({error_pct:.1f}%)',
+                 f'Other\n{other} ({other_pct:.1f}%)']
         
-        # Create pie chart
         if n_rows == 1:
             ax = axes[i] if n_charts > 1 else axes
         else:
@@ -293,7 +316,6 @@ def create_proxy_timeout_pies(test_results, output_directory):
                startangle=90)
         ax.set_title(proxy, pad=20)
     
-    # Remove empty subplots if any
     if n_charts < len(axes):
         for j in range(n_charts, len(axes)):
             if n_rows == 1:
@@ -302,9 +324,7 @@ def create_proxy_timeout_pies(test_results, output_directory):
                 axes[j].remove()
     
     plt.tight_layout()
-    
-    # Save the plot
-    plt.savefig(os.path.join(output_directory, 'proxy_timeout_pies.png'), 
+    plt.savefig(os.path.join(output_directory, 'proxy_result_pies.png'), 
                 dpi=300, bbox_inches='tight')
     plt.close()
 
@@ -315,11 +335,12 @@ def main():
         os.makedirs(summaries_dir)
     
     # List of proxy folders
-    proxy_folders = ['Envoy', 'Node', 'Nghttpx', 'HAproxy', 'Apache', 'H2O']
+    proxy_folders = ['Envoy', 'Node', 'Nghttpx', 'HAproxy', 'Apache', 'H2O', 'Caddy']
     results_dir = 'results'
     
     # Prepare data for summary tables
-    timeout_counts = {}
+    dropped_counts = {}
+    error_counts = {}
     all_test_results = {}
     all_test_messages = {}
     
@@ -332,17 +353,24 @@ def main():
         if not latest_file:
             continue
 
-        count, test_results, test_messages = analyze_results(latest_file)
-        timeout_counts[proxy] = count
+        dropped_count, error_count, test_results, test_messages = analyze_results(latest_file)
+        dropped_counts[proxy] = dropped_count
+        error_counts[proxy] = error_count
         all_test_results[proxy] = test_results
         all_test_messages[proxy] = test_messages
 
-    # Generate first table - timeout counts
-    count_data = [[proxy, count] for proxy, count in timeout_counts.items()]
-    count_table = create_markdown_table(['Proxy', 'Timeout Count'], count_data)
+    # Generate first table - dropped and error counts
+    dropped_data = [[proxy, dropped_count] for proxy, dropped_count in dropped_counts.items()]
+    dropped_table = create_markdown_table(['Proxy', 'Dropped Count'], dropped_data)
     
-    with open(os.path.join(summaries_dir, 'timeout_counts.md'), 'w') as f:
-        f.write(count_table)
+    with open(os.path.join(summaries_dir, 'dropped_counts.md'), 'w') as f:
+        f.write(dropped_table)
+    
+    error_data = [[proxy, error_count] for proxy, error_count in error_counts.items()]
+    error_table = create_markdown_table(['Proxy', 'Error Count'], error_data)
+    
+    with open(os.path.join(summaries_dir, 'error_counts.md'), 'w') as f:
+        f.write(error_table)
     
     # Generate second table - detailed test results matrix
     all_test_ids = sorted(set().union(*[test_results.keys() for test_results in all_test_results.values()]),
@@ -392,8 +420,8 @@ def main():
     # Generate third table - behavior consistency analysis
     consistency_data = []
     consistent_count = 0
-    consistent_timeout_count = 0
-    consistent_no_timeout_count = 0
+    consistent_dropped_count = 0
+    consistent_error_count = 0
     
     for test_id in all_test_ids:
         messages = {proxy: all_test_messages[proxy].get(test_id, '') for proxy in proxy_folders if proxy in all_test_messages}
@@ -405,19 +433,21 @@ def main():
             consistency_data.append([test_id, '✓', message if message else 'No message'])
             
             # Track specific consistency types
-            if message in ["Timeout occurred while waiting for client connection. Proxy dropped client's frames.",
-                         "Proxy returned an error"]:
-                consistent_timeout_count += 1
+            if message in ["Timeout occurred after 5s while waiting for client connection at 0.0.0.0:8080. No client connection was established.",
+                         "Timeout after 5s while waiting for peer's preface (SETTINGS frame)",
+                         "Client_Failed_To_Receive_All_Frames",
+                         "Server_Failed_To_Start_or_Receive_All_Frames"]:
+                consistent_dropped_count += 1
             else:
-                consistent_no_timeout_count += 1
+                consistent_error_count += 1
         else:
             consistency_data.append([test_id, '', 'Inconsistent behavior across proxies'])
     
     # Add summary rows
     consistency_data.append(['', '', ''])
     consistency_data.append(['Total consistent tests:', str(consistent_count), ''])
-    consistency_data.append(['Consistent timeout/error tests:', str(consistent_timeout_count), ''])
-    consistency_data.append(['Consistent no-timeout tests:', str(consistent_no_timeout_count), ''])
+    consistency_data.append(['Consistent dropped/error tests:', str(consistent_dropped_count), ''])
+    consistency_data.append(['Consistent error tests:', str(consistent_error_count), ''])
     
     consistency_table = create_markdown_table(
         ['Test ID', 'Consistent', 'Behavior'],
@@ -432,7 +462,7 @@ def main():
     output_dir = 'visualizations'
     create_proxy_correlation_matrix(all_test_results, output_dir)
     create_proxy_vector_graph(all_test_results, output_dir)
-    create_proxy_timeout_pies(all_test_results, output_dir)
+    create_proxy_result_pies(all_test_results, output_dir)
 
 if __name__ == "__main__":
     main()
