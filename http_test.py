@@ -61,21 +61,21 @@ list_of_proxies = [
     # {"PROXY": "Apache", "PROXY_PORT": "7700", "tls_enabled": "false"}
     # {"PROXY": "Caddy", "PROXY_PORT": "7701", "tls_enabled": "false"}
     # {"PROXY": "Envoy", "PROXY_PORT": "7702", "tls_enabled": "false"}
-    {"PROXY": "H2O", "PROXY_PORT": "7703", "tls_enabled": "true"}
-    # {"PROXY": "HAproxy", "PROXY_PORT": "7704", "tls_enabled": "false"},
-    # {"PROXY": "Mitmproxy", "PROXY_PORT": "7705", "tls_enabled": "true"},
-    # {"PROXY": "Nghttpx", "PROXY_PORT": "7706", "tls_enabled": "false"},
+    # {"PROXY": "H2O", "PROXY_PORT": "7703", "tls_enabled": "true"}
+    # {"PROXY": "HAproxy", "PROXY_PORT": "7704", "tls_enabled": "false"}
+    # {"PROXY": "Mitmproxy", "PROXY_PORT": "7705", "tls_enabled": "true"}
+    # {"PROXY": "Nghttpx", "PROXY_PORT": "7706", "tls_enabled": "false"}
     # {"PROXY": "Node", "PROXY_PORT": "7707", "tls_enabled": "false"}
+    {"PROXY": "Cloudflare", "PROXY_PORT": "443", "tls_enabled": "true", "cloudflare_origin": "true"}
 ]
 
-CLIENT_WORKER = "labworker3.admin.worker.nopasaran.org"
+CLIENT_WORKER = "linodegermany.admin.worker.nopasaran.org"
 
-PROXY_IP = "192.168.122.133"
+# PROXY_IP = "192.168.122.133"
+PROXY_IP = "cloudflare.nopasaran.co"
 
-SERVER_WORKER = "labworker4.admin.worker.nopasaran.org"
-# the address the server is listening on
-SERVER_IP = "0.0.0.0"
-SERVER_PORT = "8080"
+SERVER_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
+SERVER_PORT = "443"
 
 MASTER = "mahmoudmaster.admin.master.nopasaran.org"
 
@@ -115,6 +115,7 @@ for proxy in list_of_proxies:
                     "protocol": "h2",
                     "connection_settings_client": test_case.get("connection_settings_client", {}),
                     "controller_conf_filename": "controller_configuration.json",
+                    "cloudflare_origin": proxy["cloudflare_origin"],
                     "client_frames": test_case.get("client_frames", [{"type": "HEADERS"}]),
                     "server_frames": test_case.get("server_frames", [{"type": "PING"}])
                 },
@@ -122,12 +123,13 @@ for proxy in list_of_proxies:
                     "role": "server",
                     "client": "client",
                     "server": "server",
-                    "host": SERVER_IP,
+                    "host": "0.0.0.0",
                     "port": SERVER_PORT,
                     "tls_enabled": proxy["tls_enabled"],
                     "protocol": "h2",
                     "connection_settings_server": test_case.get("connection_settings_server", {}),
                     "controller_conf_filename": "controller_configuration.json",
+                    "cloudflare_origin": proxy["cloudflare_origin"],
                     "client_frames": test_case.get("client_frames", [{"type": "HEADERS"}]),
                     "server_frames": test_case.get("server_frames", [{"type": "PING"}])
                 }

@@ -4,35 +4,12 @@
     "description": "Control.",
     "client_frames": [
       {
-          "type": "HEADERS",
-          "tests": [
-              [
-                  {
-                      "function": "verifytype",
-                      "params": [
-                          "RequestReceived"
-                      ]
-                  }
-              ]
-          ]
+          "type": "HEADERS"
       }
   ],
   "server_frames": [
       {
-          "type": "HEADERS",
-          "headers": {
-            ":status": "200"
-          },
-          "tests": [
-              [
-                  {
-                      "function": "verifytype",
-                      "params": [
-                          "ResponseReceived"
-                      ]
-                  }
-              ]
-          ]
+          "type": "HEADERS"
       }
   ]
   },
@@ -95,10 +72,7 @@
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 2,
-        "headers": {
-          ":status": "200"
-        }
+        "stream_id": 4
       }
     ]
   },
@@ -108,7 +82,6 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
         "flags": {
           "END_STREAM": false
         }
@@ -117,12 +90,11 @@
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promised_stream_id": 2
+        "promised_stream_id": 4
       },
       {
         "type": "DATA",
-        "stream_id": 2
+        "stream_id": 4
       }
     ]
   },
@@ -132,14 +104,13 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
         "flags": {
           "END_STREAM": true
         }
       },
       {
         "type": "DATA",
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -155,6 +126,7 @@
       },
       {
         "type": "DATA",
+        "stream_id": 3,
         "payload_size": 17000
       }
     ]
@@ -165,7 +137,7 @@
     "client_frames": [
       {
         "type": "UNKNOWN",
-        "stream_id": 1,
+        "stream_id": 3,
         "frame_type_id": 99,
         "payload": "test payload"
       }
@@ -187,17 +159,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 2,
-        "tests": [
-          [
-            {
-              "function": "verifystreamid",
-              "params": [
-                "2"
-              ]
-            }
-          ]
-        ]
+        "stream_id": 4
       }
     ]
   },
@@ -207,23 +169,13 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1
+        "stream_id": 3
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
-        "tests": [
-          [
-            {
-              "function": "verifystreamid",
-              "params": [
-                "3"
-              ]
-            }
-          ]
-        ]
+        "stream_id": 5
       }
     ]
   },
@@ -237,17 +189,7 @@
       },
       {
         "type": "HEADERS",
-        "stream_id": 1,
-        "tests": [
-          [
-            {
-              "function": "verifystreamid",
-              "params": [
-                "1"
-              ]
-            }
-          ]
-        ]
+        "stream_id": 3
       }
     ]
   },
@@ -260,17 +202,17 @@
         "flags": {
           "END_STREAM": false
         },
-        "stream_id": 1
+        "stream_id": 3
       },
       {
         "type": "RST_STREAM",
-        "stream_id": 1
+        "stream_id": 3
       }
     ],
     "server_frames": [
       {
         "type": "RST_STREAM",
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -280,17 +222,7 @@
     "client_frames": [
       {
         "type": "PRIORITY",
-        "stream_id": 0,
-        "tests": [
-          [
-            {
-              "function": "verifystreamid",
-              "params": [
-                "0"
-              ]
-            }
-          ]
-        ]
+        "stream_id": 0
       }
     ]
   },
@@ -303,18 +235,18 @@
         "flags": {
           "END_STREAM": false
         },
-        "stream_id": 1
+        "stream_id": 3
       },
       {
         "type": "RST_STREAM",
-        "stream_id": 1
+        "stream_id": 3
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
         "raw_frame": true,
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -327,21 +259,11 @@
         "flags": {
           "END_STREAM": false
         },
-        "stream_id": 1
+        "stream_id": 3
       },
       {
         "type": "RST_STREAM",
-        "stream_id": 0,
-        "tests": [
-          [
-            {
-              "function": "verifystreamid",
-              "params": [
-                "0"
-              ]
-            }
-          ]
-        ]
+        "stream_id": 0
       }
     ]
   },
@@ -369,11 +291,11 @@
         "flags": {
           "END_STREAM": false
         },
-        "stream_id": 1
+        "stream_id": 3
       },
       {
         "type": "RST_STREAM",
-        "stream_id": 1,
+        "stream_id": 3,
         "payload_length": 5
       }
     ]
@@ -384,20 +306,10 @@
     "client_frames": [
       {
         "type": "SETTINGS",
-        "stream_id": 1,
+        "stream_id": 3,
         "settings": {
           "MAX_CONCURRENT_STREAMS": 100
-        },
-        "tests": [
-          [
-            {
-              "function": "verifystreamid",
-              "params": [
-                "1"
-              ]
-            }
-          ]
-        ]
+        }
       }
     ]
   },
@@ -455,7 +367,7 @@
       },
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "flags": {
           "END_STREAM": false
         }
@@ -464,8 +376,8 @@
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promised_stream_id": 2
+        "stream_id": 3,
+        "promised_stream_id": 4
       }
     ]
   },
@@ -512,14 +424,14 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1
+        "stream_id": 3
       }
     ],
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
         "stream_id": 0,
-        "promised_stream_id": 2
+        "promised_stream_id": 4
       }
     ]
   },
@@ -529,13 +441,13 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1
+        "stream_id": 3
       }
     ],
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 1,
+        "stream_id": 3,
         "promised_stream_id": 3
       }
     ]
@@ -546,7 +458,7 @@
     "client_frames": [
       {
         "type": "PING",
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -616,7 +528,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "flags": {
           "END_STREAM": false,
           "END_HEADERS": false
@@ -634,7 +546,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "flags": {
           "END_STREAM": false,
           "END_HEADERS": true
@@ -642,7 +554,7 @@
       },
       {
         "type": "CONTINUATION",
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -652,14 +564,14 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1
+        "stream_id": 3
       }
     ],
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promised_stream_id": 2,
+        "stream_id": 3,
+        "promised_stream_id": 4,
         "flags": {
           "END_STREAM": false,
           "END_HEADERS": true
@@ -667,7 +579,7 @@
       },
       {
         "type": "CONTINUATION",
-        "stream_id": 2
+        "stream_id": 4
       }
     ]
   },
@@ -720,7 +632,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "headers": {
           ":METHOD": "GET",
           ":SCHEME": "http",
@@ -759,7 +671,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -776,7 +688,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -824,7 +736,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -907,7 +819,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -924,7 +836,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -941,7 +853,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -958,7 +870,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -975,7 +887,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -1133,9 +1045,6 @@
     "server_frames": [
       {
         "type": "HEADERS",
-        "headers": {
-          ":status": "200"
-        },
         "duplicate_headers": {
           ":status": "200"
         }
@@ -1153,9 +1062,6 @@
     "server_frames": [
       {
         "type": "HEADERS",
-        "headers": {
-          ":status": "200"
-        },
         "duplicate_headers": {
           ":status": "201"
         }
@@ -1259,15 +1165,15 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "flags": {
           "END_STREAM": false
         }
       },
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promise_stream_id": 2
+        "stream_id": 3,
+        "promise_stream_id": 4
       }
     ]
   },
@@ -1325,18 +1231,18 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "flags": {
           "END_STREAM": false
         }
       },
       {
         "type": "RST_STREAM",
-        "stream_id": 1
+        "stream_id": 3
       },
       {
         "type": "HEADERS",
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -1346,7 +1252,7 @@
     "client_frames": [
       {
         "type": "RST_STREAM",
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -1365,7 +1271,7 @@
     "client_frames": [
       {
         "type": "UNKNOWN",
-        "stream_id": 1,
+        "stream_id": 3,
         "frame_type_id": 99,
         "payload": "test payload"
       }
@@ -1377,7 +1283,7 @@
     "client_frames": [
       {
         "type": "DATA",
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -1400,7 +1306,7 @@
     "client_frames": [
       {
         "type": "DATA",
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -1410,18 +1316,18 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1
+        "stream_id": 3
       },
       {
         "type": "DATA",
-        "stream_id": 1,
+        "stream_id": 3,
         "flags": {
           "END_STREAM": true
         }
       },
       {
         "type": "DATA",
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -1437,11 +1343,11 @@
       },
       {
         "type": "RST_STREAM",
-        "stream_id": 1
+        "stream_id": 3
       },
       {
         "type": "DATA",
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -1455,11 +1361,11 @@
           "END_HEADERS": false,
           "END_STREAM": false
         },
-        "stream_id": 1
+        "stream_id": 3
       },
       {
         "type": "DATA",
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -1503,7 +1409,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "flags": {
           "END_STREAM": false
         }
@@ -1512,13 +1418,13 @@
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promised_stream_id": 2
+        "stream_id": 3,
+        "promised_stream_id": 4
       },
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promised_stream_id": 2
+        "stream_id": 3,
+        "promised_stream_id": 4
       }
     ]
   },
@@ -1528,7 +1434,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "flags": {
           "END_STREAM": false
         }
@@ -1537,13 +1443,13 @@
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 1,
+        "stream_id": 3,
         "promised_stream_id": 4
       },
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promised_stream_id": 2
+        "stream_id": 3,
+        "promised_stream_id": 4
       }
     ]
   },
@@ -1553,7 +1459,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "flags": {
           "END_STREAM": false
         }
@@ -1562,15 +1468,15 @@
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promised_stream_id": 2,
+        "stream_id": 3,
+        "promised_stream_id": 4,
         "flags": {
           "END_HEADERS": false
         }
       },
       {
         "type": "DATA",
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -1586,7 +1492,7 @@
       },
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "flags": {
           "END_STREAM": false
         }
@@ -1595,8 +1501,8 @@
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promised_stream_id": 2
+        "stream_id": 3,
+        "promised_stream_id": 4
       }
     ]
   },
@@ -1606,11 +1512,11 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1
+        "stream_id": 3
       },
       {
         "type": "DATA",
-        "stream_id": 1,
+        "stream_id": 3,
         "payload_size": 2147483647
       }
     ]
@@ -1621,7 +1527,7 @@
     "client_frames": [
       {
         "type": "CONTINUATION",
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -1631,7 +1537,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "flags": {
           "END_HEADERS": false,
           "END_STREAM": false
@@ -1648,7 +1554,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1,
+        "stream_id": 3,
         "flags": {
           "END_HEADERS": false,
           "END_STREAM": false
@@ -1659,7 +1565,7 @@
       },
       {
         "type": "CONTINUATION",
-        "stream_id": 1
+        "stream_id": 3
       }
     ]
   },
@@ -1810,12 +1716,12 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 1
+        "stream_id": 3
       },
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 1,
-        "promise_stream_id": 2
+        "stream_id": 3,
+        "promise_stream_id": 4
       }
     ]
   }

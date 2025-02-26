@@ -16,9 +16,13 @@ def analyze_results(filename):
     """Analyze a single result file and categorize results as dropped, error, or other."""
     with open(filename, 'r') as f:
         data = json.load(f)
+    # drop the 0th entry
+    if '0' in data:
+        del data['0']
     
     dropped_count = 0
     error_count = 0
+    received_count = 0
     test_results = {}
     test_messages = {}
     
@@ -31,23 +35,55 @@ def analyze_results(filename):
         result = test_data['result']
         is_dropped = False
         is_error = False
+        is_received = False
         message = ""
         
-
-        worker1 = result['Worker_1']
-        if worker1:
-            vars1 = worker1.get('Variables', {})
-        else:
-            vars1 = {}
-
-        worker2 = result['Worker_2']
-        if worker2:
-            vars2 = worker2.get('Variables', {})
-        else:
-            vars2 = {}
+        if isinstance(result, str):
+            # skip this test
+            continue
         
+        # Use safer access methods for worker data
+        worker1 = result.get('Worker_1', {}) or {}
+        worker2 = result.get('Worker_2', {}) or {}
+        
+        vars1 = worker1.get('Variables', {}) or {}
+        vars2 = worker2.get('Variables', {}) or {}
+        
+        if vars1.get('client_result', '').startswith("Successfully received all") and \
+            vars1.get('server_result', '').startswith("Successfully received all"):
+            is_received = True
+            message = vars1['client_result']
+            
+        if vars2.get('client_result', '').startswith("Successfully received all") and \
+            vars2.get('server_result', '').startswith("Successfully received all"):
+            is_received = True
+            message = vars2['client_result']
 
-        if vars1.get('msg', '').startswith("Connection terminated by peer"):
+        elif vars1.get('msg', '').startswith("No response received for test request"):
+            is_dropped = True
+            message = vars1['msg']
+    
+        elif vars1.get('client_result', '').startswith("Received 5xx status code"):
+            is_error = True
+            message = vars1['client_result']
+        
+        elif vars2.get('server_result', '').startswith("Received 5xx status code"):
+            is_error = True
+            message = vars2['server_result']
+
+        elif "reset after receiving" in vars1.get('client_result', ''):
+            is_error = True
+            message = vars1['client_result']
+        
+        elif "reset after receiving" in vars2.get('server_result', ''):
+            is_error = True
+            message = vars2['server_result']
+
+        elif vars2.get('msg', '').startswith("Connection established but client negotiated"):
+            is_dropped = True
+            message = vars2['msg']
+
+        elif vars1.get('msg', '').startswith("Connection terminated by peer"):
             is_error = True
             message = vars1['msg']
 
@@ -82,12 +118,15 @@ def analyze_results(filename):
         elif is_error:
             test_results[test_id] = "error"
             error_count += 1
+        elif is_received:
+            test_results[test_id] = "received"
+            received_count += 1
         else:
             test_results[test_id] = "other"
         
         test_messages[test_id] = message
     
-    return dropped_count, error_count, test_results, test_messages
+    return dropped_count, error_count, received_count, test_results, test_messages
 
 def create_markdown_table(headers, data):
     """Create a markdown table with equal column widths."""
@@ -124,16 +163,34 @@ def create_proxy_correlation_matrix(test_results, output_directory):
                      key=lambda x: int(x) if x.isdigit() else float('inf'))
     proxies = list(test_results.keys())
     
-    # Create matrix data
+    # Create matrix data with better encoding
     matrix_data = np.zeros((len(proxies), len(test_ids)))
     for i, proxy in enumerate(proxies):
         for j, test_id in enumerate(test_ids):
-            # Convert result to numeric value (1 for success, 0 for dropped/error)
+            # Convert result to numeric value with better separation
             result = test_results[proxy].get(test_id, "other")
-            matrix_data[i][j] = 1 if result == "other" else 0
+            if result == "received":
+                matrix_data[i][j] = 2  # Success
+            elif result == "error":
+                matrix_data[i][j] = 1  # Partial success
+            elif result == "dropped":
+                matrix_data[i][j] = 0  # Failure
+            else:  # other
+                matrix_data[i][j] = np.nan  # Use NaN to exclude "other" from correlation
     
-    # Calculate correlation matrix
-    correlation_matrix = np.corrcoef(matrix_data)
+    # Calculate correlation matrix with NaN handling
+    correlation_matrix = np.zeros((len(proxies), len(proxies)))
+    for i in range(len(proxies)):
+        for j in range(len(proxies)):
+            # Calculate correlation for each pair, ignoring NaNs
+            valid_indices = ~(np.isnan(matrix_data[i]) | np.isnan(matrix_data[j]))
+            if np.sum(valid_indices) > 1:  # Need at least 2 valid points
+                correlation_matrix[i, j] = np.corrcoef(
+                    matrix_data[i, valid_indices], 
+                    matrix_data[j, valid_indices]
+                )[0, 1]
+            else:
+                correlation_matrix[i, j] = 0
     
     # Create figure
     plt.figure(figsize=(12, 10))
@@ -184,40 +241,71 @@ def create_proxy_vector_graph(test_results, output_directory):
         # Collect results for this test
         test_results_row = []
         for proxy in proxies:
-            # Convert result to binary (1 for success, 0 for dropped/error)
             result = test_results[proxy].get(test_id, "other")
-            test_results_row.append(1 if result == "other" else 0)
+            # Convert to numeric values: 2 for received, 1 for error, 0 for dropped
+            if result == "received":
+                test_results_row.append(2)
+            elif result == "error":
+                test_results_row.append(1)
+            elif result == "dropped":
+                test_results_row.append(0)
+            else:  # other - we'll handle these separately
+                test_results_row.append(None)
         
-        # Check consistency
-        if len(set(test_results_row)) == 1:  # All proxies behaved the same way
+        # Check consistency - only consider non-None values
+        non_none_results = [r for r in test_results_row if r is not None]
+        if non_none_results and len(set(non_none_results)) == 1:  # All proxies behaved the same way
             consistent_tests.add(test_id)
         
         # Check if there's an outlier (exactly one different from others)
-        if sum(test_results_row) == 1 or sum(test_results_row) == len(proxies) - 1:
-            for i, result in enumerate(test_results_row):
-                if result != (sum(test_results_row) > len(proxies)/2):
-                    outliers[test_id] = proxies[i]
+        values = [r for r in test_results_row if r is not None]
+        if values:
+            value_set = set(values)
+            if len(value_set) == 2:
+                counts = [values.count(v) for v in value_set]
+                if 1 in counts:  # If exactly one value is different
+                    outlier_value = list(value_set)[counts.index(1)]
+                    # Find the index of the outlier in the original list with Nones
+                    for idx, val in enumerate(test_results_row):
+                        if val == outlier_value and values.count(outlier_value) == 1:
+                            outliers[test_id] = proxies[idx]
+                            break
     
     # Plot vectors for each proxy
     for i, proxy in enumerate(proxies):
         y_values = []
+        y_positions = []
+        x_positions = []
         outlier_points_x = []
         outlier_points_y = []
-        x_values = range(1, len(test_ids) + 1)
         
         for j, test_id in enumerate(test_ids, 1):
             result = test_results[proxy].get(str(test_id), "other")
-            y_val = 1 if result == "other" else 0
+            if result == "received":
+                y_val = 2
+                y_positions.append(y_val + i * 3)
+                x_positions.append(j)
+            elif result == "error":
+                y_val = 1
+                y_positions.append(y_val + i * 3)
+                x_positions.append(j)
+            elif result == "dropped":
+                y_val = 0
+                y_positions.append(y_val + i * 3)
+                x_positions.append(j)
+            else:  # other - don't plot a dot
+                y_val = None
+            
             y_values.append(y_val)
             
-            # Check if this point is an outlier
-            if str(test_id) in outliers and outliers[str(test_id)] == proxy:
+            # Check if this point is an outlier and not "other"
+            if y_val is not None and str(test_id) in outliers and outliers[str(test_id)] == proxy:
                 outlier_points_x.append(j)
                 outlier_points_y.append(y_val + i * 3)
         
-        # Plot the main line with dots
-        ax.plot(x_values, [y + i * 3 for y in y_values], '-o', 
-                linewidth=2, markersize=4, label=proxy)
+        # Plot only the dots for non-other values (no connecting lines)
+        ax.scatter(x_positions, y_positions, marker='o', s=40, 
+                label=proxy, zorder=3)
         
         # Highlight outlier points
         if outlier_points_x:
@@ -227,21 +315,26 @@ def create_proxy_vector_graph(test_results, output_directory):
     
     # Configure axis and labels
     ax.set_xlim(0, len(test_ids) + 1)
-    ax.set_ylim(-1, len(proxies) * 3 + 1)
+    ax.set_ylim(-1, len(proxies) * 3 + 2)  # Expanded y-range to accommodate extra value
     
     # Set y-ticks and labels
     y_ticks = []
     y_labels = []
     for i in range(len(proxies)):
-        y_ticks.extend([i * 3, i * 3 + 1])
-        y_labels.extend([proxies[i], ''])
+        y_ticks.extend([i * 3, i * 3 + 1, i * 3 + 2])
+        y_labels.extend([f"{proxies[i]} (dropped)", f"{proxies[i]} (error)", f"{proxies[i]} (received)"])
     
     ax.set_yticks(y_ticks)
-    ax.set_yticklabels(y_labels, fontsize=12)
+    ax.set_yticklabels(y_labels, fontsize=9)
+    
+    # Add a legend explaining the values
+    ax.text(0.01, 0.99, 'Values: 0=dropped, 1=error, 2=received (dots not shown for "other" results)', 
+            transform=ax.transAxes, fontsize=10, verticalalignment='top',
+            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
     
     # Configure x-axis with highlighted consistent tests
     ax.set_xlabel('Test ID', fontsize=12)
-    ax.set_xticks(x_values)
+    ax.set_xticks(range(1, len(test_ids) + 1))
     
     # Create tick labels with different styles for consistent vs inconsistent tests
     x_labels = []
@@ -274,7 +367,7 @@ def create_proxy_vector_graph(test_results, output_directory):
     plt.close()
 
 def create_proxy_result_pies(test_results, output_directory):
-    """Create pie charts showing dropped vs error vs other proportions for each proxy."""
+    """Create pie charts showing dropped vs error vs received vs other proportions for each proxy."""
     os.makedirs(output_directory, exist_ok=True)
     
     proxies = list(test_results.keys())
@@ -288,23 +381,26 @@ def create_proxy_result_pies(test_results, output_directory):
     if n_rows > 1:
         axes = axes.flatten()
     
-    colors = ['#ff6b6b', '#ffd93d', '#4ecdc4']  # Red for dropped, Yellow for errors, Green for other
+    colors = ['#ff6b6b', '#ffd93d', '#6bceff', '#4ecdc4']  # Red for dropped, Yellow for errors, Blue for received, Green for other
     
     for i, proxy in enumerate(proxies):
         # Count categories
         total_tests = len(test_results[proxy])
         dropped = sum(1 for result in test_results[proxy].values() if result == "dropped")
         errors = sum(1 for result in test_results[proxy].values() if result == "error")
-        other = total_tests - dropped - errors
+        received = sum(1 for result in test_results[proxy].values() if result == "received")
+        other = total_tests - dropped - errors - received
         
         # Calculate percentages
         dropped_pct = (dropped / total_tests) * 100
         error_pct = (errors / total_tests) * 100
+        received_pct = (received / total_tests) * 100
         other_pct = (other / total_tests) * 100
         
-        sizes = [dropped_pct, error_pct, other_pct]
+        sizes = [dropped_pct, error_pct, received_pct, other_pct]
         labels = [f'Dropped\n{dropped} ({dropped_pct:.1f}%)', 
                  f'Error\n{errors} ({error_pct:.1f}%)',
+                 f'Received\n{received} ({received_pct:.1f}%)',
                  f'Other\n{other} ({other_pct:.1f}%)']
         
         if n_rows == 1:
@@ -328,51 +424,27 @@ def create_proxy_result_pies(test_results, output_directory):
                 dpi=300, bbox_inches='tight')
     plt.close()
 
-def main():
-    # Create summaries directory if it doesn't exist
-    summaries_dir = 'summaries'
-    if not os.path.exists(summaries_dir):
-        os.makedirs(summaries_dir)
+def create_result_counts_table(dropped_counts, error_counts, received_counts, summaries_dir):
+    """Create a table with dropped, error, and received counts for each proxy."""
+    combined_data = []
+    for proxy in sorted(dropped_counts.keys()):
+        combined_data.append([
+            proxy, 
+            dropped_counts.get(proxy, 0),
+            error_counts.get(proxy, 0),
+            received_counts.get(proxy, 0)
+        ])
     
-    # List of proxy folders
-    proxy_folders = ['Envoy', 'Node', 'Nghttpx', 'HAproxy', 'Apache', 'H2O', 'Caddy']
-    results_dir = 'results'
+    combined_table = create_markdown_table(
+        ['Proxy', 'Dropped Count', 'Error Count', 'Received Count'], 
+        combined_data
+    )
     
-    # Prepare data for summary tables
-    dropped_counts = {}
-    error_counts = {}
-    all_test_results = {}
-    all_test_messages = {}
-    
-    for proxy in proxy_folders:
-        proxy_dir = os.path.join(results_dir, proxy)
-        if not os.path.exists(proxy_dir):
-            continue
-            
-        latest_file = get_latest_file(proxy_dir)
-        if not latest_file:
-            continue
+    with open(os.path.join(summaries_dir, 'result_counts.md'), 'w') as f:
+        f.write(combined_table)
 
-        dropped_count, error_count, test_results, test_messages = analyze_results(latest_file)
-        dropped_counts[proxy] = dropped_count
-        error_counts[proxy] = error_count
-        all_test_results[proxy] = test_results
-        all_test_messages[proxy] = test_messages
-
-    # Generate first table - dropped and error counts
-    dropped_data = [[proxy, dropped_count] for proxy, dropped_count in dropped_counts.items()]
-    dropped_table = create_markdown_table(['Proxy', 'Dropped Count'], dropped_data)
-    
-    with open(os.path.join(summaries_dir, 'dropped_counts.md'), 'w') as f:
-        f.write(dropped_table)
-    
-    error_data = [[proxy, error_count] for proxy, error_count in error_counts.items()]
-    error_table = create_markdown_table(['Proxy', 'Error Count'], error_data)
-    
-    with open(os.path.join(summaries_dir, 'error_counts.md'), 'w') as f:
-        f.write(error_table)
-    
-    # Generate second table - detailed test results matrix
+def create_test_results_matrix(all_test_results, proxy_folders, summaries_dir):
+    """Create a matrix showing test results for each proxy and test ID."""
     all_test_ids = sorted(set().union(*[test_results.keys() for test_results in all_test_results.values()]),
                          key=lambda x: int(x) if x.isdigit() else float('inf'))
     
@@ -385,21 +457,38 @@ def main():
         # First collect all results for this test
         test_row = []
         for proxy in proxy_folders:
-            result = '✓' if proxy in all_test_results and all_test_results[proxy].get(test_id, False) else ''
-            test_row.append(result)
+            if proxy in all_test_results:
+                result = all_test_results[proxy].get(test_id, "")
+                if result == "received":
+                    test_row.append("✓R")
+                elif result == "dropped":
+                    test_row.append("✓D")
+                elif result == "error":
+                    test_row.append("✓E")
+                elif result == "other":
+                    test_row.append("✓O")
+                else:
+                    test_row.append("")
+            else:
+                test_row.append("")
         
         # Check if there's an outlier
-        check_count = test_row.count('✓')
-        empty_count = test_row.count('')
-        
-        # If exactly one different from the others (either one ✓ among empty or one empty among ✓)
-        if (check_count == 1 and empty_count == len(proxy_folders) - 1) or \
-           (check_count == len(proxy_folders) - 1 and empty_count == 1):
-            # Find the outlier and make it bold
-            for i, result in enumerate(test_row):
-                if (check_count == 1 and result == '✓') or (empty_count == 1 and result == ''):
-                    test_row[i] = f'**{result}**' if result else '**-**'
-                    outlier_counts[proxy_folders[i]] += 1  # Increment outlier count
+        results = [r for r in test_row if r]
+        if len(set(results)) > 1 and len(results) > 0:
+            # Count occurrences of each result
+            result_counts = {}
+            for i, res in enumerate(test_row):
+                if res:
+                    result_counts[res] = result_counts.get(res, 0) + 1
+            
+            # Find the least common result
+            min_count = min(result_counts.values()) if result_counts else 0
+            if min_count == 1:  # If there's a unique outlier
+                outlier_results = [r for r, count in result_counts.items() if count == min_count]
+                for outlier in outlier_results:
+                    idx = test_row.index(outlier)
+                    test_row[idx] = f'**{outlier}**'
+                    outlier_counts[proxy_folders[idx]] += 1
         
         row.extend(test_row)
         matrix_data.append(row)
@@ -416,49 +505,45 @@ def main():
     
     with open(os.path.join(summaries_dir, 'test_results_matrix.md'), 'w') as f:
         f.write(matrix_table)
-    
-    # Generate third table - behavior consistency analysis
-    consistency_data = []
-    consistent_count = 0
-    consistent_dropped_count = 0
-    consistent_error_count = 0
-    
-    for test_id in all_test_ids:
-        messages = {proxy: all_test_messages[proxy].get(test_id, '') for proxy in proxy_folders if proxy in all_test_messages}
-        unique_messages = set(messages.values())
-        
-        if len(unique_messages) == 1:
-            consistent_count += 1
-            message = next(iter(unique_messages))
-            consistency_data.append([test_id, '✓', message if message else 'No message'])
-            
-            # Track specific consistency types
-            if message in ["Timeout occurred after 5s while waiting for client connection at 0.0.0.0:8080. No client connection was established.",
-                         "Timeout after 5s while waiting for peer's preface (SETTINGS frame)",
-                         "Client_Failed_To_Receive_All_Frames",
-                         "Server_Failed_To_Start_or_Receive_All_Frames"]:
-                consistent_dropped_count += 1
-            else:
-                consistent_error_count += 1
-        else:
-            consistency_data.append([test_id, '', 'Inconsistent behavior across proxies'])
-    
-    # Add summary rows
-    consistency_data.append(['', '', ''])
-    consistency_data.append(['Total consistent tests:', str(consistent_count), ''])
-    consistency_data.append(['Consistent dropped/error tests:', str(consistent_dropped_count), ''])
-    consistency_data.append(['Consistent error tests:', str(consistent_error_count), ''])
-    
-    consistency_table = create_markdown_table(
-        ['Test ID', 'Consistent', 'Behavior'],
-        consistency_data
-    )
-    
-    with open(os.path.join(summaries_dir, 'behavior_consistency.md'), 'w') as f:
-        f.write(consistency_table)
 
-    # Add these lines after analyzing results:
+def main():
+    # Create summaries directory if it doesn't exist
+    summaries_dir = 'summaries'
+    if not os.path.exists(summaries_dir):
+        os.makedirs(summaries_dir)
     
+    # List of proxy folders
+    proxy_folders = ['Envoy', 'Node', 'Nghttpx', 'HAproxy', 'Apache', 'H2O', 'Caddy', 'Cloudflare']
+    results_dir = 'results'
+    
+    # Prepare data for summary tables
+    dropped_counts = {}
+    error_counts = {}
+    received_counts = {}
+    all_test_results = {}
+    all_test_messages = {}
+    
+    for proxy in proxy_folders:
+        proxy_dir = os.path.join(results_dir, proxy)
+        if not os.path.exists(proxy_dir):
+            continue
+            
+        latest_file = get_latest_file(proxy_dir)
+        if not latest_file:
+            continue
+
+        dropped_count, error_count, received_count, test_results, test_messages = analyze_results(latest_file)
+        dropped_counts[proxy] = dropped_count
+        error_counts[proxy] = error_count
+        received_counts[proxy] = received_count
+        all_test_results[proxy] = test_results
+        all_test_messages[proxy] = test_messages
+
+    # Create tables
+    create_result_counts_table(dropped_counts, error_counts, received_counts, summaries_dir)
+    create_test_results_matrix(all_test_results, proxy_folders, summaries_dir)
+
+    # Create visualizations
     output_dir = 'visualizations'
     create_proxy_correlation_matrix(all_test_results, output_dir)
     create_proxy_vector_graph(all_test_results, output_dir)
