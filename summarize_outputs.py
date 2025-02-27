@@ -424,24 +424,33 @@ def create_proxy_result_pies(test_results, output_directory):
                 dpi=300, bbox_inches='tight')
     plt.close()
 
-def create_result_counts_table(dropped_counts, error_counts, received_counts, summaries_dir):
-    """Create a table with dropped, error, and received counts for each proxy."""
-    combined_data = []
+def create_result_counts_table(dropped_counts, error_counts, received_counts, all_test_results, summaries_dir):
+    """Create a markdown table summarizing the counts of dropped, error, and received results."""
+    if not os.path.exists(summaries_dir):
+        os.makedirs(summaries_dir)
+    
+    # Create table header
+    table = "| Proxy      | Dropped Count | Error Count | Received Count | Received Tests |\n"
+    table += "| ---------- | ------------- | ----------- | -------------- | -------------- |\n"
+    
+    # Add rows for each proxy
     for proxy in sorted(dropped_counts.keys()):
-        combined_data.append([
-            proxy, 
-            dropped_counts.get(proxy, 0),
-            error_counts.get(proxy, 0),
-            received_counts.get(proxy, 0)
-        ])
+        # Get the list of received test IDs
+        received_tests = []
+        if proxy in all_test_results:
+            for test_id, result in all_test_results[proxy].items():
+                if result == "received":
+                    received_tests.append(test_id)
+        
+        # Format the received tests list
+        received_tests_str = ", ".join(sorted(received_tests, key=lambda x: int(x) if x.isdigit() else float('inf')))
+        
+        # Add the row with all information
+        table += f"| {proxy:<10} | {dropped_counts.get(proxy, 0):<13} | {error_counts.get(proxy, 0):<11} | {received_counts.get(proxy, 0):<14} | {received_tests_str} |\n"
     
-    combined_table = create_markdown_table(
-        ['Proxy', 'Dropped Count', 'Error Count', 'Received Count'], 
-        combined_data
-    )
-    
-    with open(os.path.join(summaries_dir, 'result_counts.md'), 'w') as f:
-        f.write(combined_table)
+    # Write to file
+    with open(os.path.join(summaries_dir, "result_counts.md"), "w") as f:
+        f.write(table)
 
 def create_test_results_matrix(all_test_results, proxy_folders, summaries_dir):
     """Create a matrix showing test results for each proxy and test ID."""
@@ -540,7 +549,7 @@ def main():
         all_test_messages[proxy] = test_messages
 
     # Create tables
-    create_result_counts_table(dropped_counts, error_counts, received_counts, summaries_dir)
+    create_result_counts_table(dropped_counts, error_counts, received_counts, all_test_results, summaries_dir)
     create_test_results_matrix(all_test_results, proxy_folders, summaries_dir)
 
     # Create visualizations
