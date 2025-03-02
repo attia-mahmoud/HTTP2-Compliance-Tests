@@ -515,6 +515,103 @@ def create_test_results_matrix(all_test_results, proxy_folders, summaries_dir):
     with open(os.path.join(summaries_dir, 'test_results_matrix.md'), 'w') as f:
         f.write(matrix_table)
 
+def load_client_server_classification(json_path):
+    """Load the classification of tests as client-side or server-side."""
+    with open(json_path, 'r') as f:
+        classification = json.load(f)
+    
+    # Convert frame numbers to strings to match test IDs
+    client_side_tests = set(str(frame) for frame in classification['client_side_non_conformant_frames'])
+    server_side_tests = set(str(frame) for frame in classification['server_side_non_conformant_frames'])
+    
+    return client_side_tests, server_side_tests
+
+def create_client_server_pie_charts(test_results, client_side_tests, server_side_tests, output_directory):
+    """
+    Create pie charts showing dropped vs error vs received vs other proportions for each proxy,
+    separated into client-side and server-side tests.
+    """
+    os.makedirs(output_directory, exist_ok=True)
+    
+    proxies = list(test_results.keys())
+    n_charts = len(proxies) * 2  # Two charts per proxy (client and server)
+    n_cols = 2  # Client and server side by side
+    n_rows = len(proxies)
+    
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(14, 5*n_rows))
+    fig.suptitle('Client vs Server Test Result Distribution by Proxy', fontsize=16, y=0.95)
+    
+    colors = ['#ff6b6b', '#ffd93d', '#6bceff', '#4ecdc4']  # Red for dropped, Yellow for errors, Blue for received, Green for other
+    
+    for i, proxy in enumerate(proxies):
+        proxy_results = test_results[proxy]
+        
+        # Process client-side tests
+        client_tests = {test_id: result for test_id, result in proxy_results.items() 
+                       if test_id in client_side_tests}
+        
+        # Process server-side tests
+        server_tests = {test_id: result for test_id, result in proxy_results.items() 
+                       if test_id in server_side_tests}
+        
+        # Create pie chart for client-side tests
+        create_single_pie(axes[i, 0], client_tests, colors, f"{proxy} - Client Side")
+        
+        # Create pie chart for server-side tests
+        create_single_pie(axes[i, 1], server_tests, colors, f"{proxy} - Server Side")
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_directory, 'client_server_pies.png'), 
+                dpi=300, bbox_inches='tight')
+    plt.close()
+
+def create_single_pie(ax, test_results, colors, title):
+    """Create a single pie chart on the given axis."""
+    if not test_results:
+        ax.text(0.5, 0.5, "No data", ha='center', va='center', fontsize=14)
+        ax.axis('off')
+        ax.set_title(title, pad=20)
+        return
+    
+    # Count categories
+    total_tests = len(test_results)
+    dropped = sum(1 for result in test_results.values() if result == "dropped")
+    errors = sum(1 for result in test_results.values() if result == "error")
+    received = sum(1 for result in test_results.values() if result == "received")
+    other = total_tests - dropped - errors - received
+    
+    # Calculate percentages
+    dropped_pct = (dropped / total_tests) * 100 if total_tests > 0 else 0
+    error_pct = (errors / total_tests) * 100 if total_tests > 0 else 0
+    received_pct = (received / total_tests) * 100 if total_tests > 0 else 0
+    other_pct = (other / total_tests) * 100 if total_tests > 0 else 0
+    
+    sizes = [dropped_pct, error_pct, received_pct, other_pct]
+    labels = [f'Dropped\n{dropped} ({dropped_pct:.1f}%)', 
+             f'Error\n{errors} ({error_pct:.1f}%)',
+             f'Received\n{received} ({received_pct:.1f}%)',
+             f'Other\n{other} ({other_pct:.1f}%)']
+    
+    # Remove zero values
+    non_zero_sizes = []
+    non_zero_labels = []
+    non_zero_colors = []
+    
+    for size, label, color in zip(sizes, labels, colors):
+        if size > 0:
+            non_zero_sizes.append(size)
+            non_zero_labels.append(label)
+            non_zero_colors.append(color)
+    
+    if non_zero_sizes:
+        ax.pie(non_zero_sizes, labels=non_zero_labels, colors=non_zero_colors, 
+               autopct='%1.1f%%', startangle=90)
+    else:
+        ax.text(0.5, 0.5, "No data", ha='center', va='center', fontsize=14)
+        ax.axis('off')
+    
+    ax.set_title(title, pad=20)
+
 def main():
     # Create summaries directory if it doesn't exist
     summaries_dir = 'summaries'
@@ -557,6 +654,13 @@ def main():
     create_proxy_correlation_matrix(all_test_results, output_dir)
     create_proxy_vector_graph(all_test_results, output_dir)
     create_proxy_result_pies(all_test_results, output_dir)
+    
+    # Load client-server classification and create client-server pie charts
+    try:
+        client_side_tests, server_side_tests = load_client_server_classification('docs/clientside_vs_serverside.json')
+        create_client_server_pie_charts(all_test_results, client_side_tests, server_side_tests, output_dir)
+    except Exception as e:
+        print(f"Error creating client-server pie charts: {e}")
 
 if __name__ == "__main__":
     main()
