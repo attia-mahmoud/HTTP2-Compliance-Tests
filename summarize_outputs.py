@@ -4,6 +4,8 @@ from datetime import datetime
 import glob
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import seaborn as sns
 
 def get_latest_file(directory):
     """Get the most recent file in the directory."""
@@ -612,6 +614,102 @@ def create_single_pie(ax, test_results, colors, title):
     
     ax.set_title(title, pad=20)
 
+def load_test_pairs(pairs_file='docs/pairs.json'):
+    """Load the test pairs from the JSON file."""
+    with open(pairs_file, 'r') as f:
+        data = json.load(f)
+    return data['pairs']
+
+def create_client_server_discrepancy_visualization(test_results, test_pairs, output_directory):
+    """
+    Create a visualization showing discrepancies between client and server test pairs.
+    
+    Args:
+        test_results: Dict mapping proxy names to their test results
+        test_pairs: List of [client_test, server_test] pairs
+        output_directory: Directory to save the visualization
+    """
+    os.makedirs(output_directory, exist_ok=True)
+    
+    # Create a DataFrame to store discrepancies
+    discrepancy_data = []
+    
+    for client_test, server_test in test_pairs:
+        client_test_str = str(client_test)
+        server_test_str = str(server_test)
+        
+        for proxy_name, results in test_results.items():
+            # Get results for this pair (if available)
+            client_result = results.get(client_test_str, "unknown")
+            server_result = results.get(server_test_str, "unknown")
+            
+            # Skip if either result is unknown
+            if client_result == "unknown" or server_result == "unknown":
+                continue
+                
+            # Check if there's a discrepancy
+            has_discrepancy = client_result != server_result
+            
+            discrepancy_data.append({
+                'Proxy': proxy_name,
+                'Test Pair': f"C{client_test}/S{server_test}",
+                'Client Result': client_result,
+                'Server Result': server_result,
+                'Has Discrepancy': has_discrepancy
+            })
+    
+    # Convert to DataFrame
+    df = pd.DataFrame(discrepancy_data)
+    
+    if df.empty:
+        print("No valid test pair data found for discrepancy visualization")
+        return
+    
+    # Calculate summary statistics
+    summary = df.groupby('Proxy')['Has Discrepancy'].mean().reset_index()
+    summary.columns = ['Proxy', 'Discrepancy Rate']
+    summary = summary.sort_values('Discrepancy Rate', ascending=False)
+    
+    # Create the visualization - just the bar chart
+    plt.figure(figsize=(10, 6))
+    
+    # Summary bar chart
+    bar_plot = plt.barh(summary['Proxy'], summary['Discrepancy Rate'], color='skyblue')
+    
+    # Add percentage labels to the bars
+    for i, v in enumerate(summary['Discrepancy Rate']):
+        plt.text(v + 0.01, i, f"{v:.1%}", va='center')
+    
+    plt.title('Client/Server Test Pair Discrepancy Rates by Proxy', fontsize=14, fontweight='bold')
+    plt.xlabel('Percentage of Test Pairs with Discrepancies', fontsize=12)
+    plt.ylabel('Proxy', fontsize=12)
+    plt.xlim(0, max(summary['Discrepancy Rate']) * 1.2)  # Add some space for labels
+    plt.tight_layout()
+    
+    # Save the figure
+    plt.savefig(os.path.join(output_directory, 'client_server_discrepancies.png'), 
+                dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # Create a detailed markdown table of discrepancies
+    with open(os.path.join(output_directory, 'client_server_discrepancies.md'), 'w') as f:
+        f.write("# Client/Server Test Pair Discrepancies\n\n")
+        
+        # Summary table
+        f.write("## Summary\n\n")
+        f.write("| Proxy | Discrepancy Rate |\n")
+        f.write("|-------|------------------|\n")
+        for _, row in summary.iterrows():
+            f.write(f"| {row['Proxy']} | {row['Discrepancy Rate']:.1%} |\n")
+        
+        # Detailed discrepancies
+        f.write("\n## Detailed Discrepancies\n\n")
+        f.write("| Proxy | Test Pair | Client Result | Server Result |\n")
+        f.write("|-------|-----------|--------------|---------------|\n")
+        
+        for _, row in df[df['Has Discrepancy']].iterrows():
+            f.write(f"| {row['Proxy']} | {row['Test Pair']} | {row['Client Result']} | {row['Server Result']} |\n")
+
 def main():
     # Create summaries directory if it doesn't exist
     summaries_dir = 'summaries'
@@ -619,7 +717,8 @@ def main():
         os.makedirs(summaries_dir)
     
     # List of proxy folders
-    proxy_folders = ['Envoy', 'Node', 'Nghttpx', 'HAproxy', 'Apache', 'H2O', 'Caddy', 'Cloudflare']
+    # proxy_folders = ['Envoy', 'Node', 'Nghttpx', 'HAproxy', 'Apache', 'H2O', 'Caddy', 'Cloudflare']
+    proxy_folders = ['Nghttpx', 'HAproxy', 'Apache', 'Caddy', 'Envoy', 'Node', 'Cloudflare', 'H2O']
     results_dir = 'results'
     
     # Prepare data for summary tables
@@ -661,6 +760,13 @@ def main():
         create_client_server_pie_charts(all_test_results, client_side_tests, server_side_tests, output_dir)
     except Exception as e:
         print(f"Error creating client-server pie charts: {e}")
+    
+    # Create client-server discrepancy visualization
+    try:
+        test_pairs = load_test_pairs()
+        create_client_server_discrepancy_visualization(all_test_results, test_pairs, output_dir)
+    except Exception as e:
+        print(f"Error creating client-server discrepancy visualization: {e}")
 
 if __name__ == "__main__":
     main()
