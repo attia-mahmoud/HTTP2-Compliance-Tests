@@ -1,0 +1,147 @@
+[
+{
+    "id": 0,
+    "description": "A normal GET request from the client, followed by small DATA. The server responds with a 200 HEADERS, some DATA, and a final set of trailers. Checks a typical request/response flow in HTTP/2.",
+    "client_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 3,
+        "headers": {
+          ":method": "GET",
+          ":scheme": "http",
+          ":path": "/",
+          ":authority": "example.com",
+          "accept": "*/*"
+        },
+        "flags": {
+          "END_STREAM": false
+        }
+      },
+      {
+        "type": "DATA",
+        "stream_id": 3,
+        "payload": "Hello from client!",
+        "flags": {
+          "END_STREAM": false
+        }
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "HEADERS",
+        "stream_id": 3,
+        "headers": {
+          ":status": "200",
+          "content-type": "text/plain"
+        },
+        "flags": {
+          "END_STREAM": false
+        }
+      },
+      {
+        "type": "DATA",
+        "stream_id": 3,
+        "payload": "Hello from server!",
+        "flags": {
+          "END_STREAM": false
+        }
+      },
+      {
+        "type": "TRAILERS",
+        "stream_id": 3,
+        "headers": {
+          "x-extra-info": "some trailer info"
+        },
+        "flags": {
+          "END_STREAM": true
+        }
+      }
+    ]
+  },
+  {
+    "id": 167,
+    "description": "A normal GET request with HTTP/2 server push enabled. The server returns 200 and also pushes an extra resource (promised stream). Tests standard server push behavior.",
+    "client_frames": [
+      {
+        "type": "SETTINGS",
+        "settings": {
+          "ENABLE_PUSH": 1
+        }
+      },
+      {
+        "type": "HEADERS",
+        "stream_id": 3,
+        "headers": {
+          ":method": "GET",
+          ":scheme": "https",
+          ":path": "/mainpage",
+          ":authority": "example.com"
+        },
+        "flags": {
+          "END_STREAM": false
+        }
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "SETTINGS",
+        "settings": {
+          "ENABLE_PUSH": 1
+        }
+      },
+      {
+        "type": "HEADERS",
+        "stream_id": 3,
+        "headers": {
+          ":status": "200",
+          "content-type": "text/html"
+        },
+        "flags": {
+          "END_STREAM": false
+        }
+      },
+      {
+        "type": "PUSH_PROMISE",
+        "stream_id": 3,
+        "promised_stream_id": 4,
+        "headers": {
+          ":method": "GET",
+          ":scheme": "https",
+          ":path": "/pushed-resource.css",
+          ":authority": "example.com"
+        },
+        "flags": {
+          "END_HEADERS": true
+        }
+      },
+      {
+        "type": "HEADERS",
+        "stream_id": 4,
+        "headers": {
+          ":status": "200",
+          "content-type": "text/css"
+        },
+        "flags": {
+          "END_STREAM": false
+        }
+      },
+      {
+        "type": "DATA",
+        "stream_id": 4,
+        "payload": "body { background: #fff; }",
+        "flags": {
+          "END_STREAM": true
+        }
+      },
+      {
+        "type": "DATA",
+        "stream_id": 3,
+        "payload": "<html><body>Hello, world!</body></html>",
+        "flags": {
+          "END_STREAM": true
+        }
+      }
+    ]
+  }
+]  
+  

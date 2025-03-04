@@ -1,19 +1,5 @@
 [
   {
-    "id": 0,
-    "description": "Control.",
-    "client_frames": [
-      {
-          "type": "HEADERS"
-      }
-  ],
-  "server_frames": [
-      {
-          "type": "HEADERS"
-      }
-  ]
-  },
-  {
     "id": 1,
     "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "client_frames": [
@@ -1793,7 +1779,10 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3
+        "stream_id": 3,
+        "flags": {
+          "END_STREAM": false
+        }
       }
     ],
     "server_frames": [
