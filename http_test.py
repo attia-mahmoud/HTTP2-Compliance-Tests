@@ -58,14 +58,15 @@ tests_trees_data = fetch_data(tests_trees_url)
 repository = "https://github.com/nopasaran-org/nopasaran-tests-trees"
 
 list_of_proxies = [
-    {"PROXY": "Apache", "PROXY_PORT": "7700", "tls_enabled": "false"},
-    {"PROXY": "Caddy", "PROXY_PORT": "7701", "tls_enabled": "false"},
-    # {"PROXY": "Envoy", "PROXY_PORT": "7702", "tls_enabled": "false"},
+    # {"PROXY": "Direct", "PROXY_PORT": "8080", "tls_enabled": "false"}
+    {"PROXY": "Apache", "PROXY_PORT": "7700", "tls_enabled": "false"}
+    # {"PROXY": "Caddy", "PROXY_PORT": "7701"},
+    # {"PROXY": "Envoy", "PROXY_PORT": "7702"}
     # {"PROXY": "H2O", "PROXY_PORT": "7703", "tls_enabled": "true"},
-    {"PROXY": "HAproxy", "PROXY_PORT": "7704", "tls_enabled": "false"},
+    # {"PROXY": "HAproxy", "PROXY_PORT": "7704"},
     # {"PROXY": "Mitmproxy", "PROXY_PORT": "7705", "tls_enabled": "true"}
-    {"PROXY": "Nghttpx", "PROXY_PORT": "7706", "tls_enabled": "false"},
-    # {"PROXY": "Node", "PROXY_PORT": "7707", "tls_enabled": "false"}
+    # {"PROXY": "Nghttpx", "PROXY_PORT": "7706"},
+    # {"PROXY": "Node", "PROXY_PORT": "7707"}
     # {"PROXY": "Cloudflare", "PROXY_PORT": "443", "tls_enabled": "true", "cloudflare_origin": "true"}
 ]
 
@@ -84,8 +85,10 @@ MASTER = "mahmoudmaster.admin.master.nopasaran.org"
 
 tests_tree = "http_2_conformance.png"
 
+file = "test_cases_debug.json"
+
 # Load test cases from test_cases.json
-with open('test_cases.json', 'r') as f:
+with open(file, 'r') as f:
     test_cases = json.load(f)
 
 # Create results directory if it doesn't exist

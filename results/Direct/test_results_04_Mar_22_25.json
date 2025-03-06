@@ -1,0 +1,36 @@
+{
+  "0": {
+    "description": "A normal GET request from the client, followed by small DATA. The server responds with a 200 HEADERS, some DATA, and a final set of trailers. Checks a typical request/response flow in HTTP/2.",
+    "result": {
+      "Worker_2": {
+        "State": "FINAL",
+        "Variables": {
+          "msg": "Connection established but no test request received at 0.0.0.0:8080."
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "msg": "Error during HTTP/2 test request/response with 192.168.122.214:8080: [Errno 104] Connection reset by peer"
+        }
+      }
+    }
+  },
+  "167": {
+    "description": "A normal GET request with HTTP/2 server push enabled. The server returns 200 and also pushes an extra resource (promised stream). Tests standard server push behavior.",
+    "result": {
+      "Worker_2": {
+        "State": "FINAL",
+        "Variables": {
+          "msg": "Connection established but no test request received at 0.0.0.0:8080."
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "msg": "Error during HTTP/2 test request/response with 192.168.122.214:8080: [Errno 104] Connection reset by peer"
+        }
+      }
+    }
+  }
+}

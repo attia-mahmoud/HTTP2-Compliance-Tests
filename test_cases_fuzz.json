@@ -1,0 +1,59 @@
+[
+    {
+      "id": 1,
+      "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+      "client_frames": [
+        {
+          "type": "DATA",
+          "stream_id": 3
+        }
+      ]
+    },
+    {
+        "id": 2,
+        "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+        "client_frames": [
+            {
+            "type": "RST_STREAM",
+            "stream_id": 3
+            }
+        ]
+    },
+    {
+        "id": 3,
+        "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+        "client_frames": [
+            {
+            "type": "WINDOW_UPDATE",
+            "stream_id": 3
+            }
+        ]
+    },
+    {
+        "id": 4,
+        "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+        "client_frames": [
+            {
+            "type": "WINDOW_UPDATE",
+            "stream_id": 0
+            }
+        ],
+        "server_frames": [
+            {
+            "type": "PUSH_PROMISE",
+            "stream_id": 3,
+            "promised_stream_id": 4
+            }
+        ]
+    },
+    {
+        "id": 5,
+        "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+        "client_frames": [
+            {
+            "type": "CONTINUATION",
+            "stream_id": 3
+            }
+        ]
+    }
+]
