@@ -58,7 +58,7 @@
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 4
+        "stream_id": 2
       }
     ]
   },
@@ -67,26 +67,16 @@
     "description": "An endpoint MUST NOT send any type of frame other than HEADERS, RST_STREAM, or PRIORITY in the reserved (local) state.",
     "client_frames": [
       {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
-      },
-      {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
-        "type": "PUSH_PROMISE",
-        "promised_stream_id": 4
+        "type": "PUSH_PROMISE"
       },
       {
         "type": "DATA",
-        "stream_id": 4
+        "stream_id": 2
       }
     ]
   },
@@ -101,8 +91,7 @@
         }
       },
       {
-        "type": "DATA",
-        "stream_id": 3
+        "type": "DATA"
       }
     ]
   },
@@ -111,14 +100,10 @@
     "description": "Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       },
       {
         "type": "DATA",
-        "stream_id": 3,
         "payload_size": 17000
       }
     ]
@@ -128,10 +113,7 @@
     "description": "The frame type determines the format and semantics of the frame. Implementations MUST ignore and discard frames of unknown types.",
     "client_frames": [
       {
-        "type": "UNKNOWN",
-        "stream_id": 3,
-        "frame_type_id": 99,
-        "payload": "test payload"
+        "type": "UNKNOWN"
       }
     ]
   },
@@ -151,7 +133,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 4
+        "stream_id": 2
       }
     ]
   },
@@ -160,14 +142,13 @@
     "description": "Streams initiated by a server MUST use even-numbered stream identifiers.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 5
+        "stream_id": 3
       }
     ]
   },
@@ -177,11 +158,11 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 5
+        "stream_id": 3
       },
       {
         "type": "HEADERS",
-        "stream_id": 3
+        "stream_id": 1
       }
     ]
   },
@@ -190,21 +171,15 @@
     "description": "An endpoint MUST NOT send a RST_STREAM in response to a RST_STREAM frame",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        },
-        "stream_id": 3
+        "type": "HEADERS"
       },
       {
-        "type": "RST_STREAM",
-        "stream_id": 3
+        "type": "RST_STREAM"
       }
     ],
     "server_frames": [
       {
-        "type": "RST_STREAM",
-        "stream_id": 3
+        "type": "RST_STREAM"
       }
     ]
   },
@@ -223,22 +198,16 @@
     "description": "After receiving a RST_STREAM on a stream, the receiver MUST NOT send additional frames for that stream, except for PRIORITY",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        },
-        "stream_id": 3
+        "type": "HEADERS"
       },
       {
-        "type": "RST_STREAM",
-        "stream_id": 3
+        "type": "RST_STREAM"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "raw_frame": true,
-        "stream_id": 3
+        "raw_frame": true
       }
     ]
   },
@@ -247,11 +216,7 @@
     "description": "If a RST_STREAM frame is received with a stream identifier of 0x00, the recipient MUST treat this as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        },
-        "stream_id": 3
+        "type": "HEADERS"
       },
       {
         "type": "RST_STREAM",
@@ -279,15 +244,10 @@
     "description": "A RST_STREAM frame with a length other than 4 octets MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        },
-        "stream_id": 3
+        "type": "HEADERS"
       },
       {
         "type": "RST_STREAM",
-        "stream_id": 3,
         "payload_length": 5
       }
     ]
@@ -298,7 +258,7 @@
     "client_frames": [
       {
         "type": "SETTINGS",
-        "stream_id": 3,
+        "stream_id": 1,
         "settings": {
           "MAX_CONCURRENT_STREAMS": 100
         }
@@ -352,24 +312,12 @@
     "description": "A server MUST NOT send a PUSH_PROMISE frame if it receives the SETTINGS_ENABLE_PUSH (0x02) parameter set to a value of 0.",
     "client_frames": [
       {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 0
-        }
-      },
-      {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
-        "type": "PUSH_PROMISE",
-        "stream_id": 3,
-        "promised_stream_id": 4
+        "type": "PUSH_PROMISE"
       }
     ]
   },
@@ -415,21 +363,13 @@
     "description": "If the Stream Identifier field of a PUSH_PROMISE frame specifies the value 0x00, a recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "client_frames": [
       {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
-      },
-      {
-        "type": "HEADERS",
-        "stream_id": 3
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 0,
-        "promised_stream_id": 4
+        "stream_id": 0
       }
     ]
   },
@@ -438,14 +378,12 @@
     "description": "The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Odd-numbered Stream ID (Invalid for Server))",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 3,
         "promised_stream_id": 3
       }
     ]
@@ -526,9 +464,7 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "flags": {
-          "END_STREAM": false,
           "END_HEADERS": false
         }
       },
@@ -544,15 +480,12 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "flags": {
-          "END_STREAM": false,
           "END_HEADERS": true
         }
       },
       {
-        "type": "CONTINUATION",
-        "stream_id": 3
+        "type": "CONTINUATION"
       }
     ]
   },
@@ -561,29 +494,18 @@
     "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using PUSH_PROMISE frame with END_HEADERS flag set)",
     "client_frames": [
       {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
-      },
-      {
-        "type": "HEADERS",
-        "stream_id": 3
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 3,
-        "promised_stream_id": 4,
         "flags": {
-          "END_STREAM": false,
           "END_HEADERS": true
         }
       },
       {
-        "type": "CONTINUATION",
-        "stream_id": 4
+        "type": "CONTINUATION"
       }
     ]
   },
@@ -591,12 +513,6 @@
     "id": 39,
     "description": "The header fields in PUSH_PROMISE and any subsequent CONTINUATION frames MUST be a valid and complete set of request header fields.",
     "client_frames": [
-      {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
-      },
       {
         "type": "HEADERS"
       }
@@ -617,16 +533,10 @@
     "description": "Trailers MUST NOT include pseudo-header fields (Section 8.3).",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       },
       {
-        "type": "DATA",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "DATA"
       },
       {
         "type": "TRAILERS",
@@ -642,7 +552,6 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "headers": {
           ":METHOD": "GET",
           ":SCHEME": "http",
@@ -681,7 +590,6 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -698,7 +606,6 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -746,7 +653,6 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -829,7 +735,6 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -846,7 +751,6 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -863,7 +767,6 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -880,7 +783,6 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -897,7 +799,6 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "headers": {
           ":method": "GET",
           ":scheme": "http",
@@ -1174,22 +1075,10 @@
     "description": "A client cannot push. Thus, servers MUST treat the receipt of a PUSH_PROMISE frame as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "client_frames": [
       {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
+        "type": "HEADERS"
       },
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
-      },
-      {
-        "type": "PUSH_PROMISE",
-        "stream_id": 3,
-        "promise_stream_id": 4
+        "type": "PUSH_PROMISE"
       }
     ]
   },
@@ -1197,12 +1086,6 @@
     "id": 73,
     "description": "In the PUSH_PROMISE frame, the server MUST include a method in the \":method\" pseudo-header field that is safe and cacheable.",
     "client_frames": [
-      {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
-      },
       {
         "type": "HEADERS"
       }
@@ -1252,19 +1135,13 @@
     "description": "An endpoint MUST NOT send frames other than PRIORITY on a closed stream.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       },
       {
-        "type": "RST_STREAM",
-        "stream_id": 3
+        "type": "RST_STREAM"
       },
       {
-        "type": "HEADERS",
-        "stream_id": 3
+        "type": "HEADERS"
       }
     ]
   },
@@ -1273,8 +1150,7 @@
     "description": "RST_STREAM frames MUST NOT be sent for a stream in the 'idle' state.",
     "client_frames": [
       {
-        "type": "RST_STREAM",
-        "stream_id": 3
+        "type": "RST_STREAM"
       }
     ]
   },
@@ -1292,10 +1168,7 @@
     "description": "Implementations MUST discard frames that have unknown or unsupported types.",
     "client_frames": [
       {
-        "type": "UNKNOWN",
-        "stream_id": 3,
-        "frame_type_id": 99,
-        "payload": "test payload"
+        "type": "UNKNOWN"
       }
     ]
   },
@@ -1304,8 +1177,7 @@
     "description": "DATA frames MUST be associated with a stream.",
     "client_frames": [
       {
-        "type": "DATA",
-        "stream_id": 3
+        "type": "DATA"
       }
     ]
   },
@@ -1327,8 +1199,7 @@
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the idle state.)",
     "client_frames": [
       {
-        "type": "DATA",
-        "stream_id": 3
+        "type": "DATA"
       }
     ]
   },
@@ -1338,11 +1209,12 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3
+        "flags": {
+          "END_STREAM": true
+        }
       },
       {
-        "type": "DATA",
-        "stream_id": 3
+        "type": "DATA"
       }
     ]
   },
@@ -1351,18 +1223,13 @@
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       },
       {
-        "type": "RST_STREAM",
-        "stream_id": 3
+        "type": "RST_STREAM"
       },
       {
-        "type": "DATA",
-        "stream_id": 3
+        "type": "DATA"
       }
     ]
   },
@@ -1373,14 +1240,11 @@
       {
         "type": "HEADERS",
         "flags": {
-          "END_HEADERS": false,
-          "END_STREAM": false
-        },
-        "stream_id": 3
+          "END_HEADERS": false
+        }
       },
       {
-        "type": "DATA",
-        "stream_id": 3
+        "type": "DATA"
       }
     ]
   },
@@ -1423,29 +1287,15 @@
     "description": "The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Already Used Stream ID)",
     "client_frames": [
       {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
-      },
-      {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
-        "type": "PUSH_PROMISE",
-        "stream_id": 3,
-        "promised_stream_id": 4
+        "type": "PUSH_PROMISE"
       },
       {
-        "type": "PUSH_PROMISE",
-        "stream_id": 3,
-        "promised_stream_id": 4
+        "type": "PUSH_PROMISE"
       }
     ]
   },
@@ -1454,23 +1304,17 @@
     "description": "The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Lower Stream ID)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 3,
         "promised_stream_id": 4
       },
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 3,
-        "promised_stream_id": 4
+        "promised_stream_id": 2
       }
     ]
   },
@@ -1479,31 +1323,18 @@
     "description": "A PUSH_PROMISE frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream.",
     "client_frames": [
       {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
-      },
-      {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
-        "stream_id": 3,
-        "promised_stream_id": 4,
         "flags": {
           "END_HEADERS": false
         }
       },
       {
-        "type": "DATA",
-        "stream_id": 3
+        "type": "DATA"
       }
     ]
   },
@@ -1512,24 +1343,12 @@
     "description": "PUSH_PROMISE MUST NOT be sent if the SETTINGS_ENABLE_PUSH setting of the peer endpoint is set to 0.",
     "client_frames": [
       {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 0
-        }
-      },
-      {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
-        "type": "PUSH_PROMISE",
-        "stream_id": 3,
-        "promised_stream_id": 4
+        "type": "PUSH_PROMISE"
       }
     ]
   },
@@ -1538,12 +1357,10 @@
     "description": "The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3
+        "type": "HEADERS"
       },
       {
         "type": "DATA",
-        "stream_id": 3,
         "payload_size": 2147483647
       }
     ]
@@ -1553,8 +1370,7 @@
     "description": "CONTINUATION frames MUST be associated with a stream.",
     "client_frames": [
       {
-        "type": "CONTINUATION",
-        "stream_id": 3
+        "type": "CONTINUATION"
       }
     ]
   },
@@ -1564,10 +1380,8 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "flags": {
-          "END_HEADERS": false,
-          "END_STREAM": false
+          "END_HEADERS": false
         }
       },
       {
@@ -1581,18 +1395,15 @@
     "client_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "flags": {
-          "END_HEADERS": false,
-          "END_STREAM": false
+          "END_HEADERS": false
         }
       },
       {
         "type": "DATA"
       },
       {
-        "type": "CONTINUATION",
-        "stream_id": 3
+        "type": "CONTINUATION"
       }
     ]
   },
@@ -1601,16 +1412,10 @@
     "description": "An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving the HEADERS frame that opens a request or after receiving a final (non-informational) status code MUST treat the corresponding request or response as malformed (Section 8.1.1).",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       },
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ]
   },
@@ -1687,22 +1492,13 @@
     "description": "Pseudo-header fields MUST NOT appear in a trailer section.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       },
       {
-        "type": "DATA",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "DATA"
       },
       {
         "type": "TRAILERS",
-        "stream_id": 3,
         "headers": {
           ":path": "/"
         }
@@ -1728,16 +1524,7 @@
     "description": "Promised requests MUST be safe (see Section 9.2.1 of [HTTP]) and cacheable (see Section 9.2.3 of [HTTP]).",
     "client_frames": [
       {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
-      },
-      {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
@@ -1757,19 +1544,10 @@
     "description": "PUSH_PROMISE frames MUST NOT be sent by the client.",
     "client_frames": [
       {
-        "type": "SETTINGS",
-        "settings": {
-          "ENABLE_PUSH": 1
-        }
+        "type": "HEADERS"
       },
       {
-        "type": "HEADERS",
-        "stream_id": 3
-      },
-      {
-        "type": "PUSH_PROMISE",
-        "stream_id": 3,
-        "promise_stream_id": 4
+        "type": "PUSH_PROMISE"
       }
     ]
   },
@@ -1778,11 +1556,7 @@
     "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR. (server side)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
@@ -1797,24 +1571,18 @@
     "description": "If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (server side)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "DATA",
-        "stream_id": 3,
         "flags": {
           "END_STREAM": true
         }
       },
       {
-        "type": "DATA",
-        "stream_id": 3
+        "type": "DATA"
       }
     ]
   },
@@ -1823,17 +1591,12 @@
     "description": "Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE. (server side)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "DATA",
-        "stream_id": 3,
         "payload_size": 17000
       }
     ]
@@ -1843,19 +1606,12 @@
     "description": "The frame type determines the format and semantics of the frame. Implementations MUST ignore and discard frames of unknown types. (server side)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
-        "type": "UNKNOWN",
-        "stream_id": 3,
-        "frame_type_id": 99,
-        "payload": "test payload"
+        "type": "UNKNOWN"
       }
     ]
   },
@@ -1864,8 +1620,7 @@
     "description": "A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving. (server side)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
@@ -1880,11 +1635,7 @@
     "description": "If a PRIORITY frame is received with a stream identifier of 0x00, the recipient MUST respond with a connection error of type PROTOCOL_ERROR. (server side)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
@@ -1899,11 +1650,7 @@
     "description": "If a RST_STREAM frame is received with a stream identifier of 0x00, the recipient MUST treat this as a connection error (Section 5.4.1) of type PROTOCOL_ERROR. (server side)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        },
-        "stream_id": 3
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
@@ -1918,8 +1665,7 @@
     "description": "When set, the ACK flag indicates that this frame acknowledges receipt and application of the peer's SETTINGS frame. When this bit is set, the frame payload of the SETTINGS frame MUST be empty. (server side)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
@@ -1939,17 +1685,12 @@
     "description": "A RST_STREAM frame with a length other than 4 octets MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR. (server side)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        },
-        "stream_id": 3
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "RST_STREAM",
-        "stream_id": 3,
         "payload_length": 5
       }
     ]
@@ -1959,8 +1700,7 @@
     "description": "The stream identifier for a SETTINGS frame MUST be zero (0x00).",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
@@ -2070,19 +1810,13 @@
     "description": "If a CONTINUATION frame is received with a Stream Identifier field of 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "flags": {
-          "END_STREAM": false,
           "END_HEADERS": false
         }
       },
@@ -2098,15 +1832,12 @@
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "flags": {
-          "END_STREAM": false,
           "END_HEADERS": true
         }
       },
       {
-        "type": "CONTINUATION",
-        "stream_id": 3
+        "type": "CONTINUATION"
       }
     ]
   },
@@ -2115,24 +1846,15 @@
     "description": "Trailers MUST NOT include pseudo-header fields (Section 8.3).",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       },
       {
-        "type": "DATA",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "DATA"
       },
       {
         "type": "TRAILERS",
@@ -2147,16 +1869,12 @@
     "description": "Field names MUST be converted to lowercase when constructing an HTTP/2 message.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "headers": {
           ":STATUS": "200"
         }
@@ -2168,17 +1886,12 @@
     "description": "Field names MUST NOT contain control characters (0x00-0x1F)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2192,17 +1905,12 @@
     "description": "Field names MUST NOT contain ASCII SP (0x20)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2216,17 +1924,12 @@
     "description": "Field names MUST NOT contain DEL character (0x7F)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2240,17 +1943,12 @@
     "description": "Field names MUST NOT contain high byte characters (0x80-0xFF)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2264,17 +1962,12 @@
     "description": "With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a).",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2288,17 +1981,12 @@
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the start of the value)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2312,17 +2000,12 @@
     "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the start of the value)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2336,17 +2019,12 @@
     "description": "A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2360,17 +2038,12 @@
     "description": "A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2384,17 +2057,12 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2408,17 +2076,12 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2432,17 +2095,12 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing keep-alive header field (RFC9113 Section 8.2.2)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2456,17 +2114,12 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2480,17 +2133,12 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2504,17 +2152,12 @@
     "description": "The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2528,17 +2171,12 @@
     "description": "Pseudo-header fields are not HTTP header fields. Endpoints MUST NOT generate pseudo-header fields other than those defined in this document.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "raw_frame": true,
         "headers": {
           ":status": "200",                   
@@ -2552,33 +2190,21 @@
     "description": "An endpoint MUST NOT send frames other than PRIORITY on a closed stream.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       },
       {
-        "type": "RST_STREAM",
-        "stream_id": 3
+        "type": "RST_STREAM"
       }
     ],
     "server_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3
+        "type": "HEADERS"
       }
     ]
   },
   {
     "id": 145,
     "description": "RST_STREAM frames MUST NOT be sent for a stream in the 'idle' state.",
-    "client_frames": [
-      {
-        "type": "HEADERS",
-        "stream_id": 3
-      }
-    ],
     "server_frames": [
       {
         "type": "RST_STREAM",
@@ -2589,12 +2215,6 @@
   {
     "id": 146,
     "description": "RST_STREAM frames MUST be associated with a stream.",
-    "client_frames": [
-      {
-        "type": "HEADERS",
-        "stream_id": 3
-      }
-    ],
     "server_frames": [
       {
         "type": "RST_STREAM",
@@ -2607,19 +2227,12 @@
     "description": "Implementations MUST discard frames that have unknown or unsupported types.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
-        "type": "UNKNOWN",
-        "stream_id": 3,
-        "frame_type_id": 99,
-        "payload": "test payload"
+        "type": "UNKNOWN"
       }
     ]
   },
@@ -2638,17 +2251,12 @@
     "description": "If a DATA frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3
+        "type": "HEADERS"
       },
       {
         "type": "DATA",
@@ -2671,21 +2279,15 @@
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3
+        "type": "HEADERS"
       },
       {
-        "type": "DATA",
-        "stream_id": 3
+        "type": "DATA"
       }
     ]
   },
@@ -2694,20 +2296,15 @@
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.)",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
-        "type": "RST_STREAM",
-        "stream_id": 3
+        "type": "RST_STREAM"
       },
       {
-        "type": "DATA",
-        "stream_id": 3
+        "type": "DATA"
       }
     ]
   },
@@ -2716,37 +2313,24 @@
     "description": "A HEADERS frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ],
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "flags": {
-          "END_HEADERS": false,
-          "END_STREAM": false
+          "END_HEADERS": false
         }
       },
       {
-        "type": "DATA",
-        "stream_id": 3
+        "type": "DATA"
       }
     ]
   },
   {
     "id": 154,
     "description": "If a HEADERS frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
-    "client_frames": [
-      {
-        "type": "HEADERS",
-        "stream_id": 3
-      }
-    ],
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2771,12 +2355,10 @@
     "description": "The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver.",
     "server_frames": [
       {
-        "type": "HEADERS",
-        "stream_id": 3
+        "type": "HEADERS"
       },
       {
         "type": "DATA",
-        "stream_id": 3,
         "payload_size": 2147483647
       }
     ]
@@ -2797,10 +2379,8 @@
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "flags": {
-          "END_HEADERS": false,
-          "END_STREAM": false
+          "END_HEADERS": false
         }
       },
       {
@@ -2814,18 +2394,15 @@
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3,
         "flags": {
-          "END_HEADERS": false,
-          "END_STREAM": false
+          "END_HEADERS": false
         }
       },
       {
         "type": "DATA"
       },
       {
-        "type": "CONTINUATION",
-        "stream_id": 3
+        "type": "CONTINUATION"
       }
     ]
   },
@@ -2834,16 +2411,10 @@
     "description": "An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving the HEADERS frame that opens a request or after receiving a final (non-informational) status code MUST treat the corresponding request or response as malformed (Section 8.1.1).",
     "server_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       },
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       }
     ]
   },
@@ -2908,21 +2479,13 @@
     "description": "Pseudo-header fields MUST NOT appear in a trailer section.",
     "server_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "HEADERS"
       },
       {
-        "type": "DATA",
-        "stream_id": 3,
-        "flags": {
-          "END_STREAM": false
-        }
+        "type": "DATA"
       },
       {
         "type": "TRAILERS",
-        "stream_id": 3,
         "headers": {
           ":path": "/"
         }
