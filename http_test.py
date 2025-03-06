@@ -58,8 +58,8 @@ tests_trees_data = fetch_data(tests_trees_url)
 repository = "https://github.com/nopasaran-org/nopasaran-tests-trees"
 
 list_of_proxies = [
-    # {"PROXY": "Direct", "PROXY_PORT": "8080", "tls_enabled": "false"}
-    {"PROXY": "Apache", "PROXY_PORT": "7700", "tls_enabled": "false"}
+    # {"PROXY": "Direct", "PROXY_PORT": "8080"}
+    {"PROXY": "Apache", "PROXY_PORT": "7700"}
     # {"PROXY": "Caddy", "PROXY_PORT": "7701"},
     # {"PROXY": "Envoy", "PROXY_PORT": "7702"}
     # {"PROXY": "H2O", "PROXY_PORT": "7703", "tls_enabled": "true"},
@@ -117,8 +117,7 @@ for proxy in list_of_proxies:
                     "server": "server",
                     "host": PROXY_IP,
                     "port": proxy["PROXY_PORT"],
-                    "tls_enabled": proxy["tls_enabled"],
-                    "protocol": "h2",
+                    "tls_enabled": proxy.get("tls_enabled", "false"),
                     "connection_settings_client": test_case.get("connection_settings_client", {}),
                     "controller_conf_filename": "controller_configuration.json",
                     "cloudflare_origin": proxy.get("cloudflare_origin", "false"),
@@ -131,8 +130,7 @@ for proxy in list_of_proxies:
                     "server": "server",
                     "host": "0.0.0.0",
                     "port": SERVER_PORT,
-                    "tls_enabled": proxy["tls_enabled"],
-                    "protocol": "h2",
+                    "tls_enabled": proxy.get("tls_enabled", "false"),
                     "connection_settings_server": test_case.get("connection_settings_server", {}),
                     "controller_conf_filename": "controller_configuration.json",
                     "cloudflare_origin": proxy.get("cloudflare_origin", "false"),
