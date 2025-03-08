@@ -49,26 +49,24 @@
   "3": {
     "description": "the connection preface starts with the string: PRI * HTTP/2.0\\r\\n\\r\\nSM\\r\\n\\r\\n",
     "result": {
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -122,26 +120,20 @@
   "6": {
     "description": "An endpoint MUST NOT send any type of frame other than HEADERS, RST_STREAM, or PRIORITY in the reserved (local) state.",
     "result": {
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 2 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'PUSH_PROMISE'}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/2 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -216,26 +208,20 @@
   "10": {
     "description": "A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving.",
     "result": {
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<RequestReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       },
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "sent_frames": "[{'type': 'PING'}]",
+          "msg": "Client_Failed_To_Receive_All_Frames"
         }
       }
     }
@@ -243,25 +229,22 @@
   "11": {
     "description": "Streams initiated by a client MUST use odd-numbered stream identifiers.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 2}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -292,24 +275,21 @@
     "description": "The identifier of a newly established stream MUST be numerically greater than all streams that the initiating endpoint has opened or reserved.",
     "result": {
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 5. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 3}, {'type': 'HEADERS', 'stream_id': 1}]"
         }
       },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -318,26 +298,24 @@
   "14": {
     "description": "An endpoint MUST NOT send a RST_STREAM in response to a RST_STREAM frame",
     "result": {
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -372,23 +350,21 @@
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -444,25 +420,22 @@
   "19": {
     "description": "A RST_STREAM frame with a length other than 4 octets MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 6. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM', 'payload_length': 5}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -496,24 +469,21 @@
     "description": "A SETTINGS frame with a length other than a multiple of 6 octets MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR.",
     "result": {
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 6. Additional data: None.",
+          "sent_frames": "[{'type': 'SETTINGS', 'extra_bytes': 5, 'settings': {'MAX_CONCURRENT_STREAMS': 100}}]"
         }
       },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -547,25 +517,19 @@
     "description": "A server MUST NOT explicitly set this value (SETTINGS_ENABLE_PUSH) to 1. A server MAY choose to omit this setting (SETTINGS_ENABLE_PUSH) when it sends a SETTINGS frame, but if a server does include a value, it MUST be 0.",
     "result": {
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       },
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 1}}]",
+          "msg": "Client_Failed_To_Receive_All_Frames"
         }
       }
     }
@@ -574,25 +538,19 @@
     "description": "A server MUST NOT send a PUSH_PROMISE frame if it receives the SETTINGS_ENABLE_PUSH (0x02) parameter set to a value of 0.",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'PUSH_PROMISE'}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -624,25 +582,22 @@
   "26": {
     "description": "The value advertised by an endpoint MUST be between initial value (2^14 = 16,384) and maximum allowed frame size (2^24-1 = 16,777,215 octets), inclusive.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'MAX_FRAME_SIZE': 16777216}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -697,26 +652,20 @@
   "29": {
     "description": "The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Odd-numbered Stream ID (Invalid for Server))",
     "result": {
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       },
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'promised_stream_id': 3}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       }
     }
@@ -725,24 +674,21 @@
     "description": "If a PING frame is received with a Stream Identifier field value other than 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'PING', 'stream_id': 3}]"
         }
       },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -825,25 +771,22 @@
   "34": {
     "description": "A sender MUST NOT allow a flow-control window to exceed 2^31-1 octets. If a sender receives a WINDOW_UPDATE that causes a flow-control window to exceed this maximum, it MUST terminate either the stream or the connection, as appropriate.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 3. Additional data: None.",
+          "sent_frames": "[{'type': 'WINDOW_UPDATE', 'increment': 2147483647}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -876,25 +819,22 @@
   "36": {
     "description": "If a CONTINUATION frame is received with a Stream Identifier field of 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'CONTINUATION', 'stream_id': 0}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -928,25 +868,19 @@
     "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using PUSH_PROMISE frame with END_HEADERS flag set)",
     "result": {
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/2 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       },
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 2 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'flags': {'END_HEADERS': True}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       }
     }
@@ -954,26 +888,20 @@
   "39": {
     "description": "The header fields in PUSH_PROMISE and any subsequent CONTINUATION frames MUST be a valid and complete set of request header fields.",
     "result": {
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       },
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'headers': {':method': 'GET', ':scheme': 'http', ':authority': 'example.com'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       }
     }
@@ -1072,23 +1000,21 @@
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'user agent': 'nopasaran'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1099,23 +1025,21 @@
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'user\\x7fagent': 'del-char'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1123,26 +1047,24 @@
   "45": {
     "description": "Field names MUST NOT contain high byte characters (0x80-0xFF)",
     "result": {
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x\u00a8y': 'diaeresis', 'x\u00b0y': 'degree-sign', 'x\u00b8y': 'cedilla', 'x\u00c0y': 'latin-a-grave', 'x\u00c8y': 'latin-e-grave', 'x\u00d0y': 'latin-eth', 'x\u00d8y': 'latin-o-stroke', 'x\u00e0y': 'latin-a-grave-small', 'x\u00e8y': 'latin-e-grave-small', 'x\u00f0y': 'latin-eth-small', 'x\u00f8y': 'latin-o-stroke-small', 'x\u00fay': 'latin-u-acute-small', 'x\u00fcy': 'latin-u-diaeresis-small', 'x\u00fey': 'latin-thorn-small', 'x\u00ffy': 'latin-y-diaeresis-small'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1200,24 +1122,21 @@
     "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the start of the value)",
     "result": {
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 9. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-cr-start': '\\rvalue'}}]"
         }
       },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -1227,25 +1146,19 @@
     "description": "A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', 'example.com'), (':path', '/'), ('x-leading-space', ' value')]>]",
+          "sent_frames": "[{'type': 'PING'}]",
+          "msg": "Client_Failed_To_Receive_All_Frames"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -1277,23 +1190,21 @@
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'connection': 'keep-alive'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1326,26 +1237,24 @@
   "53": {
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing keep-alive header field (RFC9113 Section 8.2.2)",
     "result": {
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'keep-alive': 'timeout=5'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1353,26 +1262,24 @@
   "54": {
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2)",
     "result": {
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'transfer-encoding': 'chunked'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1383,23 +1290,21 @@
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'upgrade': 'h2c'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1410,23 +1315,21 @@
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'te': 'gzip'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1434,26 +1337,24 @@
   "57": {
     "description": "Pseudo-header fields are not HTTP header fields. Endpoints MUST NOT generate pseudo-header fields other than those defined in this document.",
     "result": {
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', ':version': '2.0'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1461,26 +1362,20 @@
   "58": {
     "description": "Pseudo-header fields defined for requests MUST NOT appear in responses.",
     "result": {
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       },
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "RESET_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':status': '200', ':method': 'GET'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       }
     }
@@ -1516,23 +1411,21 @@
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {'accept': '*/*', ':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1589,23 +1482,21 @@
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}, 'duplicate_headers': {':authority': 'nopasaran.com'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1634,26 +1525,20 @@
   "65": {
     "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a response frame with different values.",
     "result": {
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       },
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "RESET_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'duplicate_headers': {':status': '201'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       }
     }
@@ -1728,26 +1613,24 @@
   "69": {
     "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :method missing)",
     "result": {
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':scheme': 'http', ':path': '/', ':authority': 'example.com'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1826,25 +1709,19 @@
     "description": "In the PUSH_PROMISE frame, the server MUST include a method in the \":method\" pseudo-header field that is safe and cacheable.",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'headers': {':method': 'POST', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -1855,23 +1732,21 @@
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':scheme': 'http', ':path': '/', ':authority': 'example.com:80'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1972,25 +1847,16 @@
   "79": {
     "description": "Implementations MUST discard frames that have unknown or unsupported types.",
     "result": {
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
+      "Worker_1": null,
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -2121,25 +1987,22 @@
   "85": {
     "description": "A HEADERS frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'DATA'}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -2175,23 +2038,21 @@
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -2202,23 +2063,21 @@
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'12345': 16777216}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -2227,25 +2086,19 @@
     "description": "The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Already Used Stream ID)",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 2 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'PUSH_PROMISE'}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/2 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -2295,26 +2148,20 @@
   "92": {
     "description": "PUSH_PROMISE MUST NOT be sent if the SETTINGS_ENABLE_PUSH setting of the peer endpoint is set to 0.",
     "result": {
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       },
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'PUSH_PROMISE'}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       }
     }
@@ -2421,25 +2268,22 @@
   "97": {
     "description": "An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving the HEADERS frame that opens a request or after receiving a final (non-informational) status code MUST treat the corresponding request or response as malformed (Section 8.1.1).",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'HEADERS'}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -2448,25 +2292,22 @@
   "98": {
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the middle of the value)",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 9. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-lf-middle': 'val\\nue'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -2475,25 +2316,22 @@
   "99": {
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value)",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 9. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-lf-end': 'value\\n'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -2502,25 +2340,22 @@
   "100": {
     "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value)",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 9. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-cr-middle': 'val\\rue'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       }
@@ -2553,26 +2388,38 @@
   "102": {
     "description": "Pseudo-header fields MUST NOT appear in a trailer section.",
     "result": {
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 3 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA'}, {'type': 'TRAILERS', 'headers': {':path': '/'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
+          "server": null,
+          "client_val": "client",
           "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
+          "client_frames": [
+            {
+              "type": "HEADERS"
+            },
+            {
+              "type": "DATA"
+            },
+            {
+              "type": "TRAILERS",
+              "headers": {
+                ":path": "/"
+              }
+            }
+          ],
           "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
-        }
-      },
-      "Worker_1": {
-        "State": "TIMEOUT",
-        "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "TIMEOUT",
+          "frames_received": "[<DataReceived stream_id:None, flow_controlled_length:None, data:>]"
         }
       }
     }
@@ -2605,26 +2452,20 @@
   "104": {
     "description": "Promised requests MUST be safe (see Section 9.2.1 of [HTTP]) and cacheable (see Section 9.2.3 of [HTTP]).",
     "result": {
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       },
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'PUSH_PROMISE', 'headers': {':method': 'POST', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       }
     }
@@ -2698,26 +2539,20 @@
   "108": {
     "description": "Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE. (server side)",
     "result": {
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 6. Additional data: None.",
+          "sent_frames": "[{'type': 'DATA', 'payload_size': 17000}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -2762,25 +2597,19 @@
     "description": "If a PRIORITY frame is received with a stream identifier of 0x00, the recipient MUST respond with a connection error of type PROTOCOL_ERROR. (server side)",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'PRIORITY', 'stream_id': 0}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -2852,25 +2681,19 @@
     "description": "The stream identifier for a SETTINGS frame MUST be zero (0x00).",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'SETTINGS', 'stream_id': 3, 'settings': {'MAX_CONCURRENT_STREAMS': 100}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -2879,25 +2702,19 @@
     "description": "A SETTINGS frame with a length other than a multiple of 6 octets MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR.",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 6. Additional data: None.",
+          "sent_frames": "[{'type': 'SETTINGS', 'extra_bytes': 5, 'settings': {'MAX_CONCURRENT_STREAMS': 100}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -2906,25 +2723,19 @@
     "description": "For SETTINGS_INITIAL_WINDOW_SIZE, values above the maximum flow-control window size of 2^31-1 (2147483647) MUST be treated as a connection error (Section 5.4.1) of type FLOW_CONTROL_ERROR.",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 3. Additional data: None.",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'INITIAL_WINDOW_SIZE': 2147483648}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -2933,25 +2744,19 @@
     "description": "The value advertised by an endpoint MUST be between initial value (2^14 = 16,384) and maximum allowed frame size (2^24-1 = 16,777,215 octets), inclusive.",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'MAX_FRAME_SIZE': 16777216}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -2981,25 +2786,19 @@
     "description": "If a PING frame is received with a Stream Identifier field value other than 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'PING', 'stream_id': 3}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -3074,25 +2873,19 @@
     "description": "If a CONTINUATION frame is received with a Stream Identifier field of 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'CONTINUATION', 'stream_id': 0}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/2 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -3252,25 +3045,19 @@
     "description": "With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a).",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "RESET_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x:y': 'invalid-colon'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -3278,26 +3065,20 @@
   "133": {
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the start of the value)",
     "result": {
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 9. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-lf-start': '\\nvalue'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -3327,25 +3108,21 @@
     "description": "A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "FINAL",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-leading-space': ' value'}}]"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('x-leading-space', ' value')]>]",
+          "sent_frames": "[{'type': 'HEADERS'}]",
+          "msg": "Server_Received_Error_From_Proxy"
         }
       }
     }
@@ -3376,26 +3153,20 @@
   "137": {
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2)",
     "result": {
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       },
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "RESET_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'connection': 'keep-alive'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       }
     }
@@ -3404,25 +3175,19 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2)",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "RESET_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'proxy-connection': 'keep-alive'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -3430,26 +3195,20 @@
   "139": {
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing keep-alive header field (RFC9113 Section 8.2.2)",
     "result": {
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "RESET_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'keep-alive': 'timeout=5'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -3479,25 +3238,19 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2)",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "RESET_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'upgrade': 'h2c'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -3506,25 +3259,21 @@
     "description": "The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'.",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "FINAL",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'te': 'gzip'}}]"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('te', 'gzip')]>]",
+          "sent_frames": "[{'type': 'HEADERS'}]",
+          "msg": "Server_Received_Error_From_Proxy"
         }
       }
     }
@@ -3556,23 +3305,21 @@
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "role": "server",
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
           "event": "TIMEOUT",
-          "ctrl": "NULL",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
           "result": "TIMEOUT"
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -3580,26 +3327,20 @@
   "145": {
     "description": "RST_STREAM frames MUST NOT be sent for a stream in the 'idle' state.",
     "result": {
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       },
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'RST_STREAM', 'stream_id': 5}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       }
     }
@@ -3663,25 +3404,21 @@
     "description": "If a DATA frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'stream_id': 0}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "result": "Successfully received all 2/2 frames.",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'nopasaran-http2-server'), ('date', 'Sat, 08 Mar 2025 13:25:45 GMT')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
+          "sent_frames": "[{'type': 'HEADERS'}]",
+          "msg": "Server_Received_Error_From_Proxy"
         }
       }
     }
@@ -3754,26 +3491,20 @@
   "153": {
     "description": "A HEADERS frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream.",
     "result": {
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/2 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       },
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'DATA'}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       }
     }
@@ -3873,25 +3604,19 @@
     "description": "If the END_HEADERS flag is not set, this frame MUST be followed by another CONTINUATION frame. A receiver MUST treat the receipt of any other type of frame or a frame on a different stream as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame with error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'DATA'}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/2 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -3944,25 +3669,19 @@
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the middle of the value)",
     "result": {
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       },
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 9. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-lf-middle': 'val\\nue'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       }
     }
@@ -3970,26 +3689,20 @@
   "162": {
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value)",
     "result": {
-      "Worker_1": {
-        "State": "TIMEOUT",
+      "Worker_2": {
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 9. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-lf-end': 'value\\n'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
-      "Worker_2": {
-        "State": "TIMEOUT",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
