@@ -23,8 +23,10 @@ def analyze_results(filename):
         del data['0']
     
     dropped_count = 0
-    error_count = 0
     received_count = 0
+    goaway_count = 0
+    reset_count = 0
+    error_500_count = 0
     test_results = {}
     test_messages = {}
     
@@ -35,8 +37,10 @@ def analyze_results(filename):
             continue
         
         result = test_data['result']
+        is_goaway = False
+        is_reset = False
+        is_500 = False
         is_dropped = False
-        is_error = False
         is_received = False
         message = ""
         
@@ -50,76 +54,54 @@ def analyze_results(filename):
         
         vars1 = worker1.get('Variables', {}) or {}
         vars2 = worker2.get('Variables', {}) or {}
-        
-        if vars1.get('client_result', '').startswith("Successfully received all") and \
-            vars1.get('server_result', '').startswith("Successfully received all"):
-            is_received = True
-            message = vars1['client_result']
-            
-        if vars2.get('client_result', '').startswith("Successfully received all") and \
-            vars2.get('server_result', '').startswith("Successfully received all"):
-            is_received = True
-            message = vars2['client_result']
 
-        elif vars1.get('msg', '').startswith("No response received for test request"):
-            is_dropped = True
-            message = vars1['msg']
-    
-        elif vars1.get('client_result', '').startswith("Received 5xx status code"):
-            is_error = True
-            message = vars1['client_result']
-        
-        elif vars2.get('server_result', '').startswith("Received 5xx status code"):
-            is_error = True
+        if worker1 and worker1.get('State', '') == 'GOAWAY_RECEIVED':
+            is_goaway = True
+            message = vars1['msg'] if vars1.get('msg', '') else vars1['client_result']
+        elif worker2 and worker2.get('State', '') == 'GOAWAY_RECEIVED':
+            is_goaway = True
+            message = vars2['msg'] if vars2.get('msg', '') else vars2['server_result']
+        elif worker1 and worker1.get('State', '') == 'REJECTED':
+            is_500 = True
+            message = vars1['msg'] if vars1.get('msg', '') else vars1['client_result']
+        elif worker2 and worker2.get('State', '') == 'REJECTED':
+            is_500 = True
             message = vars2['server_result']
-
-        elif "reset after receiving" in vars1.get('client_result', ''):
-            is_error = True
-            message = vars1['client_result']
-        
-        elif "reset after receiving" in vars2.get('server_result', ''):
-            is_error = True
-            message = vars2['server_result']
-
-        elif vars2.get('msg', '').startswith("Connection established but client negotiated"):
+        elif worker1 and worker1.get('State', '') == 'RESET_RECEIVED':
+            is_reset = True
+            message = vars1['msg']
+        elif worker2 and worker2.get('State', '') == 'RESET_RECEIVED':
+            is_reset = True
+            message = vars2['msg']
+        elif worker1 and worker1.get('State', '') == 'RECEIVED_FRAMES':
+            is_received = True
+            message = vars1['msg']
+        elif worker2 and worker2.get('State', '') == 'RECEIVED_FRAMES':
+            is_received = True
+            message = vars2['msg']
+        elif vars2.get('msg', '').startswith("Timeout occurred after 5.0s while waiting for client connection"):
             is_dropped = True
             message = vars2['msg']
-
-        elif vars1.get('msg', '').startswith("Connection terminated by peer"):
-            is_error = True
-            message = vars1['msg']
-
-        elif vars2.get('msg', '').startswith("Connection terminated by peer"):
-            is_error = True
-            message = vars2['msg']
-            
-        elif vars1.get('msg', '') == "Timeout after 5s while waiting for peer's preface (SETTINGS frame)":
+        elif worker1 and worker1.get('State', '') in ['CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT', 'CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT']:
             is_dropped = True
             message = vars1['msg']
-
-        elif vars1.get('msg', '') == "Expected SETTINGS frame for preface but received error instead":
-            is_error = True
-            message = vars1['msg']
-
-        elif vars2.get('msg', '').startswith("Timeout occurred after 5s while waiting for client connection"):
+        elif worker2 and worker2.get('State', '') in ['CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_SERVER', 'CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER']:
             is_dropped = True
             message = vars2['msg']
-
-        elif worker1 and worker1.get('State', '') in ['CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_CLIENT', 'CONTROL_CHANNEL_TIMEOUT_SERVER_FRAMES_SENT_CLIENT']:
-            is_dropped = True
-            message = vars1['result']
-
-        elif worker2 and worker2.get('State', '') in ['CONTROL_CHANNEL_TIMEOUT_CLIENT_FRAMES_SENT_SERVER', 'CONTROL_CHANNEL_TIMEOUT_SERVER_FRAMES_SENT_SERVER']:
-            is_dropped = True
-            message = vars2['result']
 
         # Store results
         if is_dropped:
             test_results[test_id] = "dropped"
             dropped_count += 1
-        elif is_error:
-            test_results[test_id] = "error"
-            error_count += 1
+        elif is_reset:
+            test_results[test_id] = "reset"
+            reset_count += 1
+        elif is_500:
+            test_results[test_id] = "500"
+            error_500_count += 1
+        elif is_goaway:
+            test_results[test_id] = "goaway"
+            goaway_count += 1
         elif is_received:
             test_results[test_id] = "received"
             received_count += 1
@@ -128,7 +110,7 @@ def analyze_results(filename):
         
         test_messages[test_id] = message
     
-    return dropped_count, error_count, received_count, test_results, test_messages
+    return dropped_count, error_500_count, goaway_count, reset_count, received_count, test_results, test_messages
 
 def create_markdown_table(headers, data):
     """Create a markdown table with equal column widths."""
@@ -172,9 +154,13 @@ def create_proxy_correlation_matrix(test_results, output_directory):
             # Convert result to numeric value with better separation
             result = test_results[proxy].get(test_id, "other")
             if result == "received":
-                matrix_data[i][j] = 2  # Success
-            elif result == "error":
-                matrix_data[i][j] = 1  # Partial success
+                matrix_data[i][j] = 4  # Success
+            elif result == "reset":
+                matrix_data[i][j] = 3  # Reset
+            elif result == "goaway":
+                matrix_data[i][j] = 2  # Goaway
+            elif result == "500":
+                matrix_data[i][j] = 1  # 500 error
             elif result == "dropped":
                 matrix_data[i][j] = 0  # Failure
             else:  # other
@@ -233,7 +219,7 @@ def create_proxy_vector_graph(test_results, output_directory):
                      key=lambda x: int(x) if x.isdigit() else float('inf'))
     proxies = list(test_results.keys())
     
-    fig, ax = plt.subplots(figsize=(20, len(proxies) * 1.5))
+    fig, ax = plt.subplots(figsize=(20, len(proxies) * 2.5))
     
     # First, identify outliers and consistent tests
     outliers = {}
@@ -244,10 +230,14 @@ def create_proxy_vector_graph(test_results, output_directory):
         test_results_row = []
         for proxy in proxies:
             result = test_results[proxy].get(test_id, "other")
-            # Convert to numeric values: 2 for received, 1 for error, 0 for dropped
+            # Convert to numeric values: 4 for received, 3 for reset, 2 for goaway, 1 for 500, 0 for dropped
             if result == "received":
+                test_results_row.append(4)
+            elif result == "reset":
+                test_results_row.append(3)
+            elif result == "goaway":
                 test_results_row.append(2)
-            elif result == "error":
+            elif result == "500":
                 test_results_row.append(1)
             elif result == "dropped":
                 test_results_row.append(0)
@@ -284,16 +274,24 @@ def create_proxy_vector_graph(test_results, output_directory):
         for j, test_id in enumerate(test_ids, 1):
             result = test_results[proxy].get(str(test_id), "other")
             if result == "received":
-                y_val = 2
-                y_positions.append(y_val + i * 3)
+                y_val = 4
+                y_positions.append(y_val + i * 5)
                 x_positions.append(j)
-            elif result == "error":
+            elif result == "reset":
+                y_val = 3
+                y_positions.append(y_val + i * 5)
+                x_positions.append(j)
+            elif result == "goaway":
+                y_val = 2
+                y_positions.append(y_val + i * 5)
+                x_positions.append(j)
+            elif result == "500":
                 y_val = 1
-                y_positions.append(y_val + i * 3)
+                y_positions.append(y_val + i * 5)
                 x_positions.append(j)
             elif result == "dropped":
                 y_val = 0
-                y_positions.append(y_val + i * 3)
+                y_positions.append(y_val + i * 5)
                 x_positions.append(j)
             else:  # other - don't plot a dot
                 y_val = None
@@ -303,7 +301,7 @@ def create_proxy_vector_graph(test_results, output_directory):
             # Check if this point is an outlier and not "other"
             if y_val is not None and str(test_id) in outliers and outliers[str(test_id)] == proxy:
                 outlier_points_x.append(j)
-                outlier_points_y.append(y_val + i * 3)
+                outlier_points_y.append(y_val + i * 5)
         
         # Plot only the dots for non-other values (no connecting lines)
         ax.scatter(x_positions, y_positions, marker='o', s=40, 
@@ -317,20 +315,26 @@ def create_proxy_vector_graph(test_results, output_directory):
     
     # Configure axis and labels
     ax.set_xlim(0, len(test_ids) + 1)
-    ax.set_ylim(-1, len(proxies) * 3 + 2)  # Expanded y-range to accommodate extra value
+    ax.set_ylim(-1, len(proxies) * 5 + 2)  # Expanded y-range to accommodate extra values
     
     # Set y-ticks and labels
     y_ticks = []
     y_labels = []
     for i in range(len(proxies)):
-        y_ticks.extend([i * 3, i * 3 + 1, i * 3 + 2])
-        y_labels.extend([f"{proxies[i]} (dropped)", f"{proxies[i]} (error)", f"{proxies[i]} (received)"])
+        y_ticks.extend([i * 5, i * 5 + 1, i * 5 + 2, i * 5 + 3, i * 5 + 4])
+        y_labels.extend([
+            f"{proxies[i]} (dropped)", 
+            f"{proxies[i]} (500)", 
+            f"{proxies[i]} (goaway)",
+            f"{proxies[i]} (reset)",
+            f"{proxies[i]} (received)"
+        ])
     
     ax.set_yticks(y_ticks)
     ax.set_yticklabels(y_labels, fontsize=9)
     
     # Add a legend explaining the values
-    ax.text(0.01, 0.99, 'Values: 0=dropped, 1=error, 2=received (dots not shown for "other" results)', 
+    ax.text(0.01, 0.99, 'Values: 0=dropped, 1=500 error, 2=goaway, 3=reset, 4=received (dots not shown for "other" results)', 
             transform=ax.transAxes, fontsize=10, verticalalignment='top',
             bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
     
@@ -369,7 +373,7 @@ def create_proxy_vector_graph(test_results, output_directory):
     plt.close()
 
 def create_proxy_result_pies(test_results, output_directory):
-    """Create pie charts showing dropped vs error vs received vs other proportions for each proxy."""
+    """Create pie charts showing dropped vs error vs reset vs goaway vs received vs other proportions for each proxy."""
     os.makedirs(output_directory, exist_ok=True)
     
     proxies = list(test_results.keys())
@@ -383,25 +387,31 @@ def create_proxy_result_pies(test_results, output_directory):
     if n_rows > 1:
         axes = axes.flatten()
     
-    colors = ['#ff6b6b', '#ffd93d', '#6bceff', '#4ecdc4']  # Red for dropped, Yellow for errors, Blue for received, Green for other
+    colors = ['#ff6b6b', '#ffd93d', '#ff9f43', '#6c5ce7', '#6bceff', '#4ecdc4']  # Red for dropped, Yellow for 500, Orange for goaway, Purple for reset, Blue for received, Green for other
     
     for i, proxy in enumerate(proxies):
         # Count categories
         total_tests = len(test_results[proxy])
         dropped = sum(1 for result in test_results[proxy].values() if result == "dropped")
-        errors = sum(1 for result in test_results[proxy].values() if result == "error")
+        error_500 = sum(1 for result in test_results[proxy].values() if result == "500")
+        goaway = sum(1 for result in test_results[proxy].values() if result == "goaway")
+        reset = sum(1 for result in test_results[proxy].values() if result == "reset")
         received = sum(1 for result in test_results[proxy].values() if result == "received")
-        other = total_tests - dropped - errors - received
+        other = total_tests - dropped - error_500 - goaway - reset - received
         
         # Calculate percentages
         dropped_pct = (dropped / total_tests) * 100
-        error_pct = (errors / total_tests) * 100
+        error_500_pct = (error_500 / total_tests) * 100
+        goaway_pct = (goaway / total_tests) * 100
+        reset_pct = (reset / total_tests) * 100
         received_pct = (received / total_tests) * 100
         other_pct = (other / total_tests) * 100
         
-        sizes = [dropped_pct, error_pct, received_pct, other_pct]
+        sizes = [dropped_pct, error_500_pct, goaway_pct, reset_pct, received_pct, other_pct]
         labels = [f'Dropped\n{dropped} ({dropped_pct:.1f}%)', 
-                 f'Error\n{errors} ({error_pct:.1f}%)',
+                 f'500 Error\n{error_500} ({error_500_pct:.1f}%)',
+                 f'GOAWAY\n{goaway} ({goaway_pct:.1f}%)',
+                 f'RESET\n{reset} ({reset_pct:.1f}%)',
                  f'Received\n{received} ({received_pct:.1f}%)',
                  f'Other\n{other} ({other_pct:.1f}%)']
         
@@ -426,14 +436,14 @@ def create_proxy_result_pies(test_results, output_directory):
                 dpi=300, bbox_inches='tight')
     plt.close()
 
-def create_result_counts_table(dropped_counts, error_counts, received_counts, all_test_results, summaries_dir):
-    """Create a markdown table summarizing the counts of dropped, error, and received results."""
+def create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, reset_counts, received_counts, all_test_results, summaries_dir):
+    """Create a markdown table summarizing the counts of dropped, error, reset, goaway, and received results."""
     if not os.path.exists(summaries_dir):
         os.makedirs(summaries_dir)
     
     # Create table header
-    table = "| Proxy      | Dropped Count | Error Count | Received Count | Received Tests |\n"
-    table += "| ---------- | ------------- | ----------- | -------------- | -------------- |\n"
+    table = "| Proxy      | Dropped Count | 500 Error Count | GOAWAY Count | RESET Count | Received Count | Received Tests |\n"
+    table += "| ---------- | ------------- | --------------- | ------------ | ----------- | -------------- | -------------- |\n"
     
     # Add rows for each proxy
     for proxy in sorted(dropped_counts.keys()):
@@ -448,7 +458,7 @@ def create_result_counts_table(dropped_counts, error_counts, received_counts, al
         received_tests_str = ", ".join(sorted(received_tests, key=lambda x: int(x) if x.isdigit() else float('inf')))
         
         # Add the row with all information
-        table += f"| {proxy:<10} | {dropped_counts.get(proxy, 0):<13} | {error_counts.get(proxy, 0):<11} | {received_counts.get(proxy, 0):<14} | {received_tests_str} |\n"
+        table += f"| {proxy:<10} | {dropped_counts.get(proxy, 0):<13} | {error_500_counts.get(proxy, 0):<15} | {goaway_counts.get(proxy, 0):<12} | {reset_counts.get(proxy, 0):<11} | {received_counts.get(proxy, 0):<14} | {received_tests_str} |\n"
     
     # Write to file
     with open(os.path.join(summaries_dir, "result_counts.md"), "w") as f:
@@ -474,8 +484,12 @@ def create_test_results_matrix(all_test_results, proxy_folders, summaries_dir):
                     test_row.append("✓R")
                 elif result == "dropped":
                     test_row.append("✓D")
-                elif result == "error":
-                    test_row.append("✓E")
+                elif result == "500":
+                    test_row.append("✓5")
+                elif result == "goaway":
+                    test_row.append("✓G")
+                elif result == "reset":
+                    test_row.append("✓X")
                 elif result == "other":
                     test_row.append("✓O")
                 else:
@@ -530,7 +544,7 @@ def load_client_server_classification(json_path):
 
 def create_client_server_pie_charts(test_results, client_side_tests, server_side_tests, output_directory):
     """
-    Create pie charts showing dropped vs error vs received vs other proportions for each proxy,
+    Create pie charts showing dropped vs 500 error vs goaway vs reset vs received vs other proportions for each proxy,
     separated into client-side and server-side tests.
     """
     os.makedirs(output_directory, exist_ok=True)
@@ -543,7 +557,7 @@ def create_client_server_pie_charts(test_results, client_side_tests, server_side
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(14, 5*n_rows))
     fig.suptitle('Client vs Server Test Result Distribution by Proxy', fontsize=16, y=0.95)
     
-    colors = ['#ff6b6b', '#ffd93d', '#6bceff', '#4ecdc4']  # Red for dropped, Yellow for errors, Blue for received, Green for other
+    colors = ['#ff6b6b', '#ffd93d', '#ff9f43', '#6c5ce7', '#6bceff', '#4ecdc4']  # Red for dropped, Yellow for 500, Orange for goaway, Purple for reset, Blue for received, Green for other
     
     for i, proxy in enumerate(proxies):
         proxy_results = test_results[proxy]
@@ -578,19 +592,25 @@ def create_single_pie(ax, test_results, colors, title):
     # Count categories
     total_tests = len(test_results)
     dropped = sum(1 for result in test_results.values() if result == "dropped")
-    errors = sum(1 for result in test_results.values() if result == "error")
+    error_500 = sum(1 for result in test_results.values() if result == "500")
+    goaway = sum(1 for result in test_results.values() if result == "goaway")
+    reset = sum(1 for result in test_results.values() if result == "reset")
     received = sum(1 for result in test_results.values() if result == "received")
-    other = total_tests - dropped - errors - received
+    other = total_tests - dropped - error_500 - goaway - reset - received
     
     # Calculate percentages
     dropped_pct = (dropped / total_tests) * 100 if total_tests > 0 else 0
-    error_pct = (errors / total_tests) * 100 if total_tests > 0 else 0
+    error_500_pct = (error_500 / total_tests) * 100 if total_tests > 0 else 0
+    goaway_pct = (goaway / total_tests) * 100 if total_tests > 0 else 0
+    reset_pct = (reset / total_tests) * 100 if total_tests > 0 else 0
     received_pct = (received / total_tests) * 100 if total_tests > 0 else 0
     other_pct = (other / total_tests) * 100 if total_tests > 0 else 0
     
-    sizes = [dropped_pct, error_pct, received_pct, other_pct]
+    sizes = [dropped_pct, error_500_pct, goaway_pct, reset_pct, received_pct, other_pct]
     labels = [f'Dropped\n{dropped} ({dropped_pct:.1f}%)', 
-             f'Error\n{errors} ({error_pct:.1f}%)',
+             f'500 Error\n{error_500} ({error_500_pct:.1f}%)',
+             f'GOAWAY\n{goaway} ({goaway_pct:.1f}%)',
+             f'RESET\n{reset} ({reset_pct:.1f}%)',
              f'Received\n{received} ({received_pct:.1f}%)',
              f'Other\n{other} ({other_pct:.1f}%)']
     
@@ -718,12 +738,14 @@ def main():
     
     # List of proxy folders
     # proxy_folders = ['Envoy', 'Node', 'Nghttpx', 'HAproxy', 'Apache', 'H2O', 'Caddy', 'Cloudflare']
-    proxy_folders = ['Nghttpx', 'HAproxy', 'Apache', 'Caddy', 'Envoy', 'Node', 'Cloudflare', 'H2O']
+    proxy_folders = ['Nghttpx', 'HAproxy', 'Apache', 'Caddy']
     results_dir = 'results'
     
     # Prepare data for summary tables
     dropped_counts = {}
-    error_counts = {}
+    error_500_counts = {}
+    goaway_counts = {}
+    reset_counts = {}
     received_counts = {}
     all_test_results = {}
     all_test_messages = {}
@@ -737,15 +759,17 @@ def main():
         if not latest_file:
             continue
 
-        dropped_count, error_count, received_count, test_results, test_messages = analyze_results(latest_file)
+        dropped_count, error_500_count, goaway_count, reset_count, received_count, test_results, test_messages = analyze_results(latest_file)
         dropped_counts[proxy] = dropped_count
-        error_counts[proxy] = error_count
+        error_500_counts[proxy] = error_500_count
+        goaway_counts[proxy] = goaway_count
+        reset_counts[proxy] = reset_count
         received_counts[proxy] = received_count
         all_test_results[proxy] = test_results
         all_test_messages[proxy] = test_messages
 
     # Create tables
-    create_result_counts_table(dropped_counts, error_counts, received_counts, all_test_results, summaries_dir)
+    create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, reset_counts, received_counts, all_test_results, summaries_dir)
     create_test_results_matrix(all_test_results, proxy_folders, summaries_dir)
 
     # Create visualizations
