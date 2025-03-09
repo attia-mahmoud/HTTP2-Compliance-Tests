@@ -642,7 +642,7 @@ def load_test_pairs(pairs_file='docs/pairs.json'):
 
 def create_client_server_discrepancy_visualization(test_results, test_pairs, output_directory):
     """
-    Create a visualization showing discrepancies between client and server test pairs.
+    Create visualizations showing discrepancies between client and server test pairs.
     
     Args:
         test_results: Dict mapping proxy names to their test results
@@ -653,6 +653,19 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
     
     # Create a DataFrame to store discrepancies
     discrepancy_data = []
+    
+    # Define all possible result types for consistent ordering
+    result_types = ["dropped", "500", "goaway", "reset", "received", "other"]
+    
+    # Create transition matrices for each proxy
+    transition_matrices = {}
+    
+    for proxy_name in test_results.keys():
+        # Initialize transition matrix with zeros
+        transition_matrix = pd.DataFrame(0, 
+                                        index=result_types, 
+                                        columns=result_types)
+        transition_matrices[proxy_name] = transition_matrix
     
     for client_test, server_test in test_pairs:
         client_test_str = str(client_test)
@@ -666,6 +679,17 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
             # Skip if either result is unknown
             if client_result == "unknown" or server_result == "unknown":
                 continue
+            
+            # If client_result is not in our predefined types, map it to "other"
+            if client_result not in result_types:
+                client_result = "other"
+                
+            # If server_result is not in our predefined types, map it to "other"
+            if server_result not in result_types:
+                server_result = "other"
+                
+            # Increment the count in the transition matrix
+            transition_matrices[proxy_name].loc[client_result, server_result] += 1
                 
             # Check if there's a discrepancy
             has_discrepancy = client_result != server_result
@@ -675,7 +699,8 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
                 'Test Pair': f"C{client_test}/S{server_test}",
                 'Client Result': client_result,
                 'Server Result': server_result,
-                'Has Discrepancy': has_discrepancy
+                'Has Discrepancy': has_discrepancy,
+                'Discrepancy Type': f"{client_result}→{server_result}" if has_discrepancy else "None"
             })
     
     # Convert to DataFrame
@@ -690,7 +715,7 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
     summary.columns = ['Proxy', 'Discrepancy Rate']
     summary = summary.sort_values('Discrepancy Rate', ascending=False)
     
-    # Create the visualization - just the bar chart
+    # Create the bar chart visualization
     plt.figure(figsize=(10, 6))
     
     # Summary bar chart
@@ -711,6 +736,93 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
                 dpi=300, bbox_inches='tight')
     plt.close()
     
+    # Create transition matrix heatmaps
+    for proxy_name, matrix in transition_matrices.items():
+        # Skip if the matrix is empty (all zeros)
+        if matrix.values.sum() == 0:
+            continue
+            
+        # Create the heatmap
+        plt.figure(figsize=(10, 8))
+        
+        # Use a custom colormap that highlights discrepancies
+        cmap = plt.cm.YlOrRd
+        
+        # Create the heatmap with annotations
+        ax = sns.heatmap(matrix, annot=True, fmt="d", cmap=cmap, 
+                         linewidths=0.5, cbar_kws={'label': 'Count'})
+        
+        # Customize the plot
+        plt.title(f'Client→Server Result Transition Matrix: {proxy_name}', fontsize=14, fontweight='bold')
+        plt.xlabel('Server Result', fontsize=12)
+        plt.ylabel('Client Result', fontsize=12)
+        
+        # Highlight the diagonal (where client and server results match)
+        for i in range(len(result_types)):
+            ax.add_patch(plt.Rectangle((i, i), 1, 1, fill=False, edgecolor='blue', lw=2))
+        
+        plt.tight_layout()
+        
+        # Save the heatmap
+        plt.savefig(os.path.join(output_directory, f'transition_matrix_{proxy_name}.png'), 
+                    dpi=300, bbox_inches='tight')
+        plt.close()
+    
+    # Create a combined heatmap for all proxies
+    plt.figure(figsize=(15, 10))
+    
+    # Calculate the grid dimensions
+    n_proxies = len(transition_matrices)
+    n_cols = min(3, n_proxies)  # Maximum 3 columns
+    n_rows = (n_proxies + n_cols - 1) // n_cols
+    
+    # Create subplots
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(5*n_cols, 4*n_rows))
+    
+    # Flatten axes if there are multiple rows
+    if n_rows > 1:
+        axes = axes.flatten()
+    elif n_cols == 1:
+        axes = [axes]  # Make it iterable if there's only one subplot
+    
+    # Create heatmaps for each proxy
+    for i, (proxy_name, matrix) in enumerate(transition_matrices.items()):
+        if i < len(axes):
+            # Skip if the matrix is empty
+            if matrix.values.sum() == 0:
+                axes[i].text(0.5, 0.5, "No data", ha='center', va='center', fontsize=14)
+                axes[i].axis('off')
+                axes[i].set_title(proxy_name)
+                continue
+                
+            # Create the heatmap
+            sns.heatmap(matrix, annot=True, fmt="d", cmap=plt.cm.YlOrRd, 
+                        linewidths=0.5, ax=axes[i], cbar=False)
+            
+            # Customize the subplot
+            axes[i].set_title(proxy_name, fontsize=12, fontweight='bold')
+            axes[i].set_xlabel('Server Result', fontsize=10)
+            axes[i].set_ylabel('Client Result', fontsize=10)
+            
+            # Highlight the diagonal
+            for j in range(len(result_types)):
+                axes[i].add_patch(plt.Rectangle((j, j), 1, 1, fill=False, edgecolor='blue', lw=2))
+    
+    # Hide any unused subplots
+    for i in range(len(transition_matrices), len(axes)):
+        axes[i].axis('off')
+    
+    # Add a colorbar for the entire figure
+    fig.colorbar(plt.cm.ScalarMappable(cmap=plt.cm.YlOrRd), ax=axes, label='Count')
+    
+    plt.suptitle('Client→Server Result Transition Matrices by Proxy', fontsize=16, fontweight='bold')
+    plt.tight_layout(rect=[0, 0, 1, 0.96])  # Make room for the suptitle
+    
+    # Save the combined heatmap
+    plt.savefig(os.path.join(output_directory, 'transition_matrices_all_proxies.png'), 
+                dpi=300, bbox_inches='tight')
+    plt.close()
+    
     # Create a detailed markdown table of discrepancies
     with open(os.path.join(output_directory, 'client_server_discrepancies.md'), 'w') as f:
         f.write("# Client/Server Test Pair Discrepancies\n\n")
@@ -722,13 +834,29 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
         for _, row in summary.iterrows():
             f.write(f"| {row['Proxy']} | {row['Discrepancy Rate']:.1%} |\n")
         
+        # Most common discrepancy types
+        f.write("\n## Most Common Discrepancy Types by Proxy\n\n")
+        f.write("| Proxy | Most Common Discrepancy | Count | Percentage |\n")
+        f.write("|-------|-------------------------|-------|------------|\n")
+        
+        for proxy_name in test_results.keys():
+            proxy_discrepancies = df[(df['Proxy'] == proxy_name) & (df['Has Discrepancy'])]
+            if not proxy_discrepancies.empty:
+                discrepancy_counts = proxy_discrepancies['Discrepancy Type'].value_counts()
+                most_common = discrepancy_counts.index[0]
+                count = discrepancy_counts.iloc[0]
+                percentage = count / len(proxy_discrepancies) * 100
+                f.write(f"| {proxy_name} | {most_common} | {count} | {percentage:.1f}% |\n")
+            else:
+                f.write(f"| {proxy_name} | No discrepancies | 0 | 0% |\n")
+        
         # Detailed discrepancies
         f.write("\n## Detailed Discrepancies\n\n")
-        f.write("| Proxy | Test Pair | Client Result | Server Result |\n")
-        f.write("|-------|-----------|--------------|---------------|\n")
+        f.write("| Proxy | Test Pair | Client Result | Server Result | Discrepancy Type |\n")
+        f.write("|-------|-----------|--------------|---------------|------------------|\n")
         
         for _, row in df[df['Has Discrepancy']].iterrows():
-            f.write(f"| {row['Proxy']} | {row['Test Pair']} | {row['Client Result']} | {row['Server Result']} |\n")
+            f.write(f"| {row['Proxy']} | {row['Test Pair']} | {row['Client Result']} | {row['Server Result']} | {row['Discrepancy Type']} |\n")
 
 def main():
     # Create summaries directory if it doesn't exist
@@ -738,7 +866,7 @@ def main():
     
     # List of proxy folders
     # proxy_folders = ['Envoy', 'Node', 'Nghttpx', 'HAproxy', 'Apache', 'H2O', 'Caddy', 'Cloudflare']
-    proxy_folders = ['Nghttpx', 'HAproxy', 'Apache', 'Caddy']
+    proxy_folders = ['Nghttpx', 'HAproxy', 'Apache', 'Caddy', 'Node', 'Envoy', 'H2O']
     results_dir = 'results'
     
     # Prepare data for summary tables
