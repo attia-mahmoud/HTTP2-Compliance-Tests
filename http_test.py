@@ -59,13 +59,13 @@ repository = "https://github.com/nopasaran-org/nopasaran-tests-trees"
 
 list_of_proxies = [
     # {"PROXY": "Direct", "PROXY_PORT": "8080"}
-    {"PROXY": "Apache", "PROXY_PORT": "7700"}
+    # {"PROXY": "Apache", "PROXY_PORT": "7700"},
     # {"PROXY": "Caddy", "PROXY_PORT": "7701"},
-    # {"PROXY": "Envoy", "PROXY_PORT": "7702"}
-    # {"PROXY": "H2O", "PROXY_PORT": "7703", "tls_enabled": "true"},
     # {"PROXY": "HAproxy", "PROXY_PORT": "7704"},
+    # {"PROXY": "Nghttpx", "PROXY_PORT": "7706"}
+    # {"PROXY": "Envoy", "PROXY_PORT": "7702"}
+    {"PROXY": "H2O", "PROXY_PORT": "7703", "tls_enabled": "true"}
     # {"PROXY": "Mitmproxy", "PROXY_PORT": "7705", "tls_enabled": "true"}
-    # {"PROXY": "Nghttpx", "PROXY_PORT": "7706"},
     # {"PROXY": "Node", "PROXY_PORT": "7707"}
     # {"PROXY": "Cloudflare", "PROXY_PORT": "443", "tls_enabled": "true", "cloudflare_origin": "true"}
 ]
@@ -95,19 +95,12 @@ with open(file, 'r') as f:
 if not os.path.exists('results'):
     os.makedirs('results')
 
-for proxy in list_of_proxies:
-    # Create proxy-specific directory
-    proxy_dir = os.path.join('results', proxy["PROXY"])
-    if not os.path.exists(proxy_dir):
-        os.makedirs(proxy_dir)
-
-    timestamp = datetime.datetime.now().strftime("%d_%b_%H_%M")
-    filename = f"{proxy_dir}/test_results_{timestamp}.json"
-    all_results = {}
-
-    for test_case in test_cases:
-        print(f"\nRunning test case {test_case['id']}: {test_case['description']}")
-        
+# Function to run a single test case and return the result
+def run_test_case(test_case, proxy, max_retries=3):
+    print(f"\nRunning test case {test_case['id']}: {test_case['description']}")
+    
+    retry_count = 0
+    while retry_count < max_retries:
         # Update variables with test case data
         variables = {
             "Root": {
@@ -118,6 +111,7 @@ for proxy in list_of_proxies:
                     "host": PROXY_IP,
                     "port": proxy["PROXY_PORT"],
                     "tls_enabled": proxy.get("tls_enabled", "false"),
+                    "protocol": "h2",
                     "connection_settings_client": test_case.get("connection_settings_client", {}),
                     "controller_conf_filename": "controller_configuration.json",
                     "cloudflare_origin": proxy.get("cloudflare_origin", "false"),
@@ -131,6 +125,7 @@ for proxy in list_of_proxies:
                     "host": "0.0.0.0",
                     "port": SERVER_PORT,
                     "tls_enabled": proxy.get("tls_enabled", "false"),
+                    "protocol": "h2",
                     "connection_settings_server": test_case.get("connection_settings_server", {}),
                     "controller_conf_filename": "controller_configuration.json",
                     "cloudflare_origin": proxy.get("cloudflare_origin", "false"),
@@ -172,26 +167,75 @@ for proxy in list_of_proxies:
 
                 if result:
                     print("Final result retrieved:", result)
-                    all_results[str(test_case['id'])] = {
+                    
+                    # Check if the test timed out
+                    if has_timeout(result) and retry_count < max_retries - 1:
+                        retry_count += 1
+                        continue
+                    
+                    # If no timeout or max retries reached, return the result
+                    return {
                         "description": test_case['description'],
                         "result": result
                     }
                 else:
                     print("Failed to retrieve the final result.")
-                    all_results[str(test_case['id'])] = {
+                    if retry_count < max_retries - 1:
+                        retry_count += 1
+                        continue
+                    else:
+                        return {
+                            "description": test_case['description'],
+                            "result": None
+                        }
+            else:
+                print("No task ID returned.")
+                if retry_count < max_retries - 1:
+                    retry_count += 1
+                    continue
+                else:
+                    return {
                         "description": test_case['description'],
                         "result": None
                     }
-            else:
-                print("No task ID returned.")
 
         except requests.exceptions.RequestException as e:
             print(response.content)
             print(f"Request failed: {e}")
-            all_results[str(test_case['id'])] = {
-                "description": test_case['description'],
-                "result": f"Error: {str(e)}"
-            }
+            if retry_count < max_retries - 1:
+                retry_count += 1
+                continue
+            else:
+                return {
+                    "description": test_case['description'],
+                    "result": f"Error: {str(e)}"
+                }
+
+# Function to check if a test result has a timeout
+def has_timeout(result):
+    if not isinstance(result, dict):
+        return False
+    
+    for worker, worker_data in result.items():
+        if worker_data and worker_data.get('Variables', {}).get('controller_conf_filename'):
+            return True
+    return False
+
+# Main execution logic
+for proxy in list_of_proxies:
+    # Create proxy-specific directory
+    proxy_dir = os.path.join('results', proxy["PROXY"])
+    if not os.path.exists(proxy_dir):
+        os.makedirs(proxy_dir)
+
+    timestamp = datetime.datetime.now().strftime("%d_%b_%H_%M")
+    filename = f"{proxy_dir}/test_results_{timestamp}.json"
+    all_results = {}
+
+    for test_case in test_cases:
+        # Run the test and get the result, with automatic retries for timeouts
+        test_result = run_test_case(test_case, proxy)
+        all_results[str(test_case['id'])] = test_result
 
         # Update results file after each test
         with open(filename, 'w') as f:
