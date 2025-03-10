@@ -1014,8 +1014,8 @@
   {
     "id": 61,
     "description": "All pseudo-header fields sent from a server MUST appear in a field block before all regular field lines. Any request or response that contains a pseudo-header field that appears in a field block after a regular field line MUST be treated as malformed (Section 8.1.1).",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1025,8 +1025,7 @@
       {
         "type": "HEADERS",
         "headers": {
-          "date": "2024-01-01",
-          ":status": "200"
+          "date": "2024-01-01"
         }
       }
     ]
@@ -1034,8 +1033,8 @@
   {
     "id": 62,
     "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with the same value.",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1054,8 +1053,8 @@
   {
     "id": 63,
     "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with different values.",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1074,8 +1073,8 @@
   {
     "id": 64,
     "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a response frame with the same value.",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1093,8 +1092,8 @@
   {
     "id": 65,
     "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a response frame with different values.",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1112,8 +1111,8 @@
   {
     "id": 66,
     "description": "Clients MUST NOT generate a request with a Host header field that differs from the \":authority\" pseudo-header field.",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1130,8 +1129,8 @@
   {
     "id": 67,
     "description": "':authority' MUST NOT include the deprecated userinfo subcomponent for \"http\" or \"https\" schemed URIs.",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1147,8 +1146,8 @@
   {
     "id": 68,
     "description": "The \":path\" pseudo-header field MUST NOT be empty for \"http\" or \"https\" URIs; \"http\" or \"https\" URIs that do not contain a path component MUST include a value of '/'.",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1164,8 +1163,8 @@
   {
     "id": 69,
     "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :method missing)",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1180,8 +1179,8 @@
   {
     "id": 70,
     "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :scheme missing)",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1196,8 +1195,8 @@
   {
     "id": 71,
     "description": "For HTTP/2 responses, a single \":status\" pseudo-header field is defined that carries the HTTP status code field. This pseudo-header field MUST be included in all responses, including interim responses; otherwise, the response is malformed.",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1215,8 +1214,8 @@
   {
     "id": 72,
     "description": "A client cannot push. Thus, servers MUST treat the receipt of a PUSH_PROMISE frame as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1229,8 +1228,8 @@
   {
     "id": 73,
     "description": "In the PUSH_PROMISE frame, the server MUST include a method in the \":method\" pseudo-header field that is safe and cacheable.",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1251,8 +1250,8 @@
   {
     "id": 74,
     "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted. (Tested with both present)",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1268,7 +1267,7 @@
   {
     "id": 75,
     "description": "With the CONNECT method, The \":authority\" pseudo-header field contains the host and port to connect to",
-    "section": "",
+    "section": "8",
     "expected_result": "",
     "client_frames": [
       {
@@ -1283,8 +1282,8 @@
   {
     "id": 76,
     "description": "An endpoint MUST NOT send frames other than PRIORITY on a closed stream.",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1300,8 +1299,8 @@
   {
     "id": 77,
     "description": "RST_STREAM frames MUST NOT be sent for a stream in the 'idle' state.",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "RST_STREAM"
@@ -1311,8 +1310,8 @@
   {
     "id": 78,
     "description": "RST_STREAM frames MUST be associated with a stream.",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "RST_STREAM"
@@ -1322,8 +1321,8 @@
   {
     "id": 79,
     "description": "Implementations MUST discard frames that have unknown or unsupported types.",
-    "section": "",
-    "expected_result": "",
+    "section": "4",
+    "expected_result": "ignore",
     "client_frames": [
       {
         "type": "UNKNOWN"
@@ -1333,8 +1332,8 @@
   {
     "id": 80,
     "description": "DATA frames MUST be associated with a stream.",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "DATA"
@@ -1344,8 +1343,8 @@
   {
     "id": 81,
     "description": "If a DATA frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1359,8 +1358,8 @@
   {
     "id": 82,
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the idle state.)",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "DATA"
@@ -1370,8 +1369,8 @@
   {
     "id": 83,
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1387,8 +1386,8 @@
   {
     "id": 84,
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.)",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1404,8 +1403,8 @@
   {
     "id": 85,
     "description": "A HEADERS frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream.",
-    "section": "",
-    "expected_result": "",
+    "section": "6",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1421,8 +1420,8 @@
   {
     "id": 86,
     "description": "If a HEADERS frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1433,8 +1432,8 @@
   {
     "id": 87,
     "description": "A SETTINGS frame MUST be sent by both endpoints at the start of a connection and MAY be sent at any other time by either endpoint over the lifetime of the connection. (Tested from the client side.)",
-    "section": "",
-    "expected_result": "",
+    "section": "3",
+    "expected_result": "error",
     "connection_settings_client": {
       "skip_initial_settings": true
     },
@@ -1447,8 +1446,8 @@
   {
     "id": 88,
     "description": "Unsupported settings MUST be ignored.",
-    "section": "",
-    "expected_result": "",
+    "section": "6",
+    "expected_result": "ignore",
     "client_frames": [
       {
         "type": "SETTINGS",
@@ -1461,8 +1460,8 @@
   {
     "id": 89,
     "description": "The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Already Used Stream ID)",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1480,8 +1479,8 @@
   {
     "id": 90,
     "description": "The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Lower Stream ID)",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
