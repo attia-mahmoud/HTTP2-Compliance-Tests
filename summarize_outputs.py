@@ -742,15 +742,21 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
         if matrix.values.sum() == 0:
             continue
             
+        # Normalize the matrix to be between 0 and 1
+        normalized_matrix = matrix.copy()
+        matrix_sum = matrix.values.sum()
+        if matrix_sum > 0:  # Avoid division by zero
+            normalized_matrix = matrix / matrix_sum
+            
         # Create the heatmap
         plt.figure(figsize=(10, 8))
         
         # Use a custom colormap that highlights discrepancies
         cmap = plt.cm.YlOrRd
         
-        # Create the heatmap with annotations
-        ax = sns.heatmap(matrix, annot=True, fmt="d", cmap=cmap, 
-                         linewidths=0.5, cbar_kws={'label': 'Count'})
+        # Create the heatmap with annotations (using original counts for annotations)
+        ax = sns.heatmap(normalized_matrix, annot=normalized_matrix.values, fmt=".2f", cmap=cmap, 
+                     linewidths=0.5, cbar_kws={'label': 'Normalized Count'})
         
         # Customize the plot
         plt.title(f'Client→Server Result Transition Matrix: {proxy_name}', fontsize=14, fontweight='bold')
@@ -795,9 +801,15 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
                 axes[i].set_title(proxy_name)
                 continue
                 
+            # Normalize the matrix to be between 0 and 1
+            normalized_matrix = matrix.copy()
+            matrix_sum = matrix.values.sum()
+            if matrix_sum > 0:  # Avoid division by zero
+                normalized_matrix = matrix / matrix_sum
+                
             # Create the heatmap
-            sns.heatmap(matrix, annot=True, fmt="d", cmap=plt.cm.YlOrRd, 
-                        linewidths=0.5, ax=axes[i], cbar=False)
+            sns.heatmap(normalized_matrix, annot=normalized_matrix.values, fmt=".2f", cmap=plt.cm.YlOrRd, 
+                    linewidths=0.5, ax=axes[i], cbar=False)
             
             # Customize the subplot
             axes[i].set_title(proxy_name, fontsize=12, fontweight='bold')
@@ -813,7 +825,7 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
         axes[i].axis('off')
     
     # Add a colorbar for the entire figure
-    fig.colorbar(plt.cm.ScalarMappable(cmap=plt.cm.YlOrRd), ax=axes, label='Count')
+    fig.colorbar(plt.cm.ScalarMappable(cmap=plt.cm.YlOrRd), ax=axes, label='Normalized Count')
     
     plt.suptitle('Client→Server Result Transition Matrices by Proxy', fontsize=16, fontweight='bold')
     plt.tight_layout(rect=[0, 0, 1, 0.96])  # Make room for the suptitle
@@ -866,7 +878,7 @@ def main():
     
     # List of proxy folders
     # proxy_folders = ['Envoy', 'Node', 'Nghttpx', 'HAproxy', 'Apache', 'H2O', 'Caddy', 'Cloudflare']
-    proxy_folders = ['Nghttpx', 'HAproxy', 'Apache', 'Caddy', 'Node', 'Envoy', 'H2O']
+    proxy_folders = ['Nghttpx', 'HAproxy', 'Apache', 'Caddy', 'Node', 'Envoy', 'H2O', 'Cloudflare', 'Nginx']
     results_dir = 'results'
     
     # Prepare data for summary tables
