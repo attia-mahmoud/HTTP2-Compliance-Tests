@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from collections import defaultdict
 
 def get_latest_file(directory):
     """Get the most recent file in the directory."""
@@ -913,11 +914,6 @@ def create_conformance_visualization(test_results, output_directory):
                     conformance_data[proxy]['conformant'] += 1
                 else:  # dropped or received
                     conformance_data[proxy]['non_conformant'] += 1
-            elif expected == "ignore":
-                if result == "dropped":
-                    conformance_data[proxy]['conformant'] += 1
-                else:  # goaway, reset, 500, or received
-                    conformance_data[proxy]['non_conformant'] += 1
     
     # Create the visualization
     plt.figure(figsize=(12, 6))
@@ -1196,6 +1192,253 @@ def create_section_conformance_visualization(test_results, output_directory):
                                          if str(case['id']) == test_id), "N/A")
                         f.write(f"| {proxy} | {test_id} | {expected} | {result} | {description} |\n")
 
+def create_advanced_insights(test_results, output_directory):
+    """
+    Create additional insights and visualizations from the test results.
+    """
+    os.makedirs(output_directory, exist_ok=True)
+    
+    # Load test cases
+    with open('test_cases.json', 'r') as f:
+        test_cases = json.load(f)
+    
+    # Create mappings
+    test_expected = {str(case['id']): case['expected_result'] for case in test_cases}
+    test_descriptions = {str(case['id']): case['description'] for case in test_cases}
+    
+    # Extract frame types from test descriptions and client/server frames
+    frame_types = set()
+    test_frame_types = {}  # test_id -> set of frame types
+    for case in test_cases:
+        test_id = str(case['id'])
+        frames = set()
+        
+        # Extract from client frames
+        if 'client_frames' in case:
+            for frame in case['client_frames']:
+                if 'type' in frame:
+                    frames.add(frame['type'])
+                    frame_types.add(frame['type'])
+        
+        # Extract from server frames
+        if 'server_frames' in case:
+            for frame in case['server_frames']:
+                if 'type' in frame:
+                    frames.add(frame['type'])
+                    frame_types.add(frame['type'])
+        
+        test_frame_types[test_id] = frames
+    
+    # 1. Test Type Analysis
+    test_type_data = {
+        proxy: {'error': {'conformant': 0, 'non_conformant': 0},
+                'ignore': {'conformant': 0, 'non_conformant': 0}}
+        for proxy in test_results.keys()
+    }
+    
+    for proxy, results in test_results.items():
+        for test_id, result in results.items():
+            if test_id not in test_expected:
+                continue
+            
+            expected = test_expected[test_id]
+            
+            if expected == "error":
+                if result in ["goaway", "reset", "500"]:
+                    test_type_data[proxy]['error']['conformant'] += 1
+                else:
+                    test_type_data[proxy]['error']['non_conformant'] += 1
+            elif expected == "ignore":
+                if result == "dropped":
+                    test_type_data[proxy]['ignore']['conformant'] += 1
+                else:
+                    test_type_data[proxy]['ignore']['non_conformant'] += 1
+    
+    # 2. Frame Type Analysis
+    frame_type_data = {
+        proxy: {frame_type: {'conformant': 0, 'non_conformant': 0, 'total': 0}
+               for frame_type in frame_types}
+        for proxy in test_results.keys()
+    }
+    
+    for proxy, results in test_results.items():
+        for test_id, result in results.items():
+            if test_id not in test_frame_types or test_id not in test_expected:
+                continue
+            
+            expected = test_expected[test_id]
+            is_conformant = (
+                (expected == "error" and result in ["goaway", "reset", "500"]) or
+                (expected == "ignore" and result == "dropped")
+            )
+            
+            for frame_type in test_frame_types[test_id]:
+                frame_type_data[proxy][frame_type]['total'] += 1
+                if is_conformant:
+                    frame_type_data[proxy][frame_type]['conformant'] += 1
+                else:
+                    frame_type_data[proxy][frame_type]['non_conformant'] += 1
+    
+    # Create frame type analysis visualization
+    n_frame_types = len(frame_types)
+    n_cols = min(3, n_frame_types)
+    n_rows = (n_frame_types + n_cols - 1) // n_cols
+    
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(6*n_cols, 4*n_rows))
+    fig.suptitle('Frame Type Conformance by Proxy', fontsize=16, y=0.95)
+    
+    # Flatten axes if there are multiple rows
+    if n_rows > 1:
+        axes = axes.flatten()
+    elif n_cols == 1:
+        axes = [axes]
+    
+    for idx, frame_type in enumerate(sorted(frame_types)):
+        ax = axes[idx]
+        
+        # Prepare data for this frame type
+        conformant_pcts = []
+        non_conformant_pcts = []
+        
+        for proxy in proxies:
+            total = frame_type_data[proxy][frame_type]['total']
+            if total > 0:
+                conformant_pcts.append(frame_type_data[proxy][frame_type]['conformant'] / total * 100)
+                non_conformant_pcts.append(frame_type_data[proxy][frame_type]['non_conformant'] / total * 100)
+            else:
+                conformant_pcts.append(0)
+                non_conformant_pcts.append(0)
+        
+        # Create stacked bar chart
+        bar_width = 0.8
+        indices = range(len(proxies))
+        
+        ax.bar(indices, conformant_pcts, bar_width, label='Conformant', color='#2ecc71')
+        ax.bar(indices, non_conformant_pcts, bar_width, bottom=conformant_pcts, 
+               label='Non-Conformant', color='#e74c3c')
+        
+        ax.set_ylim(0, 100)
+        ax.set_xlabel('Proxy')
+        ax.set_ylabel('Percentage')
+        ax.set_title(f'{frame_type} Frame', fontsize=10, pad=10)
+        ax.set_xticks(indices)
+        ax.set_xticklabels(proxies, rotation=45, ha='right', fontsize=8)
+        
+        # Add percentage labels
+        for i in indices:
+            if conformant_pcts[i] > 0:
+                ax.text(i, conformant_pcts[i]/2, 
+                        f'{conformant_pcts[i]:.1f}%', 
+                        ha='center', va='center', fontsize=8)
+            if non_conformant_pcts[i] > 0:
+                ax.text(i, conformant_pcts[i] + non_conformant_pcts[i]/2,
+                        f'{non_conformant_pcts[i]:.1f}%', 
+                        ha='center', va='center', fontsize=8)
+        
+        ax.grid(True, axis='y', alpha=0.3)
+        
+        if idx == 0:
+            ax.legend(fontsize=8)
+    
+    # Hide any unused subplots
+    for idx in range(len(frame_types), len(axes)):
+        axes[idx].axis('off')
+    
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    plt.savefig(os.path.join(output_directory, 'frame_type_analysis.png'), 
+                dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # Create detailed markdown report
+    with open(os.path.join(output_directory, 'advanced_insights.md'), 'w') as f:
+        f.write("# Advanced HTTP/2 Conformance Insights\n\n")
+        
+        # Test Type Analysis
+        f.write("## Test Type Analysis\n\n")
+        f.write("| Proxy | Error Tests Conformance | Ignore Tests Conformance |\n")
+        f.write("|-------|----------------------|----------------------|\n")
+        
+        for proxy in proxies:
+            error_conf = (test_type_data[proxy]['error']['conformant'] / 
+                        (test_type_data[proxy]['error']['conformant'] + 
+                         test_type_data[proxy]['error']['non_conformant']) * 100
+                        if (test_type_data[proxy]['error']['conformant'] + 
+                            test_type_data[proxy]['error']['non_conformant']) > 0 
+                        else 0)
+            
+            ignore_conf = (test_type_data[proxy]['ignore']['conformant'] / 
+                         (test_type_data[proxy]['ignore']['conformant'] + 
+                          test_type_data[proxy]['ignore']['non_conformant']) * 100
+                         if (test_type_data[proxy]['ignore']['conformant'] + 
+                             test_type_data[proxy]['ignore']['non_conformant']) > 0 
+                         else 0)
+            
+            f.write(f"| {proxy} | {error_conf:.1f}% | {ignore_conf:.1f}% |\n")
+        
+        # Frame Type Analysis
+        f.write("\n## Frame Type Analysis\n\n")
+        
+        for frame_type in sorted(frame_types):
+            f.write(f"\n### {frame_type} Frame\n\n")
+            f.write("| Proxy | Conformant | Non-Conformant | Total Tests |\n")
+            f.write("|-------|------------|----------------|-------------|\n")
+            
+            for proxy in proxies:
+                data = frame_type_data[proxy][frame_type]
+                total = data['total']
+                if total > 0:
+                    conformant_pct = (data['conformant'] / total) * 100
+                    non_conformant_pct = (data['non_conformant'] / total) * 100
+                    
+                    f.write(f"| {proxy} | {data['conformant']} ({conformant_pct:.1f}%) | "
+                           f"{data['non_conformant']} ({non_conformant_pct:.1f}%) | {total} |\n")
+        
+        # Common Failure Patterns
+        f.write("\n## Common Failure Patterns\n\n")
+        
+        # Group non-conformant tests by description patterns
+        failure_patterns = defaultdict(int)
+        total_non_conformant = 0
+        
+        for proxy, results in test_results.items():
+            for test_id, result in results.items():
+                if test_id not in test_expected or test_id not in test_descriptions:
+                    continue
+                
+                expected = test_expected[test_id]
+                is_non_conformant = (
+                    (expected == "error" and result not in ["goaway", "reset", "500"]) or
+                    (expected == "ignore" and result != "dropped")
+                )
+                
+                if is_non_conformant:
+                    total_non_conformant += 1
+                    # Extract key phrases from description
+                    desc = test_descriptions[test_id].lower()
+                    if "must not" in desc:
+                        failure_patterns["MUST NOT violations"] += 1
+                    if "must" in desc and "must not" not in desc:
+                        failure_patterns["MUST violations"] += 1
+                    if "stream" in desc:
+                        failure_patterns["Stream-related issues"] += 1
+                    if "frame" in desc:
+                        failure_patterns["Frame-related issues"] += 1
+                    if "header" in desc:
+                        failure_patterns["Header-related issues"] += 1
+                    if "pseudo-header" in desc:
+                        failure_patterns["Pseudo-header issues"] += 1
+        
+        f.write("### Most Common Types of Non-Conformance (Normalized)\n\n")
+        f.write("| Pattern | Percentage of Non-Conformant Tests | Count |\n")
+        f.write("|---------|-----------------------------------|-------|\n")
+        
+        if total_non_conformant > 0:
+            for pattern, count in sorted(failure_patterns.items(), key=lambda x: x[1], reverse=True):
+                percentage = (count / total_non_conformant) * 100
+                f.write(f"| {pattern} | {percentage:.1f}% | {count} |\n")
+        
+        f.write(f"\nTotal non-conformant tests analyzed: {total_non_conformant}\n")
+
 def main():
     # Create summaries directory if it doesn't exist
     summaries_dir = 'summaries'
@@ -1244,6 +1487,7 @@ def main():
     create_proxy_result_pies(all_test_results, output_dir)
     create_conformance_visualization(all_test_results, output_dir)
     create_section_conformance_visualization(all_test_results, output_dir)
+    create_advanced_insights(all_test_results, output_dir)
     
     # Load client-server classification and create client-server pie charts
     try:
