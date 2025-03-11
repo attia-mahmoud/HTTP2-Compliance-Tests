@@ -651,6 +651,10 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
     """
     os.makedirs(output_directory, exist_ok=True)
     
+    # Create transitions directory
+    transitions_dir = os.path.join(output_directory, 'transitions')
+    os.makedirs(transitions_dir, exist_ok=True)
+    
     # Create a DataFrame to store discrepancies
     discrepancy_data = []
     
@@ -769,8 +773,8 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
         
         plt.tight_layout()
         
-        # Save the heatmap
-        plt.savefig(os.path.join(output_directory, f'transition_matrix_{proxy_name}.png'), 
+        # Save the heatmap in the transitions directory
+        plt.savefig(os.path.join(transitions_dir, f'transition_matrix_{proxy_name}.png'), 
                     dpi=300, bbox_inches='tight')
         plt.close()
     
@@ -825,13 +829,13 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
         axes[i].axis('off')
     
     # Add a colorbar for the entire figure
-    fig.colorbar(plt.cm.ScalarMappable(cmap=plt.cm.YlOrRd), ax=axes, label='Normalized Count')
+    # fig.colorbar(plt.cm.ScalarMappable(cmap=plt.cm.YlOrRd), ax=axes, label='Normalized Count')
     
     plt.suptitle('Client→Server Result Transition Matrices by Proxy', fontsize=16, fontweight='bold')
     plt.tight_layout(rect=[0, 0, 1, 0.96])  # Make room for the suptitle
     
-    # Save the combined heatmap
-    plt.savefig(os.path.join(output_directory, 'transition_matrices_all_proxies.png'), 
+    # Save the combined heatmap in the transitions directory
+    plt.savefig(os.path.join(transitions_dir, 'transition_matrices_all_proxies.png'), 
                 dpi=300, bbox_inches='tight')
     plt.close()
     
@@ -870,6 +874,149 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
         for _, row in df[df['Has Discrepancy']].iterrows():
             f.write(f"| {row['Proxy']} | {row['Test Pair']} | {row['Client Result']} | {row['Server Result']} | {row['Discrepancy Type']} |\n")
 
+def create_conformance_visualization(test_results, output_directory):
+    """
+    Create visualizations showing how well each proxy conforms to the expected test results.
+    
+    For each test:
+    - If expected_result is "error":
+        - GOAWAY/RESET/500 response = conformant
+        - RECEIVED/DROPPED = non-conformant
+    - If expected_result is "ignore":
+        - DROPPED = conformant
+        - GOAWAY/RESET/500/RECEIVED = non-conformant
+    """
+    os.makedirs(output_directory, exist_ok=True)
+    
+    # First, load the test cases to get expected results
+    with open('test_cases.json', 'r') as f:
+        test_cases = json.load(f)
+    
+    # Create a mapping of test ID to expected result
+    expected_results = {str(case['id']): case['expected_result'] for case in test_cases}
+    
+    # Initialize data structures for tracking conformance
+    conformance_data = {proxy: {'conformant': 0, 'non_conformant': 0, 'total': 0} 
+                       for proxy in test_results.keys()}
+    
+    # Analyze each proxy's results
+    for proxy, results in test_results.items():
+        for test_id, result in results.items():
+            if test_id not in expected_results:
+                continue
+                
+            expected = expected_results[test_id]
+            conformance_data[proxy]['total'] += 1
+            
+            if expected == "error":
+                if result in ["goaway", "reset", "500"]:
+                    conformance_data[proxy]['conformant'] += 1
+                else:  # dropped or received
+                    conformance_data[proxy]['non_conformant'] += 1
+            elif expected == "ignore":
+                if result == "dropped":
+                    conformance_data[proxy]['conformant'] += 1
+                else:  # goaway, reset, 500, or received
+                    conformance_data[proxy]['non_conformant'] += 1
+    
+    # Create the visualization
+    plt.figure(figsize=(12, 6))
+    
+    # Prepare data for plotting
+    proxies = list(conformance_data.keys())
+    conformant_pcts = []
+    non_conformant_pcts = []
+    
+    for proxy in proxies:
+        total = conformance_data[proxy]['total']
+        if total > 0:
+            conformant_pcts.append(conformance_data[proxy]['conformant'] / total * 100)
+            non_conformant_pcts.append(conformance_data[proxy]['non_conformant'] / total * 100)
+        else:
+            conformant_pcts.append(0)
+            non_conformant_pcts.append(0)
+    
+    # Create stacked bar chart
+    bar_width = 0.8
+    indices = range(len(proxies))
+    
+    plt.bar(indices, conformant_pcts, bar_width, label='Conformant', color='#2ecc71')
+    plt.bar(indices, non_conformant_pcts, bar_width, bottom=conformant_pcts, 
+            label='Non-Conformant', color='#e74c3c')
+    
+    # Customize the plot
+    plt.xlabel('Proxy')
+    plt.ylabel('Percentage of Tests')
+    plt.title('HTTP/2 Conformance Test Results by Proxy', pad=20)
+    plt.xticks(indices, proxies, rotation=45, ha='right')
+    plt.legend()
+    
+    # Add percentage labels on the bars
+    for i in indices:
+        # Add label for conformant percentage
+        if conformant_pcts[i] > 0:
+            plt.text(i, conformant_pcts[i]/2, 
+                    f'{conformant_pcts[i]:.1f}%', 
+                    ha='center', va='center')
+        
+        # Add label for non-conformant percentage
+        if non_conformant_pcts[i] > 0:
+            plt.text(i, conformant_pcts[i] + non_conformant_pcts[i]/2,
+                    f'{non_conformant_pcts[i]:.1f}%', 
+                    ha='center', va='center')
+    
+    plt.ylim(0, 100)
+    plt.grid(True, axis='y', alpha=0.3)
+    plt.tight_layout()
+    
+    # Save the plot
+    plt.savefig(os.path.join(output_directory, 'conformance_results.png'), 
+                dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # Create a detailed markdown report
+    with open(os.path.join(output_directory, 'conformance_report.md'), 'w') as f:
+        f.write("# HTTP/2 Conformance Test Results\n\n")
+        
+        # Overall summary table
+        f.write("## Summary\n\n")
+        f.write("| Proxy | Conformant | Non-Conformant | Total Tests |\n")
+        f.write("|-------|------------|----------------|-------------|\n")
+        
+        for proxy, data in conformance_data.items():
+            total = data['total']
+            if total > 0:
+                conformant_pct = (data['conformant'] / total) * 100
+                non_conformant_pct = (data['non_conformant'] / total) * 100
+                
+                f.write(f"| {proxy} | {data['conformant']} ({conformant_pct:.1f}%) | "
+                       f"{data['non_conformant']} ({non_conformant_pct:.1f}%) | {total} |\n")
+        
+        # Detailed non-conformance analysis
+        f.write("\n## Non-Conformant Test Details\n\n")
+        f.write("| Proxy | Test ID | Expected | Actual | Description |\n")
+        f.write("|-------|---------|-----------|--------|-------------|\n")
+        
+        for proxy, results in test_results.items():
+            for test_id, result in results.items():
+                if test_id not in expected_results:
+                    continue
+                    
+                expected = expected_results[test_id]
+                is_non_conformant = False
+                
+                if expected == "error":
+                    if result not in ["goaway", "reset", "500"]:
+                        is_non_conformant = True
+                elif expected == "ignore":
+                    if result != "dropped":
+                        is_non_conformant = True
+                
+                if is_non_conformant:
+                    description = next((case['description'] for case in test_cases 
+                                     if str(case['id']) == test_id), "N/A")
+                    f.write(f"| {proxy} | {test_id} | {expected} | {result} | {description} |\n")
+
 def main():
     # Create summaries directory if it doesn't exist
     summaries_dir = 'summaries'
@@ -877,7 +1024,6 @@ def main():
         os.makedirs(summaries_dir)
     
     # List of proxy folders
-    # proxy_folders = ['Envoy', 'Node', 'Nghttpx', 'HAproxy', 'Apache', 'H2O', 'Caddy', 'Cloudflare']
     proxy_folders = ['Nghttpx', 'HAproxy', 'Apache', 'Caddy', 'Node', 'Envoy', 'H2O', 'Cloudflare', 'Nginx']
     results_dir = 'results'
     
@@ -917,6 +1063,7 @@ def main():
     create_proxy_correlation_matrix(all_test_results, output_dir)
     create_proxy_vector_graph(all_test_results, output_dir)
     create_proxy_result_pies(all_test_results, output_dir)
+    create_conformance_visualization(all_test_results, output_dir)
     
     # Load client-server classification and create client-server pie charts
     try:
