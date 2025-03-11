@@ -1500,8 +1500,8 @@
   {
     "id": 91,
     "description": "A PUSH_PROMISE frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream.",
-    "section": "",
-    "expected_result": "",
+    "section": "6",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1522,8 +1522,8 @@
   {
     "id": 92,
     "description": "PUSH_PROMISE MUST NOT be sent if the SETTINGS_ENABLE_PUSH setting of the peer endpoint is set to 0.",
-    "section": "",
-    "expected_result": "",
+    "section": "6",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1538,8 +1538,8 @@
   {
     "id": 93,
     "description": "The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver.",
-    "section": "",
-    "expected_result": "",
+    "section": "6",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1553,8 +1553,8 @@
   {
     "id": 94,
     "description": "CONTINUATION frames MUST be associated with a stream.",
-    "section": "",
-    "expected_result": "",
+    "section": "6",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "CONTINUATION"
@@ -1564,8 +1564,8 @@
   {
     "id": 95,
     "description": "If the END_HEADERS flag is not set, this frame MUST be followed by another CONTINUATION frame. A receiver MUST treat the receipt of any other type of frame or a frame on a different stream as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
-    "section": "",
-    "expected_result": "",
+    "section": "6",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1581,8 +1581,8 @@
   {
     "id": 96,
     "description": "Other frames (from any stream) MUST NOT occur between the HEADERS frame and any CONTINUATION frames that might follow.",
-    "section": "",
-    "expected_result": "",
+    "section": "6",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1601,8 +1601,8 @@
   {
     "id": 97,
     "description": "An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving the HEADERS frame that opens a request or after receiving a final (non-informational) status code MUST treat the corresponding request or response as malformed (Section 8.1.1).",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1615,8 +1615,8 @@
   {
     "id": 98,
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the middle of the value)",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1634,8 +1634,8 @@
   {
     "id": 99,
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value)",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1653,8 +1653,8 @@
   {
     "id": 100,
     "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value)",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1672,8 +1672,8 @@
   {
     "id": 101,
     "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value)",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1691,8 +1691,8 @@
   {
     "id": 102,
     "description": "Pseudo-header fields MUST NOT appear in a trailer section.",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1711,8 +1711,8 @@
   {
     "id": 103,
     "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing)",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1727,8 +1727,8 @@
   {
     "id": 104,
     "description": "Promised requests MUST be safe (see Section 9.2.1 of [HTTP]) and cacheable (see Section 9.2.3 of [HTTP]).",
-    "section": "",
-    "expected_result": "",
+    "section": "8",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1749,8 +1749,8 @@
   {
     "id": 105,
     "description": "PUSH_PROMISE frames MUST NOT be sent by the client.",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1763,8 +1763,8 @@
   {
     "id": 106,
     "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR. (server side)",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1780,8 +1780,8 @@
   {
     "id": 107,
     "description": "If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (server side)",
-    "section": "",
-    "expected_result": "",
+    "section": "5",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1802,8 +1802,8 @@
   {
     "id": 108,
     "description": "Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE. (server side)",
-    "section": "",
-    "expected_result": "",
+    "section": "4",
+    "expected_result": "error",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1819,8 +1819,8 @@
   {
     "id": 109,
     "description": "The frame type determines the format and semantics of the frame. Implementations MUST ignore and discard frames of unknown types. (server side)",
-    "section": "",
-    "expected_result": "",
+    "section": "4",
+    "expected_result": "ignore",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1835,8 +1835,8 @@
   {
     "id": 110,
     "description": "A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving. (server side)",
-    "section": "",
-    "expected_result": "",
+    "section": "4",
+    "expected_result": "ignore",
     "client_frames": [
       {
         "type": "HEADERS"
