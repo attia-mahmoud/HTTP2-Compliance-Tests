@@ -1017,6 +1017,185 @@ def create_conformance_visualization(test_results, output_directory):
                                      if str(case['id']) == test_id), "N/A")
                     f.write(f"| {proxy} | {test_id} | {expected} | {result} | {description} |\n")
 
+def create_section_conformance_visualization(test_results, output_directory):
+    """
+    Create visualizations showing how well each proxy conforms to each section of the RFC.
+    """
+    os.makedirs(output_directory, exist_ok=True)
+    
+    # First, load the test cases to get sections and expected results
+    with open('test_cases.json', 'r') as f:
+        test_cases = json.load(f)
+    
+    # Create mappings
+    test_sections = {str(case['id']): case['section'] for case in test_cases}
+    test_expected = {str(case['id']): case['expected_result'] for case in test_cases}
+    
+    # Define section names
+    section_names = {
+        "3": "Starting HTTP/2",
+        "4": "HTTP Frames",
+        "5": "Streams and Multiplexing",
+        "6": "Frame Definitions",
+        "8": "HTTP Semantics in HTTP/2"
+    }
+    
+    # Get unique sections
+    sections = sorted(set(test_sections.values()))
+    
+    # Initialize data structures for tracking section-wise conformance
+    section_data = {
+        proxy: {section: {'conformant': 0, 'non_conformant': 0, 'total': 0} 
+               for section in sections}
+        for proxy in test_results.keys()
+    }
+    
+    # Analyze each proxy's results by section
+    for proxy, results in test_results.items():
+        for test_id, result in results.items():
+            if test_id not in test_sections:
+                continue
+                
+            section = test_sections[test_id]
+            expected = test_expected[test_id]
+            section_data[proxy][section]['total'] += 1
+            
+            if expected == "error":
+                if result in ["goaway", "reset", "500"]:
+                    section_data[proxy][section]['conformant'] += 1
+                else:  # dropped or received
+                    section_data[proxy][section]['non_conformant'] += 1
+            elif expected == "ignore":
+                if result == "dropped":
+                    section_data[proxy][section]['conformant'] += 1
+                else:  # goaway, reset, 500, or received
+                    section_data[proxy][section]['non_conformant'] += 1
+    
+    # Create the visualization - one subplot per section
+    n_sections = len(sections)
+    n_cols = min(3, n_sections)  # Maximum 3 columns
+    n_rows = (n_sections + n_cols - 1) // n_cols
+    
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(6*n_cols, 4*n_rows))
+    fig.suptitle('HTTP/2 Section-wise Conformance by Proxy', fontsize=16, y=0.95)
+    
+    # Flatten axes if there are multiple rows
+    if n_rows > 1:
+        axes = axes.flatten()
+    elif n_cols == 1:
+        axes = [axes]
+    
+    # Create a bar chart for each section
+    for idx, section in enumerate(sections):
+        ax = axes[idx]
+        
+        # Prepare data for this section
+        proxies = list(test_results.keys())
+        conformant_pcts = []
+        non_conformant_pcts = []
+        
+        for proxy in proxies:
+            total = section_data[proxy][section]['total']
+            if total > 0:
+                conformant_pcts.append(section_data[proxy][section]['conformant'] / total * 100)
+                non_conformant_pcts.append(section_data[proxy][section]['non_conformant'] / total * 100)
+            else:
+                conformant_pcts.append(0)
+                non_conformant_pcts.append(0)
+        
+        # Create stacked bar chart
+        bar_width = 0.8
+        indices = range(len(proxies))
+        
+        ax.bar(indices, conformant_pcts, bar_width, label='Conformant', color='#2ecc71')
+        ax.bar(indices, non_conformant_pcts, bar_width, bottom=conformant_pcts, 
+               label='Non-Conformant', color='#e74c3c')
+        
+        # Customize the subplot
+        ax.set_ylim(0, 100)
+        ax.set_xlabel('Proxy')
+        ax.set_ylabel('Percentage')
+        section_title = f'Section {section}: {section_names.get(section, "")}'
+        ax.set_title(section_title, fontsize=10, pad=10)
+        ax.set_xticks(indices)
+        ax.set_xticklabels(proxies, rotation=45, ha='right', fontsize=8)
+        
+        # Add percentage labels
+        for i in indices:
+            if conformant_pcts[i] > 0:
+                ax.text(i, conformant_pcts[i]/2, 
+                        f'{conformant_pcts[i]:.1f}%', 
+                        ha='center', va='center', fontsize=8)
+            
+            if non_conformant_pcts[i] > 0:
+                ax.text(i, conformant_pcts[i] + non_conformant_pcts[i]/2,
+                        f'{non_conformant_pcts[i]:.1f}%', 
+                        ha='center', va='center', fontsize=8)
+        
+        ax.grid(True, axis='y', alpha=0.3)
+        
+        # Only add legend to first subplot
+        if idx == 0:
+            ax.legend(fontsize=8)
+    
+    # Hide any unused subplots
+    for idx in range(len(sections), len(axes)):
+        axes[idx].axis('off')
+    
+    plt.tight_layout(rect=[0, 0, 1, 0.95])  # Make room for suptitle
+    
+    # Save the plot
+    plt.savefig(os.path.join(output_directory, 'section_conformance.png'), 
+                dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # Create a detailed markdown report
+    with open(os.path.join(output_directory, 'section_conformance_report.md'), 'w') as f:
+        f.write("# HTTP/2 Section-wise Conformance Results\n\n")
+        
+        for section in sections:
+            section_name = section_names.get(section, "")
+            f.write(f"\n## Section {section}: {section_name}\n\n")
+            f.write("| Proxy | Conformant | Non-Conformant | Total Tests |\n")
+            f.write("|-------|------------|----------------|-------------|\n")
+            
+            for proxy in test_results.keys():
+                data = section_data[proxy][section]
+                total = data['total']
+                if total > 0:
+                    conformant_pct = (data['conformant'] / total) * 100
+                    non_conformant_pct = (data['non_conformant'] / total) * 100
+                    
+                    f.write(f"| {proxy} | {data['conformant']} ({conformant_pct:.1f}%) | "
+                           f"{data['non_conformant']} ({non_conformant_pct:.1f}%) | {total} |\n")
+            
+            # Add list of non-conformant tests for this section
+            f.write("\n### Non-Conformant Tests\n\n")
+            f.write("| Proxy | Test ID | Expected | Actual | Description |\n")
+            f.write("|-------|---------|-----------|--------|-------------|\n")
+            
+            for proxy, results in test_results.items():
+                for test_id, result in results.items():
+                    if (test_id not in test_sections or 
+                        test_sections[test_id] != section or 
+                        test_id not in test_expected):
+                        continue
+                    
+                    expected = test_expected[test_id]
+                    is_non_conformant = False
+                    
+                    if expected == "error":
+                        if result not in ["goaway", "reset", "500"]:
+                            is_non_conformant = True
+                    elif expected == "ignore":
+                        if result != "dropped":
+                            is_non_conformant = True
+                    
+                    if is_non_conformant:
+                        description = next((case['description'] for case in test_cases 
+                                         if str(case['id']) == test_id), "N/A")
+                        f.write(f"| {proxy} | {test_id} | {expected} | {result} | {description} |\n")
+
 def main():
     # Create summaries directory if it doesn't exist
     summaries_dir = 'summaries'
@@ -1064,6 +1243,7 @@ def main():
     create_proxy_vector_graph(all_test_results, output_dir)
     create_proxy_result_pies(all_test_results, output_dir)
     create_conformance_visualization(all_test_results, output_dir)
+    create_section_conformance_visualization(all_test_results, output_dir)
     
     # Load client-server classification and create client-server pie charts
     try:
