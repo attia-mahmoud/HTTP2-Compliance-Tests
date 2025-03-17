@@ -82,7 +82,7 @@ PROXY_IP = "cloudflare.nopasaran.co"
 # SERVER_WORKER = "labworker4.admin.worker.nopasaran.org"
 # PROXY_IP = "192.168.122.6"
 # SERVER_PORT = "8080"
-file = "test_cases_debug.json"
+file = "test_cases.json"
 MASTER = "labmaster.admin.master.nopasaran.org"
 
 
@@ -91,6 +91,9 @@ tests_tree = "http_2_conformance.png"
 # Load test cases from test_cases.json
 with open(file, 'r') as f:
     test_cases = json.load(f)
+
+# only run test 12
+test_cases = [test_cases[60]]
 
 # Create results directory if it doesn't exist
 if not os.path.exists('results'):
@@ -221,6 +224,8 @@ def has_timeout(result):
         if worker_data is None:
             return True
         if worker_data and worker_data.get('Variables', {}).get('controller_conf_filename', False):
+            return True
+        if worker_data and worker_data.get('State', '') == 'ERROR':
             return True
     return False
 
