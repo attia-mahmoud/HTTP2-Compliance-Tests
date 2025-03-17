@@ -145,7 +145,7 @@
     "server_frames": [
       {
         "type": "HEADERS",
-        "stream_id": 3
+        "stream_id": 5
       }
     ]
   },
@@ -958,7 +958,8 @@
       {
         "type": "HEADERS",
         "headers": {
-          "date": "2024-01-01"
+          "date": "2024-01-01",
+          ":status": "200"
         }
       }
     ]
