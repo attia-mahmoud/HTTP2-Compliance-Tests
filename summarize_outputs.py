@@ -73,14 +73,14 @@ def analyze_results(filename):
                 is_reset = True
                 message = vars1['msg']
             elif vars1.get('client_result'):
-                is_received = True
+                is_reset = True # TODO: check if this is correct
                 message = vars1['client_result']
         elif worker2 and worker2.get('State', '') == 'RESET_RECEIVED':
             if vars2.get('msg'):
                 is_reset = True
                 message = vars2['msg']
             elif vars2.get('server_result'):
-                is_received = True
+                is_reset = True # TODO: check if this is correct
                 message = vars2['server_result']
         elif vars1 and vars1.get('client_result', '').startswith('Successfully received all') and vars1.get('server_result', '').startswith('Successfully received all'):
             is_received = True
