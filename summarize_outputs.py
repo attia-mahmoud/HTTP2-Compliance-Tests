@@ -69,17 +69,25 @@ def analyze_results(filename):
             is_500 = True
             message = vars2['server_result']
         elif worker1 and worker1.get('State', '') == 'RESET_RECEIVED':
-            is_reset = True
-            message = vars1['msg']
+            if vars1.get('msg'):
+                is_reset = True
+                message = vars1['msg']
+            elif vars1.get('client_result'):
+                is_received = True
+                message = vars1['client_result']
         elif worker2 and worker2.get('State', '') == 'RESET_RECEIVED':
-            is_reset = True
-            message = vars2['msg']
-        elif worker1 and worker1.get('State', '') == 'RECEIVED_FRAMES':
+            if vars2.get('msg'):
+                is_reset = True
+                message = vars2['msg']
+            elif vars2.get('server_result'):
+                is_received = True
+                message = vars2['server_result']
+        elif vars1 and vars1.get('client_result', '').startswith('Successfully received all') and vars1.get('server_result', '').startswith('Successfully received all'):
             is_received = True
-            message = vars1['msg']
-        elif worker2 and worker2.get('State', '') == 'RECEIVED_FRAMES':
+            message = vars1['client_result']
+        elif vars2 and vars2.get('client_result', '').startswith('Successfully received all')and vars2.get('server_result', '').startswith('Successfully received all'):
             is_received = True
-            message = vars2['msg']
+            message = vars2['server_result']
         elif vars2.get('msg', '').startswith("Timeout occurred after 5.0s while waiting for client connection"):
             is_dropped = True
             message = vars2['msg']
@@ -89,6 +97,9 @@ def analyze_results(filename):
         elif worker2 and worker2.get('State', '') in ['CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_SERVER', 'CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER']:
             is_dropped = True
             message = vars2['msg']
+        else:
+            is_dropped = True
+            message = "Unknown error"
 
         # Store results
         if is_dropped:
@@ -108,6 +119,7 @@ def analyze_results(filename):
             received_count += 1
         else:
             test_results[test_id] = "other"
+            print(result)
         
         test_messages[test_id] = message
     
@@ -387,55 +399,93 @@ def create_proxy_result_pies(test_results, output_directory):
     
     if n_rows > 1:
         axes = axes.flatten()
+    elif n_cols == 1:
+        axes = axes
+    else:
+        axes = [axes] if n_charts == 1 else axes.flatten()
     
     colors = ['#ff6b6b', '#ffd93d', '#ff9f43', '#6c5ce7', '#6bceff', '#4ecdc4']  # Red for dropped, Yellow for 500, Orange for goaway, Purple for reset, Blue for received, Green for other
     
     for i, proxy in enumerate(proxies):
-        # Count categories
-        total_tests = len(test_results[proxy])
-        dropped = sum(1 for result in test_results[proxy].values() if result == "dropped")
-        error_500 = sum(1 for result in test_results[proxy].values() if result == "500")
-        goaway = sum(1 for result in test_results[proxy].values() if result == "goaway")
-        reset = sum(1 for result in test_results[proxy].values() if result == "reset")
-        received = sum(1 for result in test_results[proxy].values() if result == "received")
-        other = total_tests - dropped - error_500 - goaway - reset - received
-        
-        # Calculate percentages
-        dropped_pct = (dropped / total_tests) * 100
-        error_500_pct = (error_500 / total_tests) * 100
-        goaway_pct = (goaway / total_tests) * 100
-        reset_pct = (reset / total_tests) * 100
-        received_pct = (received / total_tests) * 100
-        other_pct = (other / total_tests) * 100
-        
-        sizes = [dropped_pct, error_500_pct, goaway_pct, reset_pct, received_pct, other_pct]
-        labels = [f'Dropped\n{dropped} ({dropped_pct:.1f}%)', 
-                 f'500 Error\n{error_500} ({error_500_pct:.1f}%)',
-                 f'GOAWAY\n{goaway} ({goaway_pct:.1f}%)',
-                 f'RESET\n{reset} ({reset_pct:.1f}%)',
-                 f'Received\n{received} ({received_pct:.1f}%)',
-                 f'Other\n{other} ({other_pct:.1f}%)']
-        
-        if n_rows == 1:
-            ax = axes[i] if n_charts > 1 else axes
-        else:
-            ax = axes[i]
-            
-        ax.pie(sizes, labels=labels, colors=colors, autopct='', 
-               startangle=90)
-        ax.set_title(proxy, pad=20)
+        create_single_pie(axes[i], test_results[proxy], colors, proxy)
     
-    if n_charts < len(axes):
-        for j in range(n_charts, len(axes)):
-            if n_rows == 1:
-                axes[j].remove() if n_charts > 1 else None
-            else:
-                axes[j].remove()
+    # Hide any unused subplots
+    for j in range(n_charts, len(axes)):
+        axes[j].remove()
     
     plt.tight_layout()
     plt.savefig(os.path.join(output_directory, 'proxy_result_pies.png'), 
                 dpi=300, bbox_inches='tight')
     plt.close()
+
+def create_single_pie(ax, test_results, colors, title):
+    """Create a single pie chart on the given axis."""
+    if not test_results:
+        ax.text(0.5, 0.5, "No data", ha='center', va='center', fontsize=14)
+        ax.axis('off')
+        ax.set_title(title, pad=20)
+        return
+    
+    # Count categories
+    total_tests = len(test_results)
+    dropped = sum(1 for result in test_results.values() if result == "dropped")
+    error_500 = sum(1 for result in test_results.values() if result == "500")
+    goaway = sum(1 for result in test_results.values() if result == "goaway")
+    reset = sum(1 for result in test_results.values() if result == "reset")
+    received = sum(1 for result in test_results.values() if result == "received")
+    other = total_tests - dropped - error_500 - goaway - reset - received
+    
+    # Calculate percentages
+    dropped_pct = (dropped / total_tests) * 100 if total_tests > 0 else 0
+    error_500_pct = (error_500 / total_tests) * 100 if total_tests > 0 else 0
+    goaway_pct = (goaway / total_tests) * 100 if total_tests > 0 else 0
+    reset_pct = (reset / total_tests) * 100 if total_tests > 0 else 0
+    received_pct = (received / total_tests) * 100 if total_tests > 0 else 0
+    other_pct = (other / total_tests) * 100 if total_tests > 0 else 0
+    
+    # Only include non-zero values
+    sizes = []
+    labels = []
+    colors_filtered = []
+    
+    if dropped > 0:
+        sizes.append(dropped_pct)
+        labels.append(f'Dropped\n{dropped} ({dropped_pct:.1f}%)')
+        colors_filtered.append(colors[0])
+    
+    if error_500 > 0:
+        sizes.append(error_500_pct)
+        labels.append(f'500 Error\n{error_500} ({error_500_pct:.1f}%)')
+        colors_filtered.append(colors[1])
+    
+    if goaway > 0:
+        sizes.append(goaway_pct)
+        labels.append(f'GOAWAY\n{goaway} ({goaway_pct:.1f}%)')
+        colors_filtered.append(colors[2])
+    
+    if reset > 0:
+        sizes.append(reset_pct)
+        labels.append(f'RESET\n{reset} ({reset_pct:.1f}%)')
+        colors_filtered.append(colors[3])
+    
+    if received > 0:
+        sizes.append(received_pct)
+        labels.append(f'Received\n{received} ({received_pct:.1f}%)')
+        colors_filtered.append(colors[4])
+    
+    if other > 0:
+        sizes.append(other_pct)
+        labels.append(f'Other\n{other} ({other_pct:.1f}%)')
+        colors_filtered.append(colors[5])
+    
+    if sizes:  # Only create pie if we have non-zero values
+        ax.pie(sizes, labels=labels, colors=colors_filtered, autopct='', 
+               startangle=90)
+    else:
+        ax.text(0.5, 0.5, "No data", ha='center', va='center', fontsize=14)
+        ax.axis('off')
+    
+    ax.set_title(title, pad=20)
 
 def create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, reset_counts, received_counts, all_test_results, summaries_dir):
     """Create a markdown table summarizing the counts of dropped, error, reset, goaway, and received results."""
@@ -581,65 +631,6 @@ def create_client_server_pie_charts(test_results, client_side_tests, server_side
     plt.savefig(os.path.join(output_directory, 'client_server_pies.png'), 
                 dpi=300, bbox_inches='tight')
     plt.close()
-
-def create_single_pie(ax, test_results, colors, title):
-    """Create a single pie chart on the given axis."""
-    if not test_results:
-        ax.text(0.5, 0.5, "No data", ha='center', va='center', fontsize=14)
-        ax.axis('off')
-        ax.set_title(title, pad=20)
-        return
-    
-    # Count categories
-    total_tests = len(test_results)
-    dropped = sum(1 for result in test_results.values() if result == "dropped")
-    error_500 = sum(1 for result in test_results.values() if result == "500")
-    goaway = sum(1 for result in test_results.values() if result == "goaway")
-    reset = sum(1 for result in test_results.values() if result == "reset")
-    received = sum(1 for result in test_results.values() if result == "received")
-    other = total_tests - dropped - error_500 - goaway - reset - received
-    
-    # Calculate percentages
-    dropped_pct = (dropped / total_tests) * 100 if total_tests > 0 else 0
-    error_500_pct = (error_500 / total_tests) * 100 if total_tests > 0 else 0
-    goaway_pct = (goaway / total_tests) * 100 if total_tests > 0 else 0
-    reset_pct = (reset / total_tests) * 100 if total_tests > 0 else 0
-    received_pct = (received / total_tests) * 100 if total_tests > 0 else 0
-    other_pct = (other / total_tests) * 100 if total_tests > 0 else 0
-    
-    sizes = [dropped_pct, error_500_pct, goaway_pct, reset_pct, received_pct, other_pct]
-    labels = [f'Dropped\n{dropped} ({dropped_pct:.1f}%)', 
-             f'500 Error\n{error_500} ({error_500_pct:.1f}%)',
-             f'GOAWAY\n{goaway} ({goaway_pct:.1f}%)',
-             f'RESET\n{reset} ({reset_pct:.1f}%)',
-             f'Received\n{received} ({received_pct:.1f}%)',
-             f'Other\n{other} ({other_pct:.1f}%)']
-    
-    # Remove zero values
-    non_zero_sizes = []
-    non_zero_labels = []
-    non_zero_colors = []
-    
-    for size, label, color in zip(sizes, labels, colors):
-        if size > 0:
-            non_zero_sizes.append(size)
-            non_zero_labels.append(label)
-            non_zero_colors.append(color)
-    
-    if non_zero_sizes:
-        ax.pie(non_zero_sizes, labels=non_zero_labels, colors=non_zero_colors, 
-               autopct='%1.1f%%', startangle=90)
-    else:
-        ax.text(0.5, 0.5, "No data", ha='center', va='center', fontsize=14)
-        ax.axis('off')
-    
-    ax.set_title(title, pad=20)
-
-def load_test_pairs(pairs_file='docs/pairs.json'):
-    """Load the test pairs from the JSON file."""
-    with open(pairs_file, 'r') as f:
-        data = json.load(f)
-    return data['pairs']
 
 def create_client_server_discrepancy_visualization(test_results, test_pairs, output_directory):
     """
@@ -1292,6 +1283,9 @@ def create_advanced_insights(test_results, output_directory):
         axes = axes.flatten()
     elif n_cols == 1:
         axes = [axes]
+
+    # Define proxies list
+    proxies = list(test_results.keys())
     
     for idx, frame_type in enumerate(sorted(frame_types)):
         ax = axes[idx]
@@ -1439,6 +1433,12 @@ def create_advanced_insights(test_results, output_directory):
         
         f.write(f"\nTotal non-conformant tests analyzed: {total_non_conformant}\n")
 
+def load_test_pairs(pairs_file='docs/pairs.json'):
+    """Load the test pairs from the JSON file."""
+    with open(pairs_file, 'r') as f:
+        data = json.load(f)
+    return data['pairs']
+
 def main():
     # Create summaries directory if it doesn't exist
     summaries_dir = 'summaries'
@@ -1446,7 +1446,7 @@ def main():
         os.makedirs(summaries_dir)
     
     # List of proxy folders
-    proxy_folders = ['Nghttpx', 'HAproxy', 'Apache', 'Caddy', 'Node', 'Envoy', 'H2O', 'Cloudflare', 'Nginx']
+    proxy_folders = ['Nghttpx', 'HAproxy', 'Apache', 'Caddy', 'Node', 'Envoy', 'H2O', 'Cloudflare', 'Nginx', 'Mitmproxy']
     results_dir = 'results'
     
     # Prepare data for summary tables
