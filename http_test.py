@@ -61,31 +61,32 @@ list_of_proxies = [
     # {"PROXY": "Direct", "PROXY_PORT": "8080"}
     # {"PROXY": "Apache", "PROXY_PORT": "7700"},
     # {"PROXY": "Caddy", "PROXY_PORT": "7701"},
-    # {"PROXY": "HAproxy", "PROXY_PORT": "7704"},
-    # {"PROXY": "Nghttpx", "PROXY_PORT": "7706"}
     # {"PROXY": "Envoy", "PROXY_PORT": "7702"}
-    {"PROXY": "H2O", "PROXY_PORT": "7703", "tls_enabled": "true"}
-    # {"PROXY": "Mitmproxy", "PROXY_PORT": "7705", "tls_enabled": "true"}
+    # {"PROXY": "HAproxy", "PROXY_PORT": "7704"},
+    # {"PROXY": "Nginx", "PROXY_PORT": "7705", "tls_enabled": "true"}
+    # {"PROXY": "Nghttpx", "PROXY_PORT": "7706"}
     # {"PROXY": "Node", "PROXY_PORT": "7707"}
-    # {"PROXY": "Cloudflare", "PROXY_PORT": "443", "tls_enabled": "true", "cloudflare_origin": "true"}
+    # {"PROXY": "Mitmproxy", "PROXY_PORT": "7708", "tls_enabled": "true"}
+    # {"PROXY": "H2O", "PROXY_PORT": "7709", "tls_enabled": "true"}
+    {"PROXY": "Cloudflare", "PROXY_PORT": "443", "tls_enabled": "true", "cloudflare_origin": "true"},
+    # {"PROXY": "Fastly", "PROXY_PORT": "80"}
 ]
 
-# CLIENT_WORKER = "linodegermany.admin.worker.nopasaran.org"
-CLIENT_WORKER = "labworker3.admin.worker.nopasaran.org"
+CLIENT_WORKER = "linodegermany.admin.worker.nopasaran.org"
+SERVER_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
+SERVER_PORT = "443"
+PROXY_IP = "cloudflare.nopasaran.co"
 
-PROXY_IP = "192.168.122.133"
-# PROXY_IP = "cloudflare.nopasaran.co"
 
-# SERVER_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
-SERVER_WORKER = "labworker4.admin.worker.nopasaran.org"
-# SERVER_PORT = "443"
-SERVER_PORT = "8080"
+# CLIENT_WORKER = "labworker3.admin.worker.nopasaran.org"
+# SERVER_WORKER = "labworker4.admin.worker.nopasaran.org"
+# PROXY_IP = "192.168.122.6"
+# SERVER_PORT = "8080"
+file = "test_cases.json"
+MASTER = "labmaster.admin.master.nopasaran.org"
 
-MASTER = "mahmoudmaster.admin.master.nopasaran.org"
 
 tests_tree = "http_2_conformance.png"
-
-file = "test_cases_debug.json"
 
 # Load test cases from test_cases.json
 with open(file, 'r') as f:
@@ -115,8 +116,8 @@ def run_test_case(test_case, proxy, max_retries=3):
                     "connection_settings_client": test_case.get("connection_settings_client", {}),
                     "controller_conf_filename": "controller_configuration.json",
                     "cloudflare_origin": proxy.get("cloudflare_origin", "false"),
-                    "client_frames": test_case.get("client_frames", [{"type": "HEADERS"}]),
-                    "server_frames": test_case.get("server_frames", [{"type": "PING"}])
+                    "client_frames": test_case.get("client_frames", [{"type": "HEADERS"}, {"type": "DATA", "flags": {"END_STREAM": "true"}}]),
+                    "server_frames": test_case.get("server_frames", [{"type": "HEADERS"}, {"type": "DATA", "flags": {"END_STREAM": "true"}}]),
                 },
                 "Worker_2": {
                     "role": "server",
@@ -129,8 +130,8 @@ def run_test_case(test_case, proxy, max_retries=3):
                     "connection_settings_server": test_case.get("connection_settings_server", {}),
                     "controller_conf_filename": "controller_configuration.json",
                     "cloudflare_origin": proxy.get("cloudflare_origin", "false"),
-                    "client_frames": test_case.get("client_frames", [{"type": "HEADERS"}]),
-                    "server_frames": test_case.get("server_frames", [{"type": "PING"}])
+                    "client_frames": test_case.get("client_frames", [{"type": "HEADERS"}, {"type": "DATA", "flags": {"END_STREAM": "true"}}]),
+                    "server_frames": test_case.get("server_frames", [{"type": "HEADERS"}, {"type": "DATA", "flags": {"END_STREAM": "true"}}]),
                 }
             }
         }
@@ -217,7 +218,9 @@ def has_timeout(result):
         return False
     
     for worker, worker_data in result.items():
-        if worker_data and worker_data.get('Variables', {}).get('controller_conf_filename'):
+        if worker_data is None:
+            return True
+        if worker_data and worker_data.get('Variables', {}).get('controller_conf_filename', False):
             return True
     return False
 
