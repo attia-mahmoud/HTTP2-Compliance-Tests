@@ -302,21 +302,19 @@
     "description": "Streams initiated by a server MUST use even-numbered stream identifiers.",
     "result": {
       "Worker_1": {
-        "State": "FINAL",
+        "State": "REJECTED",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 2/2 frames.",
-          "frames_received": "[<ResponseReceived stream_id:3, headers:[(':status', '200'), ('date', 'Mon, 17 Mar 2025 01:18:36 GMT'), ('content-type', 'text/plain'), ('cf-cache-status', 'DYNAMIC'), ('report-to', '{\"endpoints\":[{\"url\":\"https:\\\\/\\\\/a.nel.cloudflare.com\\\\/report\\\\/v4?s=5rkdO7w1lLzgItsTLL7kgZZyFxTrkESLhcaU7L0mdgNh9TnIWQKsFYGxpFAkgvh82qTpIgUTtYBNVITOP9vA%2Bg9ixmr6FYw94BbM4yXiSKBMl7UCudbNahqSLWVcFpqzxZk%2BP9bxza0Ivg%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}'), ('nel', '{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}'), ('server', 'cloudflare'), ('cf-ray', '9218a845ad05a01b-FRA'), ('alt-svc', 'h3=\":443\"; ma=86400'), ('server-timing', 'cfL4;desc=\"?proto=TCP&rtt=5761&min_rtt=439&rtt_var=10462&sent=13&recv=11&lost=0&retrans=0&sent_bytes=4118&recv_bytes=941&delivery_rate=5634241&cwnd=257&unsent_bytes=0&cid=6b4e5b45b25ae9c1&ts=1637&x=0\"')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'flags': {'END_STREAM': 'true'}}]"
+          "client_result": "Received 5xx status code 525 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:3, headers:[(':status', '525'), ('date', 'Mon, 17 Mar 2025 15:24:26 GMT'), ('content-type', 'text/plain; charset=UTF-8'), ('content-length', '15'), ('report-to', '{\"endpoints\":[{\"url\":\"https:\\\\/\\\\/a.nel.cloudflare.com\\\\/report\\\\/v4?s=xNaY3vNQb2DftojnN8n%2Bb87krjQyVKmue0L1W4IGoRJ1qOYn9DiSoEHis8C%2BMQMVAZ8ncPFoAYl0ckQDEdCjjdJG4xVFZGqavN0QY67WXeA1yjhdHornDRceK7UpztukDcAeT%2F509NdsEw%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}'), ('nel', '{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}'), ('x-frame-options', 'SAMEORIGIN'), ('referrer-policy', 'same-origin'), ('cache-control', 'private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0'), ('expires', 'Thu, 01 Jan 1970 00:00:01 GMT'), ('server', 'cloudflare'), ('cf-ray', '921d7f2d293ff4e5-FRA'), ('alt-svc', 'h3=\":443\"; ma=86400'), ('server-timing', 'cfL4;desc=\"?proto=TCP&rtt=1018&min_rtt=571&rtt_var=868&sent=10&recv=8&lost=0&retrans=0&sent_bytes=4092&recv_bytes=892&delivery_rate=4724306&cwnd=256&unsent_bytes=0&cid=bf40782930a5b9f7&ts=5727&x=0\"')]>"
         }
       },
       "Worker_2": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER",
         "Variables": {
-          "server_result": "Successfully received all 2/2 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:3, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', 'cloudflare.nopasaran.co'), (':path', '/test-frame'), ('cf-ray', '9218a845ad05a01b-FRA'), ('x-forwarded-for', '172.104.229.16'), ('cdn-loop', 'cloudflare; loops=1'), ('accept', '*/*'), ('accept-encoding', 'gzip, br'), ('x-forwarded-proto', 'https'), ('user-agent', 'nopasaran-http2-client'), ('cf-ipcountry', 'DE'), ('cf-visitor', '{\"scheme\":\"https\"}'), ('cf-connecting-ip', '172.104.229.16'), ('content-length', '18')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
-          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 3}]"
+          "result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<RequestReceived stream_id:3, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', 'cloudflare.nopasaran.co'), (':path', '/test-frame'), ('cf-ray', '921d7f2d293ff4e5-FRA'), ('x-forwarded-for', '172.104.229.16'), ('cf-connecting-ip', '172.104.229.16'), ('accept', '*/*'), ('accept-encoding', 'gzip, br'), ('x-forwarded-proto', 'https'), ('user-agent', 'nopasaran-http2-client'), ('cf-ipcountry', 'DE'), ('cf-visitor', '{\"scheme\":\"https\"}'), ('cdn-loop', 'cloudflare; loops=1')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 5}]",
+          "msg": "Client_Failed_To_Receive_All_Frames"
         }
       }
     }
@@ -1918,22 +1916,20 @@
   "61": {
     "description": "All pseudo-header fields sent from a server MUST appear in a field block before all regular field lines. Any request or response that contains a pseudo-header field that appears in a field block after a regular field line MUST be treated as malformed (Section 8.1.1).",
     "result": {
-      "Worker_2": {
-        "State": "FINAL",
+      "Worker_1": {
+        "State": "REJECTED",
         "Variables": {
-          "server_result": "Successfully received all 2/2 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:3, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', 'cloudflare.nopasaran.co'), (':path', '/test-frame'), ('cf-ray', '9218c476cc53a055-FRA'), ('x-forwarded-for', '172.104.229.16'), ('cdn-loop', 'cloudflare; loops=1'), ('accept', '*/*'), ('accept-encoding', 'gzip, br'), ('x-forwarded-proto', 'https'), ('user-agent', 'nopasaran-http2-client'), ('cf-ipcountry', 'DE'), ('cf-visitor', '{\"scheme\":\"https\"}'), ('cf-connecting-ip', '172.104.229.16'), ('content-length', '18')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {'date': '2024-01-01'}}]"
+          "client_result": "Received 5xx status code 520 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:3, headers:[(':status', '520'), ('date', 'Mon, 17 Mar 2025 15:34:36 GMT'), ('content-type', 'text/plain; charset=UTF-8'), ('content-length', '15'), ('report-to', '{\"endpoints\":[{\"url\":\"https:\\\\/\\\\/a.nel.cloudflare.com\\\\/report\\\\/v4?s=m1AJEdykkDWuVTKHoznJl1jkZmtiDXT%2FIObKdLHkCOwOF%2F6J4%2BMYYGSCrriar2GkLL7DmZfNYgszf%2BpLu1JkkBtOIYZsQccU4ciNO5K26XeSY9fwTuyIMAeqKzF2FnZK%2BYRUBdZxMT56tA%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}'), ('nel', '{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}'), ('x-frame-options', 'SAMEORIGIN'), ('referrer-policy', 'same-origin'), ('cache-control', 'private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0'), ('expires', 'Thu, 01 Jan 1970 00:00:01 GMT'), ('server', 'cloudflare'), ('cf-ray', '921d8e2939b3b044-FRA'), ('alt-svc', 'h3=\":443\"; ma=86400'), ('server-timing', 'cfL4;desc=\"?proto=TCP&rtt=891&min_rtt=503&rtt_var=726&sent=11&recv=9&lost=0&retrans=0&sent_bytes=4090&recv_bytes=892&delivery_rate=5413084&cwnd=253&unsent_bytes=0&cid=976e4d9562c39cff&ts=1628&x=0\"')]>"
         }
       },
-      "Worker_1": {
-        "State": "FINAL",
+      "Worker_2": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 2/2 frames.",
-          "frames_received": "[<ResponseReceived stream_id:3, headers:[(':status', '200'), ('date', 'Mon, 17 Mar 2025 01:37:51 GMT'), ('cf-cache-status', 'DYNAMIC'), ('report-to', '{\"endpoints\":[{\"url\":\"https:\\\\/\\\\/a.nel.cloudflare.com\\\\/report\\\\/v4?s=tdMvTDe8t%2FzEJlegT9pJyGPJxQ6IPyhIIaiftvWpWZlTXLWaAO4oAKPVFjfA2GOymiHjUeN0cAvahy2UYSalTUYmbp2vCvGbwoU0NfLOCjmAlqCqrDPQ63FGoajGz1XCFHQPM8ABEPKbHw%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}'), ('nel', '{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}'), ('server', 'cloudflare'), ('cf-ray', '9218c476cc53a055-FRA'), ('alt-svc', 'h3=\":443\"; ma=86400'), ('server-timing', 'cfL4;desc=\"?proto=TCP&rtt=6089&min_rtt=744&rtt_var=10546&sent=13&recv=11&lost=0&retrans=0&sent_bytes=4121&recv_bytes=941&delivery_rate=3540342&cwnd=257&unsent_bytes=0&cid=2dde87fb0eaecb03&ts=1652&x=0\"')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'flags': {'END_STREAM': 'true'}}]"
+          "result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<RequestReceived stream_id:3, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', 'cloudflare.nopasaran.co'), (':path', '/test-frame'), ('cf-ray', '921d8e2939b3b044-FRA'), ('x-forwarded-for', '172.104.229.16'), ('cf-connecting-ip', '172.104.229.16'), ('accept', '*/*'), ('accept-encoding', 'gzip, br'), ('x-forwarded-proto', 'https'), ('user-agent', 'nopasaran-http2-client'), ('cf-ipcountry', 'DE'), ('cf-visitor', '{\"scheme\":\"https\"}'), ('cdn-loop', 'cloudflare; loops=1')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {'date': '2024-01-01', ':status': '200'}}]",
+          "msg": "Client_Failed_To_Receive_All_Frames"
         }
       }
     }

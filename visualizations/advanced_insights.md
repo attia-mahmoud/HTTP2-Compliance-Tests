@@ -11,8 +11,8 @@
 | Node | 50.6% | 90.9% |
 | Envoy | 54.5% | 45.5% |
 | H2O | 44.8% | 72.7% |
-| Cloudflare | 34.8% | 81.8% |
-| Mitmproxy | 0.6% | 36.4% |
+| Cloudflare | 39.4% | 81.8% |
+| Mitmproxy | 3.2% | 36.4% |
 
 ## Frame Type Analysis
 
@@ -28,7 +28,7 @@
 | Node | 6 (66.7%) | 3 (33.3%) | 9 |
 | Envoy | 7 (77.8%) | 2 (22.2%) | 9 |
 | H2O | 7 (77.8%) | 2 (22.2%) | 9 |
-| Cloudflare | 4 (44.4%) | 5 (55.6%) | 9 |
+| Cloudflare | 6 (66.7%) | 3 (33.3%) | 9 |
 | Mitmproxy | 0 (0.0%) | 9 (100.0%) | 9 |
 
 ### DATA Frame
@@ -42,7 +42,7 @@
 | Node | 18 (60.0%) | 12 (40.0%) | 30 |
 | Envoy | 18 (60.0%) | 12 (40.0%) | 30 |
 | H2O | 15 (50.0%) | 15 (50.0%) | 30 |
-| Cloudflare | 14 (46.7%) | 16 (53.3%) | 30 |
+| Cloudflare | 16 (53.3%) | 14 (46.7%) | 30 |
 | Mitmproxy | 0 (0.0%) | 30 (100.0%) | 30 |
 
 ### HEADERS Frame
@@ -56,8 +56,8 @@
 | Node | 35 (34.3%) | 67 (65.7%) | 102 |
 | Envoy | 45 (44.1%) | 57 (55.9%) | 102 |
 | H2O | 41 (40.2%) | 61 (59.8%) | 102 |
-| Cloudflare | 30 (29.1%) | 73 (70.9%) | 103 |
-| Mitmproxy | 0 (0.0%) | 103 (100.0%) | 103 |
+| Cloudflare | 36 (35.0%) | 67 (65.0%) | 103 |
+| Mitmproxy | 1 (1.0%) | 102 (99.0%) | 103 |
 
 ### PING Frame
 
@@ -98,7 +98,7 @@
 | Node | 8 (57.1%) | 6 (42.9%) | 14 |
 | Envoy | 12 (85.7%) | 2 (14.3%) | 14 |
 | H2O | 2 (14.3%) | 12 (85.7%) | 14 |
-| Cloudflare | 8 (57.1%) | 6 (42.9%) | 14 |
+| Cloudflare | 9 (64.3%) | 5 (35.7%) | 14 |
 | Mitmproxy | 0 (0.0%) | 14 (100.0%) | 14 |
 
 ### RST_STREAM Frame
@@ -113,7 +113,7 @@
 | Envoy | 5 (35.7%) | 9 (64.3%) | 14 |
 | H2O | 7 (50.0%) | 7 (50.0%) | 14 |
 | Cloudflare | 6 (42.9%) | 8 (57.1%) | 14 |
-| Mitmproxy | 0 (0.0%) | 14 (100.0%) | 14 |
+| Mitmproxy | 4 (28.6%) | 10 (71.4%) | 14 |
 
 ### SETTINGS Frame
 
@@ -177,11 +177,11 @@
 
 | Pattern | Percentage of Non-Conformant Tests | Count |
 |---------|-----------------------------------|-------|
-| MUST NOT violations | 54.5% | 393 |
-| MUST violations | 43.6% | 314 |
-| Header-related issues | 41.1% | 296 |
-| Frame-related issues | 38.1% | 275 |
-| Stream-related issues | 26.5% | 191 |
-| Pseudo-header issues | 23.7% | 171 |
+| MUST NOT violations | 54.9% | 390 |
+| MUST violations | 43.1% | 306 |
+| Header-related issues | 41.3% | 293 |
+| Frame-related issues | 37.6% | 267 |
+| Stream-related issues | 26.1% | 185 |
+| Pseudo-header issues | 23.9% | 170 |
 
-Total non-conformant tests analyzed: 721
+Total non-conformant tests analyzed: 710

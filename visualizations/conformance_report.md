@@ -11,8 +11,8 @@
 | Node | 78 (47.3%) | 76 (46.1%) | 165 |
 | Envoy | 84 (50.9%) | 70 (42.4%) | 165 |
 | H2O | 69 (41.8%) | 85 (51.5%) | 165 |
-| Cloudflare | 54 (32.5%) | 101 (60.8%) | 166 |
-| Mitmproxy | 1 (0.6%) | 154 (92.8%) | 166 |
+| Cloudflare | 61 (36.7%) | 94 (56.6%) | 166 |
+| Mitmproxy | 5 (3.0%) | 150 (90.4%) | 166 |
 
 ## Non-Conformant Test Details
 
@@ -482,7 +482,6 @@
 | Cloudflare | 7 | error | dropped | If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. |
 | Cloudflare | 8 | error | received | Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE |
 | Cloudflare | 11 | error | dropped | Streams initiated by a client MUST use odd-numbered stream identifiers. |
-| Cloudflare | 12 | error | received | Streams initiated by a server MUST use even-numbered stream identifiers. |
 | Cloudflare | 13 | error | dropped | The identifier of a newly established stream MUST be numerically greater than all streams that the initiating endpoint has opened or reserved. |
 | Cloudflare | 14 | error | dropped | An endpoint MUST NOT send a RST_STREAM in response to a RST_STREAM frame |
 | Cloudflare | 15 | error | dropped | If a PRIORITY frame is received with a stream identifier of 0x00, the recipient MUST respond with a connection error of type PROTOCOL_ERROR |
@@ -503,7 +502,6 @@
 | Cloudflare | 34 | error | dropped | A sender MUST NOT allow a flow-control window to exceed 2^31-1 octets. If a sender receives a WINDOW_UPDATE that causes a flow-control window to exceed this maximum, it MUST terminate either the stream or the connection, as appropriate. |
 | Cloudflare | 35 | error | dropped | An endpoint MUST treat a change to SETTINGS_INITIAL_WINDOW_SIZE that causes any flow-control window to exceed the maximum size as a connection error (Section 5.4.1) of type FLOW_CONTROL_ERROR. |
 | Cloudflare | 37 | error | dropped | A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using HEADERS frame with END_HEADERS flag set) |
-| Cloudflare | 38 | error | received | A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using PUSH_PROMISE frame with END_HEADERS flag set) |
 | Cloudflare | 39 | error | dropped | The header fields in PUSH_PROMISE and any subsequent CONTINUATION frames MUST be a valid and complete set of request header fields. |
 | Cloudflare | 41 | error | dropped | Field names MUST be converted to lowercase when constructing an HTTP/2 message. |
 | Cloudflare | 42 | error | dropped | Field names MUST NOT contain control characters (0x00-0x1F) |
@@ -525,7 +523,6 @@
 | Cloudflare | 58 | error | received | Pseudo-header fields defined for requests MUST NOT appear in responses. |
 | Cloudflare | 59 | error | dropped | Pseudo-header fields defined for responses MUST NOT appear in requests. |
 | Cloudflare | 60 | error | dropped | All pseudo-header fields sent from a client MUST appear in a field block before all regular field lines. Any request or response that contains a pseudo-header field that appears in a field block after a regular field line MUST be treated as malformed (Section 8.1.1). |
-| Cloudflare | 61 | error | received | All pseudo-header fields sent from a server MUST appear in a field block before all regular field lines. Any request or response that contains a pseudo-header field that appears in a field block after a regular field line MUST be treated as malformed (Section 8.1.1). |
 | Cloudflare | 62 | error | dropped | The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with the same value. |
 | Cloudflare | 63 | error | dropped | The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with different values. |
 | Cloudflare | 66 | error | dropped | Clients MUST NOT generate a request with a Host header field that differs from the ":authority" pseudo-header field. |
@@ -562,19 +559,15 @@
 | Cloudflare | 119 | ignore | 500 | An endpoint that receives a SETTINGS frame with any unknown or unsupported identifier MUST ignore that setting. |
 | Cloudflare | 122 | error | dropped | A sender MUST NOT allow a flow-control window to exceed 2^31-1 octets. If a sender receives a WINDOW_UPDATE that causes a flow-control window to exceed this maximum, it MUST terminate either the stream or the connection, as appropriate. |
 | Cloudflare | 124 | error | dropped | If a CONTINUATION frame is received with a Stream Identifier field of 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR. |
-| Cloudflare | 125 | error | received | A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using HEADERS frame with END_HEADERS flag set) |
 | Cloudflare | 126 | error | received | Trailers MUST NOT include pseudo-header fields (Section 8.3). |
 | Cloudflare | 128 | error | dropped | Field names MUST NOT contain control characters (0x00-0x1F) |
 | Cloudflare | 130 | error | dropped | Field names MUST NOT contain DEL character (0x7F) |
 | Cloudflare | 132 | error | dropped | With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a). |
 | Cloudflare | 135 | error | received | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
-| Cloudflare | 136 | error | received | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
 | Cloudflare | 141 | error | received | An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2) |
 | Cloudflare | 142 | error | dropped | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
 | Cloudflare | 144 | error | dropped | An endpoint MUST NOT send frames other than PRIORITY on a closed stream. |
-| Cloudflare | 149 | error | received | If a DATA frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR. |
 | Cloudflare | 151 | error | received | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.) |
-| Cloudflare | 156 | error | received | The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver. |
 | Cloudflare | 160 | error | dropped | An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving the HEADERS frame that opens a request or after receiving a final (non-informational) status code MUST treat the corresponding request or response as malformed (Section 8.1.1). |
 | Cloudflare | 162 | error | dropped | A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value) |
 | Cloudflare | 165 | error | dropped | Pseudo-header fields MUST NOT appear in a trailer section. |
@@ -592,7 +585,6 @@
 | Mitmproxy | 14 | error | dropped | An endpoint MUST NOT send a RST_STREAM in response to a RST_STREAM frame |
 | Mitmproxy | 15 | error | received | If a PRIORITY frame is received with a stream identifier of 0x00, the recipient MUST respond with a connection error of type PROTOCOL_ERROR |
 | Mitmproxy | 16 | error | dropped | After receiving a RST_STREAM on a stream, the receiver MUST NOT send additional frames for that stream, except for PRIORITY |
-| Mitmproxy | 17 | error | received | If a RST_STREAM frame is received with a stream identifier of 0x00, the recipient MUST treat this as a connection error (Section 5.4.1) of type PROTOCOL_ERROR. |
 | Mitmproxy | 18 | error | dropped | When set, the ACK flag indicates that this frame acknowledges receipt and application of the peer's SETTINGS frame. When this bit is set, the frame payload of the SETTINGS frame MUST be empty. |
 | Mitmproxy | 19 | error | dropped | A RST_STREAM frame with a length other than 4 octets MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR. |
 | Mitmproxy | 20 | error | received | The stream identifier for a SETTINGS frame MUST be zero (0x00). |
@@ -685,7 +677,6 @@
 | Mitmproxy | 108 | error | received | Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE. (server side) |
 | Mitmproxy | 110 | ignore | received | A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving. (server side) |
 | Mitmproxy | 111 | error | received | If a PRIORITY frame is received with a stream identifier of 0x00, the recipient MUST respond with a connection error of type PROTOCOL_ERROR. (server side) |
-| Mitmproxy | 112 | error | received | If a RST_STREAM frame is received with a stream identifier of 0x00, the recipient MUST treat this as a connection error (Section 5.4.1) of type PROTOCOL_ERROR. (server side) |
 | Mitmproxy | 113 | error | dropped | When set, the ACK flag indicates that this frame acknowledges receipt and application of the peer's SETTINGS frame. When this bit is set, the frame payload of the SETTINGS frame MUST be empty. (server side) |
 | Mitmproxy | 114 | error | dropped | A RST_STREAM frame with a length other than 4 octets MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR. (server side) |
 | Mitmproxy | 115 | error | received | The stream identifier for a SETTINGS frame MUST be zero (0x00). |
@@ -718,8 +709,6 @@
 | Mitmproxy | 142 | error | received | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
 | Mitmproxy | 143 | error | received | Pseudo-header fields are not HTTP header fields. Endpoints MUST NOT generate pseudo-header fields other than those defined in this document. |
 | Mitmproxy | 144 | error | dropped | An endpoint MUST NOT send frames other than PRIORITY on a closed stream. |
-| Mitmproxy | 145 | error | received | RST_STREAM frames MUST NOT be sent for a stream in the 'idle' state. |
-| Mitmproxy | 146 | error | received | RST_STREAM frames MUST be associated with a stream. |
 | Mitmproxy | 148 | error | received | DATA frames MUST be associated with a stream. |
 | Mitmproxy | 149 | error | received | If a DATA frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR. |
 | Mitmproxy | 150 | error | received | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the idle state.) |

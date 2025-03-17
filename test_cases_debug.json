@@ -6,32 +6,6 @@
       {
         "type": "HEADERS",
         "flags": {
-          "END_STREAM": false
-        }
-      },
-      {
-        "type": "DATA",
-        "flags": {
-          "END_STREAM": false
-        }
-      }
-    ],
-    "server_frames": [
-      {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": false
-        }
-      },
-      {
-        "type": "DATA",
-        "flags": {
-          "END_STREAM": false
-        }
-      },
-      {
-        "type": "TRAILERS",
-        "flags": {
           "END_STREAM": true
         }
       }
