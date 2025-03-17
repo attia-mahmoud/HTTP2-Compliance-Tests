@@ -1433,6 +1433,130 @@ def create_advanced_insights(test_results, output_directory):
         
         f.write(f"\nTotal non-conformant tests analyzed: {total_non_conformant}\n")
 
+def create_client_server_conformance_visualization(test_results, client_side_tests, server_side_tests, output_directory):
+    """
+    Create visualizations showing how well each proxy conforms to client-side and server-side tests separately.
+    """
+    os.makedirs(output_directory, exist_ok=True)
+    
+    # First, load the test cases to get expected results
+    with open('test_cases.json', 'r') as f:
+        test_cases = json.load(f)
+    
+    # Create a mapping of test ID to expected result
+    expected_results = {str(case['id']): case['expected_result'] for case in test_cases}
+    
+    # Initialize data structures for tracking conformance
+    client_conformance_data = {proxy: {'conformant': 0, 'non_conformant': 0, 'total': 0} 
+                             for proxy in test_results.keys()}
+    server_conformance_data = {proxy: {'conformant': 0, 'non_conformant': 0, 'total': 0} 
+                             for proxy in test_results.keys()}
+    
+    # Analyze each proxy's results
+    for proxy, results in test_results.items():
+        for test_id, result in results.items():
+            if test_id not in expected_results:
+                continue
+                
+            expected = expected_results[test_id]
+            
+            # Determine if test is client-side or server-side
+            if test_id in client_side_tests:
+                client_conformance_data[proxy]['total'] += 1
+                if expected == "error":
+                    if result in ["goaway", "reset", "500"]:
+                        client_conformance_data[proxy]['conformant'] += 1
+                    else:  # dropped or received
+                        client_conformance_data[proxy]['non_conformant'] += 1
+            elif test_id in server_side_tests:
+                server_conformance_data[proxy]['total'] += 1
+                if expected == "error":
+                    if result in ["goaway", "reset", "500"]:
+                        server_conformance_data[proxy]['conformant'] += 1
+                    else:  # dropped or received
+                        server_conformance_data[proxy]['non_conformant'] += 1
+    
+    # Create the visualization
+    plt.figure(figsize=(15, 8))
+    
+    # Prepare data
+    proxies = list(test_results.keys())
+    x = np.arange(len(proxies))
+    width = 0.35  # Width of the bars
+    
+    # Calculate percentages
+    client_conformant = []
+    server_conformant = []
+    
+    for proxy in proxies:
+        # Client data
+        client_total = client_conformance_data[proxy]['total']
+        if client_total > 0:
+            client_conformant.append(client_conformance_data[proxy]['conformant'] / client_total * 100)
+        else:
+            client_conformant.append(0)
+        
+        # Server data
+        server_total = server_conformance_data[proxy]['total']
+        if server_total > 0:
+            server_conformant.append(server_conformance_data[proxy]['conformant'] / server_total * 100)
+        else:
+            server_conformant.append(0)
+    
+    # Create bars
+    plt.bar(x - width/2, client_conformant, width, label='Client Conformant', color='#2ecc71')
+    plt.bar(x + width/2, server_conformant, width, label='Server Conformant', color='#3498db')
+    
+    # Customize the plot
+    plt.xlabel('Proxy')
+    plt.ylabel('Percentage of Conformant Tests')
+    plt.title('HTTP/2 Client-Side vs Server-Side Conformance by Proxy', pad=20)
+    plt.xticks(x, proxies, rotation=45, ha='right')
+    plt.legend()
+    
+    # Add percentage labels on the bars
+    def add_labels(x_pos, heights):
+        for i, height in enumerate(heights):
+            if height > 0:  # Only add label if there's a non-zero value
+                plt.text(x_pos[i], height/2,
+                        f'{height:.1f}%',
+                        ha='center', va='center')
+    
+    # Add labels for client and server bars
+    add_labels(x - width/2, client_conformant)
+    add_labels(x + width/2, server_conformant)
+    
+    plt.ylim(0, 100)
+    plt.grid(True, axis='y', alpha=0.3)
+    plt.tight_layout()
+    
+    # Save the plot
+    plt.savefig(os.path.join(output_directory, 'client_server_conformance.png'), 
+                dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # Create a detailed markdown report
+    with open(os.path.join(output_directory, 'client_server_conformance_report.md'), 'w') as f:
+        f.write("# Client-Side vs Server-Side HTTP/2 Conformance Results\n\n")
+        
+        # Combined summary table
+        f.write("## Combined Results\n\n")
+        f.write("| Proxy | Client Conformant | Client Total | Server Conformant | Server Total |\n")
+        f.write("|-------|------------------|--------------|------------------|-------------|\n")
+        
+        for proxy in proxies:
+            client_data = client_conformance_data[proxy]
+            server_data = server_conformance_data[proxy]
+            
+            client_total = client_data['total']
+            server_total = server_data['total']
+            
+            client_conf_pct = (client_data['conformant'] / client_total * 100) if client_total > 0 else 0
+            server_conf_pct = (server_data['conformant'] / server_total * 100) if server_total > 0 else 0
+            
+            f.write(f"| {proxy} | {client_data['conformant']} ({client_conf_pct:.1f}%) | {client_total} | "
+                   f"{server_data['conformant']} ({server_conf_pct:.1f}%) | {server_total} |\n")
+
 def load_test_pairs(pairs_file='docs/pairs.json'):
     """Load the test pairs from the JSON file."""
     with open(pairs_file, 'r') as f:
@@ -1445,8 +1569,8 @@ def main():
     if not os.path.exists(summaries_dir):
         os.makedirs(summaries_dir)
     
-    # List of proxy folders
-    proxy_folders = ['Nghttpx', 'HAproxy', 'Apache', 'Caddy', 'Node', 'Envoy', 'H2O', 'Cloudflare', 'Nginx', 'Mitmproxy']
+    # List of proxy folders (Nginx not included)
+    proxy_folders = ['Nghttpx', 'HAproxy', 'Apache', 'Caddy', 'Node', 'Envoy', 'H2O', 'Cloudflare', 'Mitmproxy']
     results_dir = 'results'
     
     # Prepare data for summary tables
@@ -1489,12 +1613,13 @@ def main():
     create_section_conformance_visualization(all_test_results, output_dir)
     create_advanced_insights(all_test_results, output_dir)
     
-    # Load client-server classification and create client-server pie charts
+    # Load client-server classification and create client-server visualizations
     try:
         client_side_tests, server_side_tests = load_client_server_classification('docs/clientside_vs_serverside.json')
         create_client_server_pie_charts(all_test_results, client_side_tests, server_side_tests, output_dir)
+        create_client_server_conformance_visualization(all_test_results, client_side_tests, server_side_tests, output_dir)
     except Exception as e:
-        print(f"Error creating client-server pie charts: {e}")
+        print(f"Error creating client-server visualizations: {e}")
     
     # Create client-server discrepancy visualization
     try:
