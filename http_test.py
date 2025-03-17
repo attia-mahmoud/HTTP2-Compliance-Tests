@@ -82,7 +82,7 @@ PROXY_IP = "cloudflare.nopasaran.co"
 # SERVER_WORKER = "labworker4.admin.worker.nopasaran.org"
 # PROXY_IP = "192.168.122.6"
 # SERVER_PORT = "8080"
-file = "test_cases.json"
+file = "test_cases_debug.json"
 MASTER = "labmaster.admin.master.nopasaran.org"
 
 
@@ -116,8 +116,8 @@ def run_test_case(test_case, proxy, max_retries=3):
                     "connection_settings_client": test_case.get("connection_settings_client", {}),
                     "controller_conf_filename": "controller_configuration.json",
                     "cloudflare_origin": proxy.get("cloudflare_origin", "false"),
-                    "client_frames": test_case.get("client_frames", [{"type": "HEADERS"}, {"type": "DATA", "flags": {"END_STREAM": "true"}}]),
-                    "server_frames": test_case.get("server_frames", [{"type": "HEADERS"}, {"type": "DATA", "flags": {"END_STREAM": "true"}}]),
+                    "client_frames": test_case.get("client_frames", [{"type": "HEADERS", "flags": {"END_STREAM": "true"}}]),
+                    "server_frames": test_case.get("server_frames", [{"type": "HEADERS", "flags": {"END_STREAM": "true"}}]),
                 },
                 "Worker_2": {
                     "role": "server",
@@ -130,8 +130,8 @@ def run_test_case(test_case, proxy, max_retries=3):
                     "connection_settings_server": test_case.get("connection_settings_server", {}),
                     "controller_conf_filename": "controller_configuration.json",
                     "cloudflare_origin": proxy.get("cloudflare_origin", "false"),
-                    "client_frames": test_case.get("client_frames", [{"type": "HEADERS"}, {"type": "DATA", "flags": {"END_STREAM": "true"}}]),
-                    "server_frames": test_case.get("server_frames", [{"type": "HEADERS"}, {"type": "DATA", "flags": {"END_STREAM": "true"}}]),
+                    "client_frames": test_case.get("client_frames", [{"type": "HEADERS", "flags": {"END_STREAM": "true"}}]),
+                    "server_frames": test_case.get("server_frames", [{"type": "HEADERS", "flags": {"END_STREAM": "true"}}]),
                 }
             }
         }
