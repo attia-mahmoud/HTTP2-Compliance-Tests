@@ -1822,19 +1822,19 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 2/2 frames.",
-          "frames_received": "[<ResponseReceived stream_id:3, headers:[(':status', '200'), ('date', 'Mon, 17 Mar 2025 01:36:45 GMT'), ('cf-cache-status', 'DYNAMIC'), ('report-to', '{\"endpoints\":[{\"url\":\"https:\\\\/\\\\/a.nel.cloudflare.com\\\\/report\\\\/v4?s=MnSX%2FfD%2BnJx3sfE8oX27Wf%2FHB0EiGhVGaDEhhFrsufoCpSlzqrRy3h4O4CkFA4kOwPpTZJhy9h5jg1%2FED3x5znQxZQL3gD2rRD9rQee0%2FipVkbs%2B%2FCdRa8UEtdbA7v6ytS6KPdnZEvmsUQ%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}'), ('nel', '{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}'), ('server', 'cloudflare'), ('cf-ray', '9218c2d9f8dfdcb4-FRA'), ('alt-svc', 'h3=\":443\"; ma=86400'), ('server-timing', 'cfL4;desc=\"?proto=TCP&rtt=5999&min_rtt=515&rtt_var=10588&sent=13&recv=11&lost=0&retrans=0&sent_bytes=4116&recv_bytes=941&delivery_rate=4975945&cwnd=257&unsent_bytes=0&cid=dbb068edd71104de&ts=1630&x=0\"')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'flags': {'END_STREAM': 'true'}}]"
+          "client_result": "Test result: MODIFIED",
+          "server_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:3, headers:[(':status', '200'), ('date', 'Sat, 22 Mar 2025 19:36:44 GMT'), ('cf-cache-status', 'DYNAMIC'), ('report-to', '{\"endpoints\":[{\"url\":\"https:\\\\/\\\\/a.nel.cloudflare.com\\\\/report\\\\/v4?s=NGKl%2FaVQTo00bp0LwT%2Bax74mG9j4%2BjtvC3bEkQqG%2FE645RGyg%2Bu%2FxknOFe%2FQFQMSjjiAk3v%2Fp2xd9zuWLgdzG7NDZ7zf0U8ysHL4BIlAq7BrDM6KeQ7w0S5V8Rb2sUMQ7EEC%2BsCnk5GjqQ%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}'), ('nel', '{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}'), ('server', 'cloudflare'), ('cf-ray', '924823ba1fb19fce-FRA'), ('alt-svc', 'h3=\":443\"; ma=86400'), ('server-timing', 'cfL4;desc=\"?proto=TCP&rtt=836&min_rtt=548&rtt_var=584&sent=11&recv=9&lost=0&retrans=0&sent_bytes=4081&recv_bytes=892&delivery_rate=4421374&cwnd=237&unsent_bytes=0&cid=3947db043e484b3a&ts=1628&x=0\"')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 2/2 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:3, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', 'cloudflare.nopasaran.co'), (':path', '/test-frame'), ('cf-ray', '9218c2d9f8dfdcb4-FRA'), ('x-forwarded-for', '172.104.229.16'), ('cdn-loop', 'cloudflare; loops=1'), ('accept', '*/*'), ('accept-encoding', 'gzip, br'), ('x-forwarded-proto', 'https'), ('user-agent', 'nopasaran-http2-client'), ('cf-ipcountry', 'DE'), ('cf-visitor', '{\"scheme\":\"https\"}'), ('cf-connecting-ip', '172.104.229.16'), ('content-length', '18')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':status': '200', ':method': 'GET'}}]"
+          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
+          "frames_received": "[<RequestReceived stream_id:3, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', 'cloudflare.nopasaran.co'), (':path', '/test-frame'), ('cf-ray', '924823ba1fb19fce-FRA'), ('x-forwarded-for', '172.104.229.16'), ('cf-connecting-ip', '172.104.229.16'), ('accept', '*/*'), ('accept-encoding', 'gzip, br'), ('x-forwarded-proto', 'https'), ('user-agent', 'nopasaran-http2-client'), ('cf-ipcountry', 'DE'), ('cf-visitor', '{\"scheme\":\"https\"}'), ('cdn-loop', 'cloudflare; loops=1')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':status': '200', ':method': 'GET'}, 'test': {'function': 'check_header_field', 'params': {'name': ':method'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
         }
       }
     }
@@ -3783,17 +3783,17 @@
         "State": "FINAL",
         "Variables": {
           "client_result": "Successfully received all 3/3 frames.",
-          "server_result": "Successfully received all 2/2 frames.",
-          "frames_received": "[<ResponseReceived stream_id:3, headers:[(':status', '200'), ('date', 'Mon, 17 Mar 2025 02:05:09 GMT'), ('content-type', 'text/plain'), ('cf-cache-status', 'DYNAMIC'), ('report-to', '{\"endpoints\":[{\"url\":\"https:\\\\/\\\\/a.nel.cloudflare.com\\\\/report\\\\/v4?s=IAnOzor5wSA%2FxZJa4mHuvOAx76phr4%2FiW1F7wGdv94rAjayLWNIzaitmJLJ1rvCpGhKQy1jcdkX6XVu0%2B3Zx00%2B7DIsDnm1Ariv69Klezjqgu7Ztht9ijY%2BZcoHjGXDDL8KzI25AalhS%2Bg%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}'), ('nel', '{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}'), ('server', 'cloudflare'), ('cf-ray', '9218ec767de2d2a9-FRA'), ('alt-svc', 'h3=\":443\"; ma=86400'), ('server-timing', 'cfL4;desc=\"?proto=TCP&rtt=5901&min_rtt=524&rtt_var=10579&sent=12&recv=10&lost=0&retrans=0&sent_bytes=4125&recv_bytes=941&delivery_rate=5227436&cwnd=257&unsent_bytes=0&cid=b647f424d440d196&ts=1612&x=0\"')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'flags': {'END_STREAM': 'true'}}]"
+          "server_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:3, headers:[(':status', '200'), ('date', 'Sat, 22 Mar 2025 19:38:31 GMT'), ('content-type', 'text/plain'), ('cf-cache-status', 'DYNAMIC'), ('report-to', '{\"endpoints\":[{\"url\":\"https:\\\\/\\\\/a.nel.cloudflare.com\\\\/report\\\\/v4?s=AYBvYuEjUKmHdIsq1wpk4ZecLtJFw4BZqCBkN2uz38doyv2irka4ezjxs2aWLVt5qDNkbmQOJowX5QgglGPpcV%2FUOe8aULViydf6tQaxAnyFck7z0OUZNgX3YakaVT3n8NEb91rLitJ4xQ%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}'), ('nel', '{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}'), ('server', 'cloudflare'), ('cf-ray', '9248265a6f35d2ca-FRA'), ('alt-svc', 'h3=\":443\"; ma=86400'), ('server-timing', 'cfL4;desc=\"?proto=TCP&rtt=1147&min_rtt=765&rtt_var=734&sent=11&recv=9&lost=0&retrans=0&sent_bytes=4086&recv_bytes=892&delivery_rate=3606475&cwnd=256&unsent_bytes=0&cid=c9b9fa33e43b972a&ts=1666&x=0\"')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 2/2 frames.",
+          "server_result": "Successfully received all 1/1 frames.",
           "client_result": "Successfully received all 3/3 frames.",
-          "frames_received": "[<RequestReceived stream_id:3, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', 'cloudflare.nopasaran.co'), (':path', '/test-frame'), ('cf-ray', '9218ec767de2d2a9-FRA'), ('x-forwarded-for', '172.104.229.16'), ('cdn-loop', 'cloudflare; loops=1'), ('accept', '*/*'), ('accept-encoding', 'gzip, br'), ('x-forwarded-proto', 'https'), ('user-agent', 'nopasaran-http2-client'), ('cf-ipcountry', 'DE'), ('cf-visitor', '{\"scheme\":\"https\"}'), ('cf-connecting-ip', '172.104.229.16'), ('content-length', '18')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
+          "frames_received": "[<RequestReceived stream_id:3, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', 'cloudflare.nopasaran.co'), (':path', '/test-frame'), ('cf-ray', '9248265a6f35d2ca-FRA'), ('x-forwarded-for', '172.104.229.16'), ('cf-connecting-ip', '172.104.229.16'), ('accept', '*/*'), ('accept-encoding', 'gzip, br'), ('x-forwarded-proto', 'https'), ('user-agent', 'nopasaran-http2-client'), ('cf-ipcountry', 'DE'), ('cf-visitor', '{\"scheme\":\"https\"}'), ('cdn-loop', 'cloudflare; loops=1')]>]",
           "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA'}, {'type': 'TRAILERS', 'headers': {':path': '/'}}]"
         }
       }
@@ -4001,19 +4001,19 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 2/2 frames.",
-          "frames_received": "[<ResponseReceived stream_id:3, headers:[(':status', '200'), ('date', 'Mon, 17 Mar 2025 02:08:18 GMT'), ('x-leading-space', 'value'), ('cf-cache-status', 'DYNAMIC'), ('report-to', '{\"endpoints\":[{\"url\":\"https:\\\\/\\\\/a.nel.cloudflare.com\\\\/report\\\\/v4?s=WGkxLrZjUo19%2BKCa%2F7rlMY1Pvwdv%2BlKWxrgcase%2Fg26B%2FfYrZbhrQfVm7KaingtVBLQC%2BHTMlXN8xj%2Ba9pZVNOE6Y%2F6AK0%2FbaA1EFDFp5U7EOMchNU6sQVJz810nWcZraW2PYQnTFBk8AA%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}'), ('nel', '{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}'), ('server', 'cloudflare'), ('cf-ray', '9218f1127ca9367f-FRA'), ('alt-svc', 'h3=\":443\"; ma=86400'), ('server-timing', 'cfL4;desc=\"?proto=TCP&rtt=6089&min_rtt=717&rtt_var=10644&sent=12&recv=10&lost=0&retrans=0&sent_bytes=4116&recv_bytes=941&delivery_rate=3918809&cwnd=257&unsent_bytes=0&cid=2b9b162faf8a9369&ts=1603&x=0\"')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'flags': {'END_STREAM': 'true'}}]"
+          "client_result": "Test result: MODIFIED",
+          "server_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:3, headers:[(':status', '200'), ('date', 'Sat, 22 Mar 2025 19:27:52 GMT'), ('x-leading-space', 'value'), ('cf-cache-status', 'DYNAMIC'), ('report-to', '{\"endpoints\":[{\"url\":\"https:\\\\/\\\\/a.nel.cloudflare.com\\\\/report\\\\/v4?s=0g3fqRnqKmDaIcv7Blxp4PQzmcb9zJ3QgTs8bNfLDCm8YWy1sDeBVntvXgmJQ2Sr3UvV02oIiduKpgZ8f3UB3%2F%2FBnOMJO5uxrGsDFFw0oKlmrw27P%2BI1A652UHib5MzsQKpmZPSGnPm2yA%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}'), ('nel', '{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}'), ('server', 'cloudflare'), ('cf-ray', '924816c0299c4d74-FRA'), ('alt-svc', 'h3=\":443\"; ma=86400'), ('server-timing', 'cfL4;desc=\"?proto=TCP&rtt=1188&min_rtt=735&rtt_var=774&sent=10&recv=8&lost=0&retrans=0&sent_bytes=4086&recv_bytes=892&delivery_rate=3689171&cwnd=256&unsent_bytes=0&cid=1c263330dbcd49b8&ts=1624&x=0\"')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 2/2 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:3, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', 'cloudflare.nopasaran.co'), (':path', '/test-frame'), ('cf-ray', '9218f1127ca9367f-FRA'), ('x-forwarded-for', '172.104.229.16'), ('cdn-loop', 'cloudflare; loops=1'), ('accept', '*/*'), ('accept-encoding', 'gzip, br'), ('x-forwarded-proto', 'https'), ('user-agent', 'nopasaran-http2-client'), ('cf-ipcountry', 'DE'), ('cf-visitor', '{\"scheme\":\"https\"}'), ('cf-connecting-ip', '172.104.229.16'), ('content-length', '18')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-leading-space': ' value'}}]"
+          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
+          "frames_received": "[<RequestReceived stream_id:3, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', 'cloudflare.nopasaran.co'), (':path', '/test-frame'), ('cf-ray', '924816c0299c4d74-FRA'), ('x-forwarded-for', '172.104.229.16'), ('cf-connecting-ip', '172.104.229.16'), ('accept', '*/*'), ('accept-encoding', 'gzip, br'), ('x-forwarded-proto', 'https'), ('user-agent', 'nopasaran-http2-client'), ('cf-ipcountry', 'DE'), ('cf-visitor', '{\"scheme\":\"https\"}'), ('cdn-loop', 'cloudflare; loops=1')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-leading-space': ' value'}, 'test': {'function': 'check_header_field', 'params': {'name': 'x-leading-space', 'value': ' value'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
         }
       }
     }
@@ -4128,19 +4128,19 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 2/2 frames.",
-          "frames_received": "[<ResponseReceived stream_id:3, headers:[(':status', '200'), ('date', 'Mon, 17 Mar 2025 02:10:36 GMT'), ('cf-cache-status', 'DYNAMIC'), ('report-to', '{\"endpoints\":[{\"url\":\"https:\\\\/\\\\/a.nel.cloudflare.com\\\\/report\\\\/v4?s=XpbZtdiVaofvTiuASkanM%2FwfSY%2FUsamPgx9t30bf0Lt%2FgRMUUUOF3NiJXf76LomVkqnuBRFXgGyKMjV9vJgUsPaw8fmgkto%2Fx5bxXVRwQ0rdNAcQ5R3bQocwnU18QTL0BUXH%2FVRHeFdQPg%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}'), ('nel', '{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}'), ('server', 'cloudflare'), ('cf-ray', '9218f471081adc8a-FRA'), ('alt-svc', 'h3=\":443\"; ma=86400'), ('server-timing', 'cfL4;desc=\"?proto=TCP&rtt=5880&min_rtt=561&rtt_var=10481&sent=12&recv=10&lost=0&retrans=0&sent_bytes=4115&recv_bytes=941&delivery_rate=5134751&cwnd=257&unsent_bytes=0&cid=8d519d15455b98eb&ts=1591&x=0\"')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'flags': {'END_STREAM': 'true'}}]"
+          "client_result": "Test result: MODIFIED",
+          "server_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:3, headers:[(':status', '200'), ('date', 'Sat, 22 Mar 2025 19:26:37 GMT'), ('cf-cache-status', 'DYNAMIC'), ('report-to', '{\"endpoints\":[{\"url\":\"https:\\\\/\\\\/a.nel.cloudflare.com\\\\/report\\\\/v4?s=zJk7VWCsMa9k5Ab5YcBgFH7QPU%2FrDP9XhlFesu8BH7%2FfdcVwd0vjAhbJP3drlZGBoPo0mkxg1K3KVQ5go%2BIabGRda%2B4xxV021QcjPt%2FJeQLAEqs0wxIExEbr54UTgzTh3okmyaBANrPaFA%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}'), ('nel', '{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}'), ('server', 'cloudflare'), ('cf-ray', '924814eafea235df-FRA'), ('alt-svc', 'h3=\":443\"; ma=86400'), ('server-timing', 'cfL4;desc=\"?proto=TCP&rtt=1053&min_rtt=704&rtt_var=649&sent=11&recv=9&lost=0&retrans=0&sent_bytes=4078&recv_bytes=892&delivery_rate=3856191&cwnd=256&unsent_bytes=0&cid=336498e4dcee6b19&ts=1650&x=0\"')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 2/2 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:3, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', 'cloudflare.nopasaran.co'), (':path', '/test-frame'), ('cf-ray', '9218f471081adc8a-FRA'), ('x-forwarded-for', '172.104.229.16'), ('cdn-loop', 'cloudflare; loops=1'), ('accept', '*/*'), ('accept-encoding', 'gzip, br'), ('x-forwarded-proto', 'https'), ('user-agent', 'nopasaran-http2-client'), ('cf-ipcountry', 'DE'), ('cf-visitor', '{\"scheme\":\"https\"}'), ('cf-connecting-ip', '172.104.229.16'), ('content-length', '18')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'upgrade': 'h2c'}}]"
+          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
+          "frames_received": "[<RequestReceived stream_id:3, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', 'cloudflare.nopasaran.co'), (':path', '/test-frame'), ('cf-ray', '924814eafea235df-FRA'), ('x-forwarded-for', '172.104.229.16'), ('cf-connecting-ip', '172.104.229.16'), ('accept', '*/*'), ('accept-encoding', 'gzip, br'), ('x-forwarded-proto', 'https'), ('user-agent', 'nopasaran-http2-client'), ('cf-ipcountry', 'DE'), ('cf-visitor', '{\"scheme\":\"https\"}'), ('cdn-loop', 'cloudflare; loops=1')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'upgrade': 'h2c'}, 'test': {'function': 'check_header_field', 'params': {'name': 'upgrade'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
         }
       }
     }
@@ -4349,17 +4349,17 @@
         "State": "FINAL",
         "Variables": {
           "client_result": "Successfully received all 2/2 frames.",
-          "server_result": "Successfully received all 2/2 frames.",
-          "frames_received": "[<ResponseReceived stream_id:3, headers:[(':status', '200'), ('date', 'Mon, 17 Mar 2025 02:14:19 GMT'), ('content-type', 'text/plain'), ('cf-cache-status', 'DYNAMIC'), ('report-to', '{\"endpoints\":[{\"url\":\"https:\\\\/\\\\/a.nel.cloudflare.com\\\\/report\\\\/v4?s=fbDB0VN1MqC0tVQjdv83dt6V02y%2FdYcmC5UqO7r4ZAWG%2B%2Frpjr0NYavJWlT2ZxZArdRkVUGV%2B0toupfzy38y07%2F3zDxiN7Jb%2BzzwR9%2FiZApVPC76ibd57YtXRxxKz6TCIg6wXpt4N7ugew%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}'), ('nel', '{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}'), ('server', 'cloudflare'), ('cf-ray', '9218f9df6b8237f8-FRA'), ('alt-svc', 'h3=\":443\"; ma=86400'), ('server-timing', 'cfL4;desc=\"?proto=TCP&rtt=5776&min_rtt=441&rtt_var=10494&sent=13&recv=11&lost=0&retrans=0&sent_bytes=4120&recv_bytes=941&delivery_rate=5734653&cwnd=257&unsent_bytes=0&cid=c9b49828b214bf12&ts=1645&x=0\"')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'flags': {'END_STREAM': 'true'}}]"
+          "server_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:3, headers:[(':status', '200'), ('date', 'Sat, 22 Mar 2025 20:03:32 GMT'), ('content-type', 'text/plain'), ('cf-cache-status', 'DYNAMIC'), ('report-to', '{\"endpoints\":[{\"url\":\"https:\\\\/\\\\/a.nel.cloudflare.com\\\\/report\\\\/v4?s=i40quPYPGJtKId1nOGbfXGDA7bIgtldISk0ESEQ6vgx2lUgLmylpY6wK%2F8vbe5oK5cs2l9Jp3VXRI%2BQ3rviyUhridA6s0NGm2Fi6bVAgOsMASOiX4DvhMx56T4FHi7UXcGMh4VSRMI%2FKyg%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}'), ('nel', '{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}'), ('server', 'cloudflare'), ('cf-ray', '92484afc5edc1c2e-FRA'), ('alt-svc', 'h3=\":443\"; ma=86400'), ('server-timing', 'cfL4;desc=\"?proto=TCP&rtt=824&min_rtt=460&rtt_var=691&sent=11&recv=9&lost=0&retrans=0&sent_bytes=4086&recv_bytes=892&delivery_rate=5983471&cwnd=256&unsent_bytes=0&cid=367a61143585259f&ts=1663&x=0\"')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 2/2 frames.",
+          "server_result": "Successfully received all 1/1 frames.",
           "client_result": "Successfully received all 2/2 frames.",
-          "frames_received": "[<RequestReceived stream_id:3, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', 'cloudflare.nopasaran.co'), (':path', '/test-frame'), ('cf-ray', '9218f9df6b8237f8-FRA'), ('x-forwarded-for', '172.104.229.16'), ('cdn-loop', 'cloudflare; loops=1'), ('accept', '*/*'), ('accept-encoding', 'gzip, br'), ('x-forwarded-proto', 'https'), ('user-agent', 'nopasaran-http2-client'), ('cf-ipcountry', 'DE'), ('cf-visitor', '{\"scheme\":\"https\"}'), ('cf-connecting-ip', '172.104.229.16'), ('content-length', '18')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
+          "frames_received": "[<RequestReceived stream_id:3, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', 'cloudflare.nopasaran.co'), (':path', '/test-frame'), ('cf-ray', '92484afc5edc1c2e-FRA'), ('x-forwarded-for', '172.104.229.16'), ('cf-connecting-ip', '172.104.229.16'), ('accept', '*/*'), ('accept-encoding', 'gzip, br'), ('x-forwarded-proto', 'https'), ('user-agent', 'nopasaran-http2-client'), ('cf-ipcountry', 'DE'), ('cf-visitor', '{\"scheme\":\"https\"}'), ('cdn-loop', 'cloudflare; loops=1')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': True}}, {'type': 'DATA'}]"
         }
       }
