@@ -910,16 +910,14 @@
           ":status": "200",
           ":method": "GET"
         },
-        "tests": [
-          {
-            "function": "check_header_field",
-            "params": {
+        "test": {
+          "function": "check_header_field",
+          "params": {
               "name": ":method"
             },
             "if_true": "UNMODIFIED",
-            "if_false": "MODIFIED"
-          }
-        ]
+          "if_false": "MODIFIED"
+        }
       }
     ]
   },
