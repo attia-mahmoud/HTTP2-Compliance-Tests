@@ -28,6 +28,8 @@ def analyze_results(filename):
     goaway_count = 0
     reset_count = 0
     error_500_count = 0
+    modified_count = 0
+    unmodified_count = 0
     test_results = {}
     test_messages = {}
     
@@ -43,6 +45,8 @@ def analyze_results(filename):
         is_500 = False
         is_dropped = False
         is_received = False
+        is_modified = False
+        is_unmodified = False
         message = ""
         
         if isinstance(result, str):
@@ -55,7 +59,17 @@ def analyze_results(filename):
         
         vars1 = worker1.get('Variables', {}) or {}
         vars2 = worker2.get('Variables', {}) or {}
+        
+        if vars1.get('client_result', '') == 'Test result: MODIFIED':
+            is_modified = True
+        elif vars1.get('client_result', '') == 'Test result: UNMODIFIED':
+            is_unmodified = True
 
+        if vars2.get('server_result', '') == 'Test result: MODIFIED':
+            is_modified = True
+        elif vars2.get('server_result', '') == 'Test result: UNMODIFIED':
+            is_unmodified = True
+            
         if worker1 and worker1.get('State', '') == 'GOAWAY_RECEIVED':
             is_goaway = True
             message = vars1['msg'] if vars1.get('msg', '') else vars1['client_result']
@@ -102,7 +116,13 @@ def analyze_results(filename):
             message = "Unknown error"
 
         # Store results
-        if is_dropped:
+        if is_modified:
+            test_results[test_id] = "modified"
+            modified_count += 1
+        elif is_unmodified:
+            test_results[test_id] = "unmodified"
+            unmodified_count += 1
+        elif is_dropped:
             test_results[test_id] = "dropped"
             dropped_count += 1
         elif is_reset:
@@ -123,7 +143,7 @@ def analyze_results(filename):
         
         test_messages[test_id] = message
     
-    return dropped_count, error_500_count, goaway_count, reset_count, received_count, test_results, test_messages
+    return dropped_count, error_500_count, goaway_count, reset_count, received_count, modified_count, unmodified_count, test_results, test_messages
 
 def create_markdown_table(headers, data):
     """Create a markdown table with equal column widths."""
@@ -404,7 +424,7 @@ def create_proxy_result_pies(test_results, output_directory):
     else:
         axes = [axes] if n_charts == 1 else axes.flatten()
     
-    colors = ['#ff6b6b', '#ffd93d', '#ff9f43', '#6c5ce7', '#6bceff', '#4ecdc4']  # Red for dropped, Yellow for 500, Orange for goaway, Purple for reset, Blue for received, Green for other
+    colors = ['#ff6b6b', '#ffd93d', '#ff9f43', '#6c5ce7', '#6bceff', '#4ecdc4', '#2ecc71', '#95a5a6']  # Red for dropped, Yellow for 500, Orange for goaway, Purple for reset, Blue for received, Teal for modified, Green for unmodified, Gray for other
     
     for i, proxy in enumerate(proxies):
         create_single_pie(axes[i], test_results[proxy], colors, proxy)
@@ -433,7 +453,9 @@ def create_single_pie(ax, test_results, colors, title):
     goaway = sum(1 for result in test_results.values() if result == "goaway")
     reset = sum(1 for result in test_results.values() if result == "reset")
     received = sum(1 for result in test_results.values() if result == "received")
-    other = total_tests - dropped - error_500 - goaway - reset - received
+    modified = sum(1 for result in test_results.values() if result == "modified")
+    unmodified = sum(1 for result in test_results.values() if result == "unmodified")
+    other = total_tests - dropped - error_500 - goaway - reset - received - modified - unmodified
     
     # Calculate percentages
     dropped_pct = (dropped / total_tests) * 100 if total_tests > 0 else 0
@@ -441,6 +463,8 @@ def create_single_pie(ax, test_results, colors, title):
     goaway_pct = (goaway / total_tests) * 100 if total_tests > 0 else 0
     reset_pct = (reset / total_tests) * 100 if total_tests > 0 else 0
     received_pct = (received / total_tests) * 100 if total_tests > 0 else 0
+    modified_pct = (modified / total_tests) * 100 if total_tests > 0 else 0
+    unmodified_pct = (unmodified / total_tests) * 100 if total_tests > 0 else 0
     other_pct = (other / total_tests) * 100 if total_tests > 0 else 0
     
     # Only include non-zero values
@@ -472,11 +496,21 @@ def create_single_pie(ax, test_results, colors, title):
         sizes.append(received_pct)
         labels.append(f'Received\n{received} ({received_pct:.1f}%)')
         colors_filtered.append(colors[4])
+        
+    if modified > 0:
+        sizes.append(modified_pct)
+        labels.append(f'Modified\n{modified} ({modified_pct:.1f}%)')
+        colors_filtered.append(colors[5])
+        
+    if unmodified > 0:
+        sizes.append(unmodified_pct)
+        labels.append(f'Unmodified\n{unmodified} ({unmodified_pct:.1f}%)')
+        colors_filtered.append(colors[6])
     
     if other > 0:
         sizes.append(other_pct)
         labels.append(f'Other\n{other} ({other_pct:.1f}%)')
-        colors_filtered.append(colors[5])
+        colors_filtered.append(colors[7])
     
     if sizes:  # Only create pie if we have non-zero values
         ax.pie(sizes, labels=labels, colors=colors_filtered, autopct='', 
@@ -493,23 +527,29 @@ def create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, 
         os.makedirs(summaries_dir)
     
     # Create table header
-    table = "| Proxy      | Dropped Count | 500 Error Count | GOAWAY Count | RESET Count | Received Count | Received Tests |\n"
-    table += "| ---------- | ------------- | --------------- | ------------ | ----------- | -------------- | -------------- |\n"
+    table = "| Proxy      | Dropped Count | 500 Error Count | GOAWAY Count | RESET Count | Received Count | Modified Count | Unmodified Count | Received Tests |\n"
+    table += "| ---------- | ------------- | --------------- | ------------ | ----------- | -------------- | -------------- | ---------------- | -------------- |\n"
     
     # Add rows for each proxy
     for proxy in sorted(dropped_counts.keys()):
         # Get the list of received test IDs
         received_tests = []
+        modified_count = 0
+        unmodified_count = 0
         if proxy in all_test_results:
             for test_id, result in all_test_results[proxy].items():
                 if result == "received":
                     received_tests.append(test_id)
+                elif result == "modified":
+                    modified_count += 1
+                elif result == "unmodified":
+                    unmodified_count += 1
         
         # Format the received tests list
         received_tests_str = ", ".join(sorted(received_tests, key=lambda x: int(x) if x.isdigit() else float('inf')))
         
         # Add the row with all information
-        table += f"| {proxy:<10} | {dropped_counts.get(proxy, 0):<13} | {error_500_counts.get(proxy, 0):<15} | {goaway_counts.get(proxy, 0):<12} | {reset_counts.get(proxy, 0):<11} | {received_counts.get(proxy, 0):<14} | {received_tests_str} |\n"
+        table += f"| {proxy:<10} | {dropped_counts.get(proxy, 0):<13} | {error_500_counts.get(proxy, 0):<15} | {goaway_counts.get(proxy, 0):<12} | {reset_counts.get(proxy, 0):<11} | {received_counts.get(proxy, 0):<14} | {modified_count:<14} | {unmodified_count:<16} | {received_tests_str} |\n"
     
     # Write to file
     with open(os.path.join(summaries_dir, "result_counts.md"), "w") as f:
@@ -541,6 +581,10 @@ def create_test_results_matrix(all_test_results, proxy_folders, summaries_dir):
                     test_row.append("✓G")
                 elif result == "reset":
                     test_row.append("✓X")
+                elif result == "modified":
+                    test_row.append("✓M")
+                elif result == "unmodified":
+                    test_row.append("✓U")
                 elif result == "other":
                     test_row.append("✓O")
                 else:
@@ -608,7 +652,11 @@ def create_client_server_pie_charts(test_results, client_side_tests, server_side
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(14, 5*n_rows))
     fig.suptitle('Client vs Server Test Result Distribution by Proxy', fontsize=16, y=0.95)
     
-    colors = ['#ff6b6b', '#ffd93d', '#ff9f43', '#6c5ce7', '#6bceff', '#4ecdc4']  # Red for dropped, Yellow for 500, Orange for goaway, Purple for reset, Blue for received, Green for other
+    colors = ['#ff6b6b', '#ffd93d', '#ff9f43', '#6c5ce7', '#6bceff', '#4ecdc4', '#2ecc71', '#95a5a6']  # Red for dropped, Yellow for 500, Orange for goaway, Purple for reset, Blue for received, Teal for modified, Green for unmodified, Gray for other
+    
+    # Handle the case where there's only one proxy
+    if n_rows == 1:
+        axes = np.array([axes])  # Convert to 2D array with shape (1, 2)
     
     for i, proxy in enumerate(proxies):
         proxy_results = test_results[proxy]
@@ -1466,14 +1514,24 @@ def create_client_server_conformance_visualization(test_results, client_side_tes
                 if expected == "error":
                     if result in ["goaway", "reset", "500"]:
                         client_conformance_data[proxy]['conformant'] += 1
-                    else:  # dropped or received
+                    else:  # dropped, received, modified, unmodified, or other
+                        client_conformance_data[proxy]['non_conformant'] += 1
+                elif expected == "ignore":
+                    if result == "dropped":
+                        client_conformance_data[proxy]['conformant'] += 1
+                    else:  # goaway, reset, 500, received, modified, unmodified, or other
                         client_conformance_data[proxy]['non_conformant'] += 1
             elif test_id in server_side_tests:
                 server_conformance_data[proxy]['total'] += 1
                 if expected == "error":
                     if result in ["goaway", "reset", "500"]:
                         server_conformance_data[proxy]['conformant'] += 1
-                    else:  # dropped or received
+                    else:  # dropped, received, modified, unmodified, or other
+                        server_conformance_data[proxy]['non_conformant'] += 1
+                elif expected == "ignore":
+                    if result == "dropped":
+                        server_conformance_data[proxy]['conformant'] += 1
+                    else:  # goaway, reset, 500, received, modified, unmodified, or other
                         server_conformance_data[proxy]['non_conformant'] += 1
     
     # Create the visualization
@@ -1579,6 +1637,8 @@ def main():
     goaway_counts = {}
     reset_counts = {}
     received_counts = {}
+    modified_counts = {}
+    unmodified_counts = {}
     all_test_results = {}
     all_test_messages = {}
     
@@ -1591,12 +1651,14 @@ def main():
         if not latest_file:
             continue
 
-        dropped_count, error_500_count, goaway_count, reset_count, received_count, test_results, test_messages = analyze_results(latest_file)
+        dropped_count, error_500_count, goaway_count, reset_count, received_count, modified_count, unmodified_count, test_results, test_messages = analyze_results(latest_file)
         dropped_counts[proxy] = dropped_count
         error_500_counts[proxy] = error_500_count
         goaway_counts[proxy] = goaway_count
         reset_counts[proxy] = reset_count
         received_counts[proxy] = received_count
+        modified_counts[proxy] = modified_count
+        unmodified_counts[proxy] = unmodified_count
         all_test_results[proxy] = test_results
         all_test_messages[proxy] = test_messages
 
