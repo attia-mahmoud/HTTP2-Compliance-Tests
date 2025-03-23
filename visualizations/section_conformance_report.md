@@ -14,6 +14,7 @@
 | H2O | 1 (25.0%) | 3 (75.0%) | 4 |
 | Cloudflare | 0 (0.0%) | 4 (100.0%) | 4 |
 | Mitmproxy | 1 (25.0%) | 3 (75.0%) | 4 |
+| Azure-AG | 2 (50.0%) | 2 (50.0%) | 4 |
 
 ### Non-Conformant Tests
 
@@ -37,6 +38,8 @@
 | Mitmproxy | 3 | error | received | the connection preface starts with the string: PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n |
 | Mitmproxy | 4 | error | received | Client preface must include a SETTINGS frame |
 | Mitmproxy | 87 | error | received | A SETTINGS frame MUST be sent by both endpoints at the start of a connection and MAY be sent at any other time by either endpoint over the lifetime of the connection. (Tested from the client side.) |
+| Azure-AG | 4 | error | dropped | Client preface must include a SETTINGS frame |
+| Azure-AG | 87 | error | dropped | A SETTINGS frame MUST be sent by both endpoints at the start of a connection and MAY be sent at any other time by either endpoint over the lifetime of the connection. (Tested from the client side.) |
 
 ## Section 4: HTTP Frames
 
@@ -51,6 +54,7 @@
 | H2O | 7 (87.5%) | 1 (12.5%) | 8 |
 | Cloudflare | 6 (75.0%) | 2 (25.0%) | 8 |
 | Mitmproxy | 4 (50.0%) | 4 (50.0%) | 8 |
+| Azure-AG | 3 (75.0%) | 1 (25.0%) | 4 |
 
 ### Non-Conformant Tests
 
@@ -82,6 +86,7 @@
 | Mitmproxy | 10 | ignore | received | A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving. |
 | Mitmproxy | 108 | error | received | Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE. (server side) |
 | Mitmproxy | 110 | ignore | received | A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving. (server side) |
+| Azure-AG | 8 | error | dropped | Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE |
 
 ## Section 5: Streams and Multiplexing
 
@@ -96,6 +101,7 @@
 | H2O | 18 (51.4%) | 17 (48.6%) | 35 |
 | Cloudflare | 14 (40.0%) | 21 (60.0%) | 35 |
 | Mitmproxy | 3 (8.6%) | 32 (91.4%) | 35 |
+| Azure-AG | 8 (47.1%) | 9 (52.9%) | 17 |
 
 ### Non-Conformant Tests
 
@@ -225,6 +231,15 @@
 | Mitmproxy | 150 | error | received | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the idle state.) |
 | Mitmproxy | 151 | error | received | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.) |
 | Mitmproxy | 152 | error | dropped | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.) |
+| Azure-AG | 1 | error | dropped | Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR. |
+| Azure-AG | 7 | error | dropped | If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. |
+| Azure-AG | 77 | error | dropped | RST_STREAM frames MUST NOT be sent for a stream in the 'idle' state. |
+| Azure-AG | 78 | error | dropped | RST_STREAM frames MUST be associated with a stream. |
+| Azure-AG | 80 | error | dropped | DATA frames MUST be associated with a stream. |
+| Azure-AG | 81 | error | dropped | If a DATA frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR. |
+| Azure-AG | 82 | error | dropped | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the idle state.) |
+| Azure-AG | 83 | error | dropped | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.) |
+| Azure-AG | 84 | error | dropped | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.) |
 
 ## Section 6: Frame Definitions
 
@@ -239,6 +254,7 @@
 | H2O | 31 (63.3%) | 18 (36.7%) | 49 |
 | Cloudflare | 27 (55.1%) | 22 (44.9%) | 49 |
 | Mitmproxy | 1 (2.0%) | 48 (98.0%) | 49 |
+| Azure-AG | 16 (80.0%) | 4 (20.0%) | 20 |
 
 ### Non-Conformant Tests
 
@@ -376,6 +392,10 @@
 | Mitmproxy | 157 | error | received | CONTINUATION frames MUST be associated with a stream. |
 | Mitmproxy | 158 | error | received | If the END_HEADERS flag is not set, this frame MUST be followed by another CONTINUATION frame. A receiver MUST treat the receipt of any other type of frame or a frame on a different stream as a connection error (Section 5.4.1) of type PROTOCOL_ERROR. |
 | Mitmproxy | 159 | error | received | Other frames (from any stream) MUST NOT occur between the HEADERS frame and any CONTINUATION frames that might follow. |
+| Azure-AG | 20 | error | dropped | The stream identifier for a SETTINGS frame MUST be zero (0x00). |
+| Azure-AG | 30 | error | dropped | If a PING frame is received with a Stream Identifier field value other than 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR. |
+| Azure-AG | 33 | error | dropped | A receiver MUST treat the receipt of a WINDOW_UPDATE frame with a flow-control window increment of 0 as a stream error (Section 5.4.2) of type PROTOCOL_ERROR. |
+| Azure-AG | 93 | error | dropped | The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver. |
 
 ## Section 8: HTTP Semantics in HTTP/2
 
@@ -390,6 +410,7 @@
 | H2O | 20 (29.0%) | 49 (71.0%) | 69 |
 | Cloudflare | 23 (32.9%) | 47 (67.1%) | 70 |
 | Mitmproxy | 0 (0.0%) | 70 (100.0%) | 70 |
+| Azure-AG | 4 (10.5%) | 34 (89.5%) | 38 |
 
 ### Non-Conformant Tests
 
@@ -707,7 +728,7 @@
 | Cloudflare | 55 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2) |
 | Cloudflare | 56 | error | dropped | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
 | Cloudflare | 57 | error | dropped | Pseudo-header fields are not HTTP header fields. Endpoints MUST NOT generate pseudo-header fields other than those defined in this document. |
-| Cloudflare | 58 | error | received | Pseudo-header fields defined for requests MUST NOT appear in responses. |
+| Cloudflare | 58 | error | modified | Pseudo-header fields defined for requests MUST NOT appear in responses. |
 | Cloudflare | 59 | error | dropped | Pseudo-header fields defined for responses MUST NOT appear in requests. |
 | Cloudflare | 60 | error | dropped | All pseudo-header fields sent from a client MUST appear in a field block before all regular field lines. Any request or response that contains a pseudo-header field that appears in a field block after a regular field line MUST be treated as malformed (Section 8.1.1). |
 | Cloudflare | 62 | error | dropped | The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with the same value. |
@@ -729,8 +750,8 @@
 | Cloudflare | 128 | error | dropped | Field names MUST NOT contain control characters (0x00-0x1F) |
 | Cloudflare | 130 | error | dropped | Field names MUST NOT contain DEL character (0x7F) |
 | Cloudflare | 132 | error | dropped | With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a). |
-| Cloudflare | 135 | error | received | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
-| Cloudflare | 141 | error | received | An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2) |
+| Cloudflare | 135 | error | modified | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| Cloudflare | 141 | error | modified | An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2) |
 | Cloudflare | 142 | error | dropped | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
 | Cloudflare | 160 | error | dropped | An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving the HEADERS frame that opens a request or after receiving a final (non-informational) status code MUST treat the corresponding request or response as malformed (Section 8.1.1). |
 | Cloudflare | 162 | error | dropped | A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value) |
@@ -805,3 +826,37 @@
 | Mitmproxy | 164 | error | received | A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value) |
 | Mitmproxy | 165 | error | received | Pseudo-header fields MUST NOT appear in a trailer section. |
 | Mitmproxy | 166 | error | received | HTTP/2 does not support the 101 (Switching Protocols) informational status code (Section 15.2.2 of [HTTP]). |
+| Azure-AG | 31 | error | dropped | With the CONNECT method, the " :scheme" and " :path" pseudo-header fields MUST be omitted. (Tested with only :path present) |
+| Azure-AG | 32 | error | dropped | With the CONNECT method, the " :scheme" and " :path" pseudo-header fields MUST be omitted. (Tested with only :scheme present) |
+| Azure-AG | 41 | error | dropped | Field names MUST be converted to lowercase when constructing an HTTP/2 message. |
+| Azure-AG | 42 | error | dropped | Field names MUST NOT contain control characters (0x00-0x1F) |
+| Azure-AG | 43 | error | dropped | Field names MUST NOT contain ASCII SP (0x20) |
+| Azure-AG | 44 | error | dropped | Field names MUST NOT contain DEL character (0x7F) |
+| Azure-AG | 45 | error | dropped | Field names MUST NOT contain high byte characters (0x80-0xFF) |
+| Azure-AG | 46 | error | dropped | With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a). |
+| Azure-AG | 47 | error | dropped | A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the start of the value) |
+| Azure-AG | 48 | error | dropped | A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the start of the value) |
+| Azure-AG | 49 | error | dropped | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| Azure-AG | 50 | error | dropped | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| Azure-AG | 51 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2) |
+| Azure-AG | 52 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2) |
+| Azure-AG | 53 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing keep-alive header field (RFC9113 Section 8.2.2) |
+| Azure-AG | 54 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2) |
+| Azure-AG | 55 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2) |
+| Azure-AG | 56 | error | dropped | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
+| Azure-AG | 57 | error | dropped | Pseudo-header fields are not HTTP header fields. Endpoints MUST NOT generate pseudo-header fields other than those defined in this document. |
+| Azure-AG | 59 | error | dropped | Pseudo-header fields defined for responses MUST NOT appear in requests. |
+| Azure-AG | 60 | error | dropped | All pseudo-header fields sent from a client MUST appear in a field block before all regular field lines. Any request or response that contains a pseudo-header field that appears in a field block after a regular field line MUST be treated as malformed (Section 8.1.1). |
+| Azure-AG | 62 | error | dropped | The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with the same value. |
+| Azure-AG | 63 | error | dropped | The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with different values. |
+| Azure-AG | 66 | error | dropped | Clients MUST NOT generate a request with a Host header field that differs from the ":authority" pseudo-header field. |
+| Azure-AG | 67 | error | dropped | ':authority' MUST NOT include the deprecated userinfo subcomponent for "http" or "https" schemed URIs. |
+| Azure-AG | 68 | error | dropped | The ":path" pseudo-header field MUST NOT be empty for "http" or "https" URIs; "http" or "https" URIs that do not contain a path component MUST include a value of '/'. |
+| Azure-AG | 69 | error | dropped | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :method missing) |
+| Azure-AG | 70 | error | dropped | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :scheme missing) |
+| Azure-AG | 74 | error | dropped | With the CONNECT method, the ":scheme" and ":path" pseudo-header fields MUST be omitted. (Tested with both present) |
+| Azure-AG | 98 | error | dropped | A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the middle of the value) |
+| Azure-AG | 99 | error | dropped | A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value) |
+| Azure-AG | 100 | error | dropped | A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value) |
+| Azure-AG | 101 | error | dropped | A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value) |
+| Azure-AG | 103 | error | dropped | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing) |

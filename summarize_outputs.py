@@ -172,271 +172,302 @@ def create_markdown_table(headers, data):
     
     return '\n'.join(table)
 
-def create_proxy_correlation_matrix(test_results, output_directory):
+def create_proxy_correlation_matrix(test_results, proxy_configs, output_directory):
     """Create a Pearson correlation matrix visualization of proxy test results."""
     os.makedirs(output_directory, exist_ok=True)
     
-    test_ids = sorted(list(set().union(*[results.keys() for results in test_results.values()])),
-                     key=lambda x: int(x) if x.isdigit() else float('inf'))
-    proxies = list(test_results.keys())
+    # Split proxies by scope
+    full_scope_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'full' and proxy in test_results]
+    client_only_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'client-only' and proxy in test_results]
     
-    # Create matrix data with better encoding
-    matrix_data = np.zeros((len(proxies), len(test_ids)))
-    for i, proxy in enumerate(proxies):
-        for j, test_id in enumerate(test_ids):
-            # Convert result to numeric value with better separation
-            result = test_results[proxy].get(test_id, "other")
-            if result == "received":
-                matrix_data[i][j] = 4  # Success
-            elif result == "reset":
-                matrix_data[i][j] = 3  # Reset
-            elif result == "goaway":
-                matrix_data[i][j] = 2  # Goaway
-            elif result == "500":
-                matrix_data[i][j] = 1  # 500 error
-            elif result == "dropped":
-                matrix_data[i][j] = 0  # Failure
-            else:  # other
-                matrix_data[i][j] = np.nan  # Use NaN to exclude "other" from correlation
-    
-    # Calculate correlation matrix with NaN handling
-    correlation_matrix = np.zeros((len(proxies), len(proxies)))
-    for i in range(len(proxies)):
-        for j in range(len(proxies)):
-            # Calculate correlation for each pair, ignoring NaNs
-            valid_indices = ~(np.isnan(matrix_data[i]) | np.isnan(matrix_data[j]))
-            if np.sum(valid_indices) > 1:  # Need at least 2 valid points
-                correlation_matrix[i, j] = np.corrcoef(
-                    matrix_data[i, valid_indices], 
-                    matrix_data[j, valid_indices]
-                )[0, 1]
-            else:
-                correlation_matrix[i, j] = 0
-    
-    # Create figure
-    plt.figure(figsize=(12, 10))
-    
-    # Create heatmap
-    im = plt.imshow(correlation_matrix, cmap='coolwarm', aspect='equal', vmin=-1, vmax=1)
-    
-    # Add colorbar
-    plt.colorbar(im)
-    
-    # Configure ticks and labels
-    plt.xticks(np.arange(len(proxies)), proxies, rotation=45, ha='right')
-    plt.yticks(np.arange(len(proxies)), proxies)
-    
-    # Add correlation values as text
-    for i in range(len(proxies)):
-        for j in range(len(proxies)):
-            text = plt.text(j, i, f'{correlation_matrix[i, j]:.2f}',
-                          ha='center', va='center', color='black')
+    # Create separate correlation matrices for each scope
+    for scope, proxies in [('full', full_scope_proxies), ('client-only', client_only_proxies)]:
+        if not proxies:  # Skip if no proxies in this category
+            continue
             
-            # Make text white for dark background
-            if abs(correlation_matrix[i, j]) > 0.5:
-                text.set_color('white')
-    
-    plt.title('Proxy Correlation Matrix', fontsize=14, fontweight='bold')
-    plt.tight_layout()
-    
-    # Save the plot
-    plt.savefig(os.path.join(output_directory, 'proxy_correlation_matrix.png'), 
-                dpi=300, bbox_inches='tight')
-    plt.close()
+        test_ids = sorted(list(set().union(*[results.keys() for proxy, results in test_results.items() 
+                                           if proxy in proxies])),
+                         key=lambda x: int(x) if x.isdigit() else float('inf'))
+        
+        # Create matrix data with better encoding
+        matrix_data = np.zeros((len(proxies), len(test_ids)))
+        for i, proxy in enumerate(proxies):
+            for j, test_id in enumerate(test_ids):
+                # Convert result to numeric value with better separation
+                result = test_results[proxy].get(test_id, "other")
+                if result == "received":
+                    matrix_data[i][j] = 4  # Success
+                elif result == "reset":
+                    matrix_data[i][j] = 3  # Reset
+                elif result == "goaway":
+                    matrix_data[i][j] = 2  # Goaway
+                elif result == "500":
+                    matrix_data[i][j] = 1  # 500 error
+                elif result == "dropped":
+                    matrix_data[i][j] = 0  # Failure
+                else:  # other
+                    matrix_data[i][j] = np.nan  # Use NaN to exclude "other" from correlation
+        
+        # Calculate correlation matrix with NaN handling
+        correlation_matrix = np.zeros((len(proxies), len(proxies)))
+        for i in range(len(proxies)):
+            for j in range(len(proxies)):
+                # Calculate correlation for each pair, ignoring NaNs
+                valid_indices = ~(np.isnan(matrix_data[i]) | np.isnan(matrix_data[j]))
+                if np.sum(valid_indices) > 1:  # Need at least 2 valid points
+                    correlation_matrix[i, j] = np.corrcoef(
+                        matrix_data[i, valid_indices], 
+                        matrix_data[j, valid_indices]
+                    )[0, 1]
+                else:
+                    correlation_matrix[i, j] = 0
+        
+        # Create figure
+        plt.figure(figsize=(12, 10))
+        
+        # Create heatmap
+        im = plt.imshow(correlation_matrix, cmap='coolwarm', aspect='equal', vmin=-1, vmax=1)
+        
+        # Add colorbar
+        plt.colorbar(im)
+        
+        # Configure ticks and labels
+        plt.xticks(np.arange(len(proxies)), proxies, rotation=45, ha='right')
+        plt.yticks(np.arange(len(proxies)), proxies)
+        
+        # Add correlation values as text
+        for i in range(len(proxies)):
+            for j in range(len(proxies)):
+                text = plt.text(j, i, f'{correlation_matrix[i, j]:.2f}',
+                              ha='center', va='center', color='black')
+                
+                # Make text white for dark background
+                if abs(correlation_matrix[i, j]) > 0.5:
+                    text.set_color('white')
+        
+        scope_title = 'Full Test Suite' if scope == 'full' else 'Client-side Tests Only'
+        plt.title(f'Proxy Correlation Matrix ({scope_title})', fontsize=14, fontweight='bold')
+        plt.tight_layout()
+        
+        # Save the plot
+        filename = 'proxy_correlation_matrix_full.png' if scope == 'full' else 'proxy_correlation_matrix_client_only.png'
+        plt.savefig(os.path.join(output_directory, filename), 
+                    dpi=300, bbox_inches='tight')
+        plt.close()
 
-def create_proxy_vector_graph(test_results, output_directory):
+def create_proxy_vector_graph(test_results, proxy_configs, output_directory):
     """Create a vector visualization of proxy test results over time."""
     os.makedirs(output_directory, exist_ok=True)
     
-    test_ids = sorted(list(set().union(*[results.keys() for results in test_results.values()])),
-                     key=lambda x: int(x) if x.isdigit() else float('inf'))
-    proxies = list(test_results.keys())
+    # Split proxies by scope
+    full_scope_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'full' and proxy in test_results]
+    client_only_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'client-only' and proxy in test_results]
     
-    fig, ax = plt.subplots(figsize=(20, len(proxies) * 2.5))
-    
-    # First, identify outliers and consistent tests
-    outliers = {}
-    consistent_tests = set()
-    
-    for test_id in test_ids:
-        # Collect results for this test
-        test_results_row = []
-        for proxy in proxies:
-            result = test_results[proxy].get(test_id, "other")
-            # Convert to numeric values: 4 for received, 3 for reset, 2 for goaway, 1 for 500, 0 for dropped
-            if result == "received":
-                test_results_row.append(4)
-            elif result == "reset":
-                test_results_row.append(3)
-            elif result == "goaway":
-                test_results_row.append(2)
-            elif result == "500":
-                test_results_row.append(1)
-            elif result == "dropped":
-                test_results_row.append(0)
-            else:  # other - we'll handle these separately
-                test_results_row.append(None)
-        
-        # Check consistency - only consider non-None values
-        non_none_results = [r for r in test_results_row if r is not None]
-        if non_none_results and len(set(non_none_results)) == 1:  # All proxies behaved the same way
-            consistent_tests.add(test_id)
-        
-        # Check if there's an outlier (exactly one different from others)
-        values = [r for r in test_results_row if r is not None]
-        if values:
-            value_set = set(values)
-            if len(value_set) == 2:
-                counts = [values.count(v) for v in value_set]
-                if 1 in counts:  # If exactly one value is different
-                    outlier_value = list(value_set)[counts.index(1)]
-                    # Find the index of the outlier in the original list with Nones
-                    for idx, val in enumerate(test_results_row):
-                        if val == outlier_value and values.count(outlier_value) == 1:
-                            outliers[test_id] = proxies[idx]
-                            break
-    
-    # Plot vectors for each proxy
-    for i, proxy in enumerate(proxies):
-        y_values = []
-        y_positions = []
-        x_positions = []
-        outlier_points_x = []
-        outlier_points_y = []
-        
-        for j, test_id in enumerate(test_ids, 1):
-            result = test_results[proxy].get(str(test_id), "other")
-            if result == "received":
-                y_val = 4
-                y_positions.append(y_val + i * 5)
-                x_positions.append(j)
-            elif result == "reset":
-                y_val = 3
-                y_positions.append(y_val + i * 5)
-                x_positions.append(j)
-            elif result == "goaway":
-                y_val = 2
-                y_positions.append(y_val + i * 5)
-                x_positions.append(j)
-            elif result == "500":
-                y_val = 1
-                y_positions.append(y_val + i * 5)
-                x_positions.append(j)
-            elif result == "dropped":
-                y_val = 0
-                y_positions.append(y_val + i * 5)
-                x_positions.append(j)
-            else:  # other - don't plot a dot
-                y_val = None
+    # Create separate vector graphs for each scope
+    for scope, proxies in [('full', full_scope_proxies), ('client-only', client_only_proxies)]:
+        if not proxies:  # Skip if no proxies in this category
+            continue
             
-            y_values.append(y_val)
+        test_ids = sorted(list(set().union(*[results.keys() for proxy, results in test_results.items() 
+                                           if proxy in proxies])),
+                         key=lambda x: int(x) if x.isdigit() else float('inf'))
+        
+        fig, ax = plt.subplots(figsize=(20, len(proxies) * 2.5))
+        
+        # First, identify outliers and consistent tests
+        outliers = {}
+        consistent_tests = set()
+        
+        for test_id in test_ids:
+            # Collect results for this test
+            test_results_row = []
+            for proxy in proxies:
+                result = test_results[proxy].get(test_id, "other")
+                # Convert to numeric values: 4 for received, 3 for reset, 2 for goaway, 1 for 500, 0 for dropped
+                if result == "received":
+                    test_results_row.append(4)
+                elif result == "reset":
+                    test_results_row.append(3)
+                elif result == "goaway":
+                    test_results_row.append(2)
+                elif result == "500":
+                    test_results_row.append(1)
+                elif result == "dropped":
+                    test_results_row.append(0)
+                else:  # other - we'll handle these separately
+                    test_results_row.append(None)
             
-            # Check if this point is an outlier and not "other"
-            if y_val is not None and str(test_id) in outliers and outliers[str(test_id)] == proxy:
-                outlier_points_x.append(j)
-                outlier_points_y.append(y_val + i * 5)
+            # Check consistency - only consider non-None values
+            non_none_results = [r for r in test_results_row if r is not None]
+            if non_none_results and len(set(non_none_results)) == 1:  # All proxies behaved the same way
+                consistent_tests.add(test_id)
+            
+            # Check if there's an outlier (exactly one different from others)
+            values = [r for r in test_results_row if r is not None]
+            if values:
+                value_set = set(values)
+                if len(value_set) == 2:
+                    counts = [values.count(v) for v in value_set]
+                    if 1 in counts:  # If exactly one value is different
+                        outlier_value = list(value_set)[counts.index(1)]
+                        # Find the index of the outlier in the original list with Nones
+                        for idx, val in enumerate(test_results_row):
+                            if val == outlier_value and values.count(outlier_value) == 1:
+                                outliers[test_id] = proxies[idx]
+                                break
         
-        # Plot only the dots for non-other values (no connecting lines)
-        ax.scatter(x_positions, y_positions, marker='o', s=40, 
-                label=proxy, zorder=3)
+        # Plot vectors for each proxy
+        for i, proxy in enumerate(proxies):
+            y_values = []
+            y_positions = []
+            x_positions = []
+            outlier_points_x = []
+            outlier_points_y = []
+            
+            for j, test_id in enumerate(test_ids, 1):
+                result = test_results[proxy].get(test_id, "other")
+                if result == "received":
+                    y_val = 4
+                    y_positions.append(y_val + i * 5)
+                    x_positions.append(j)
+                elif result == "reset":
+                    y_val = 3
+                    y_positions.append(y_val + i * 5)
+                    x_positions.append(j)
+                elif result == "goaway":
+                    y_val = 2
+                    y_positions.append(y_val + i * 5)
+                    x_positions.append(j)
+                elif result == "500":
+                    y_val = 1
+                    y_positions.append(y_val + i * 5)
+                    x_positions.append(j)
+                elif result == "dropped":
+                    y_val = 0
+                    y_positions.append(y_val + i * 5)
+                    x_positions.append(j)
+                else:  # other - don't plot a dot
+                    y_val = None
+                
+                y_values.append(y_val)
+                
+                # Check if this point is an outlier and not "other"
+                if y_val is not None and test_id in outliers and outliers[test_id] == proxy:
+                    outlier_points_x.append(j)
+                    outlier_points_y.append(y_val + i * 5)
+            
+            # Plot only the dots for non-other values (no connecting lines)
+            ax.scatter(x_positions, y_positions, marker='o', s=40, 
+                    label=proxy, zorder=3)
+            
+            # Highlight outlier points
+            if outlier_points_x:
+                ax.scatter(outlier_points_x, outlier_points_y, 
+                          color='red', s=100, zorder=5, 
+                          marker='*', label=f'{proxy} outliers')
         
-        # Highlight outlier points
-        if outlier_points_x:
-            ax.scatter(outlier_points_x, outlier_points_y, 
-                      color='red', s=100, zorder=5, 
-                      marker='*', label=f'{proxy} outliers')
-    
-    # Configure axis and labels
-    ax.set_xlim(0, len(test_ids) + 1)
-    ax.set_ylim(-1, len(proxies) * 5 + 2)  # Expanded y-range to accommodate extra values
-    
-    # Set y-ticks and labels
-    y_ticks = []
-    y_labels = []
-    for i in range(len(proxies)):
-        y_ticks.extend([i * 5, i * 5 + 1, i * 5 + 2, i * 5 + 3, i * 5 + 4])
-        y_labels.extend([
-            f"{proxies[i]} (dropped)", 
-            f"{proxies[i]} (500)", 
-            f"{proxies[i]} (goaway)",
-            f"{proxies[i]} (reset)",
-            f"{proxies[i]} (received)"
-        ])
-    
-    ax.set_yticks(y_ticks)
-    ax.set_yticklabels(y_labels, fontsize=9)
-    
-    # Add a legend explaining the values
-    ax.text(0.01, 0.99, 'Values: 0=dropped, 1=500 error, 2=goaway, 3=reset, 4=received (dots not shown for "other" results)', 
-            transform=ax.transAxes, fontsize=10, verticalalignment='top',
-            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-    
-    # Configure x-axis with highlighted consistent tests
-    ax.set_xlabel('Test ID', fontsize=12)
-    ax.set_xticks(range(1, len(test_ids) + 1))
-    
-    # Create tick labels with different styles for consistent vs inconsistent tests
-    x_labels = []
-    for test_id in test_ids:
-        if test_id in consistent_tests:
-            # Bold and different color for consistent tests
-            x_labels.append(f'$\\bf{{{test_id}}}$')  # Bold using LaTeX
-        else:
-            x_labels.append(str(test_id))
-    
-    ax.set_xticklabels(x_labels, rotation=45, ha='right')
-    
-    # Color the consistent test labels
-    for tick in ax.get_xticklabels():
-        if tick.get_text().startswith('$\\bf'):  # If it's a consistent test
-            tick.set_color('darkblue')
-            tick.set_fontsize(8)  # Slightly larger font
-        else:
-            tick.set_fontsize(8)
-    
-    # Add grid
-    ax.grid(True, axis='x', linestyle='--', alpha=0.7)
-    
-    plt.title('Proxy Test Results Vector Graph\n(* indicates outlier behavior, bold numbers indicate consistent behavior)', 
-              fontsize=14, fontweight='bold')
-    plt.tight_layout()
-    
-    plt.savefig(os.path.join(output_directory, 'proxy_vector_graph.png'), 
-                dpi=300, bbox_inches='tight')
-    plt.close()
+        # Configure axis and labels
+        ax.set_xlim(0, len(test_ids) + 1)
+        ax.set_ylim(-1, len(proxies) * 5 + 2)  # Expanded y-range to accommodate extra values
+        
+        # Set y-ticks and labels
+        y_ticks = []
+        y_labels = []
+        for i in range(len(proxies)):
+            y_ticks.extend([i * 5, i * 5 + 1, i * 5 + 2, i * 5 + 3, i * 5 + 4])
+            y_labels.extend([
+                f"{proxies[i]} (dropped)", 
+                f"{proxies[i]} (500)", 
+                f"{proxies[i]} (goaway)",
+                f"{proxies[i]} (reset)",
+                f"{proxies[i]} (received)"
+            ])
+        
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels(y_labels, fontsize=9)
+        
+        # Add a legend explaining the values
+        ax.text(0.01, 0.99, 'Values: 0=dropped, 1=500 error, 2=goaway, 3=reset, 4=received (dots not shown for "other" results)', 
+                transform=ax.transAxes, fontsize=10, verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+        
+        # Configure x-axis with highlighted consistent tests
+        ax.set_xlabel('Test ID', fontsize=12)
+        ax.set_xticks(range(1, len(test_ids) + 1))
+        
+        # Create tick labels with different styles for consistent vs inconsistent tests
+        x_labels = []
+        for test_id in test_ids:
+            if test_id in consistent_tests:
+                # Bold and different color for consistent tests
+                x_labels.append(f'$\\bf{{{test_id}}}$')  # Bold using LaTeX
+            else:
+                x_labels.append(str(test_id))
+        
+        ax.set_xticklabels(x_labels, rotation=45, ha='right')
+        
+        # Color the consistent test labels
+        for tick in ax.get_xticklabels():
+            if tick.get_text().startswith('$\\bf'):  # If it's a consistent test
+                tick.set_color('darkblue')
+                tick.set_fontsize(8)  # Slightly larger font
+            else:
+                tick.set_fontsize(8)
+        
+        # Add grid
+        ax.grid(True, axis='x', linestyle='--', alpha=0.7)
+        
+        scope_title = 'Full Test Suite' if scope == 'full' else 'Client-side Tests Only'
+        plt.title(f'Proxy Test Results Vector Graph ({scope_title})\n(* indicates outlier behavior, bold numbers indicate consistent behavior)', 
+                  fontsize=14, fontweight='bold')
+        plt.tight_layout()
+        
+        filename = 'proxy_vector_graph_full.png' if scope == 'full' else 'proxy_vector_graph_client_only.png'
+        plt.savefig(os.path.join(output_directory, filename), 
+                    dpi=300, bbox_inches='tight')
+        plt.close()
 
-def create_proxy_result_pies(test_results, output_directory):
+def create_proxy_result_pies(test_results, proxy_configs, output_directory):
     """Create pie charts showing dropped vs error vs reset vs goaway vs received vs other proportions for each proxy."""
     os.makedirs(output_directory, exist_ok=True)
     
-    proxies = list(test_results.keys())
-    n_charts = len(proxies)
-    n_cols = 3
-    n_rows = (n_charts + n_cols - 1) // n_cols
+    # Split proxies by scope
+    full_scope_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'full' and proxy in test_results]
+    client_only_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'client-only' and proxy in test_results]
     
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 5*n_rows))
-    fig.suptitle('Result Distribution by Proxy', fontsize=16, y=0.95)
-    
-    if n_rows > 1:
-        axes = axes.flatten()
-    elif n_cols == 1:
-        axes = axes
-    else:
-        axes = [axes] if n_charts == 1 else axes.flatten()
-    
-    colors = ['#ff6b6b', '#ffd93d', '#ff9f43', '#6c5ce7', '#6bceff', '#4ecdc4', '#2ecc71', '#95a5a6']  # Red for dropped, Yellow for 500, Orange for goaway, Purple for reset, Blue for received, Teal for modified, Green for unmodified, Gray for other
-    
-    for i, proxy in enumerate(proxies):
-        create_single_pie(axes[i], test_results[proxy], colors, proxy)
-    
-    # Hide any unused subplots
-    for j in range(n_charts, len(axes)):
-        axes[j].remove()
-    
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_directory, 'proxy_result_pies.png'), 
-                dpi=300, bbox_inches='tight')
-    plt.close()
+    # Create separate figures for full scope and client-only proxies
+    for scope, proxies in [('full', full_scope_proxies), ('client-only', client_only_proxies)]:
+        if not proxies:  # Skip if no proxies in this category
+            continue
+            
+        n_charts = len(proxies)
+        n_cols = min(3, n_charts)
+        n_rows = (n_charts + n_cols - 1) // n_cols
+        
+        fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 5*n_rows))
+        scope_title = 'Full Test Suite' if scope == 'full' else 'Client-side Tests Only'
+        fig.suptitle(f'Result Distribution by Proxy ({scope_title})', fontsize=16, y=0.95)
+        
+        # Convert axes to a flat list for easier iteration
+        if n_rows == 1 and n_cols == 1:
+            axes = np.array([axes])
+        elif n_rows == 1:
+            axes = np.array([axes])
+        axes_flat = axes.flatten()
+        
+        colors = ['#ff6b6b', '#ffd93d', '#ff9f43', '#6c5ce7', '#6bceff', '#4ecdc4', '#2ecc71', '#95a5a6']
+        
+        for i, proxy in enumerate(proxies):
+            create_single_pie(axes_flat[i], test_results[proxy], colors, f"{proxy}")
+        
+        # Hide any unused subplots
+        for j in range(n_charts, len(axes_flat)):
+            axes_flat[j].set_visible(False)
+        
+        plt.tight_layout()
+        filename = 'proxy_result_pies_full.png' if scope == 'full' else 'proxy_result_pies_client_only.png'
+        plt.savefig(os.path.join(output_directory, filename), dpi=300, bbox_inches='tight')
+        plt.close()
 
 def create_single_pie(ax, test_results, colors, title):
     """Create a single pie chart on the given axis."""
@@ -521,14 +552,14 @@ def create_single_pie(ax, test_results, colors, title):
     
     ax.set_title(title, pad=20)
 
-def create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, reset_counts, received_counts, all_test_results, summaries_dir):
+def create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, reset_counts, received_counts, all_test_results, proxy_configs, summaries_dir):
     """Create a markdown table summarizing the counts of dropped, error, reset, goaway, and received results."""
     if not os.path.exists(summaries_dir):
         os.makedirs(summaries_dir)
     
     # Create table header
-    table = "| Proxy      | Dropped Count | 500 Error Count | GOAWAY Count | RESET Count | Received Count | Modified Count | Unmodified Count | Received Tests |\n"
-    table += "| ---------- | ------------- | --------------- | ------------ | ----------- | -------------- | -------------- | ---------------- | -------------- |\n"
+    table = "| Proxy | Test Scope | Dropped Count | 500 Error Count | GOAWAY Count | RESET Count | Received Count | Modified Count | Unmodified Count | Received Tests |\n"
+    table += "| ----- | ---------- | ------------- | --------------- | ------------ | ----------- | -------------- | -------------- | ---------------- | -------------- |\n"
     
     # Add rows for each proxy
     for proxy in sorted(dropped_counts.keys()):
@@ -548,27 +579,32 @@ def create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, 
         # Format the received tests list
         received_tests_str = ", ".join(sorted(received_tests, key=lambda x: int(x) if x.isdigit() else float('inf')))
         
+        # Get test scope
+        scope = proxy_configs[proxy]['scope']
+        scope_display = "Full" if scope == "full" else "Client-side Only"
+        
         # Add the row with all information
-        table += f"| {proxy:<10} | {dropped_counts.get(proxy, 0):<13} | {error_500_counts.get(proxy, 0):<15} | {goaway_counts.get(proxy, 0):<12} | {reset_counts.get(proxy, 0):<11} | {received_counts.get(proxy, 0):<14} | {modified_count:<14} | {unmodified_count:<16} | {received_tests_str} |\n"
+        table += f"| {proxy} | {scope_display} | {dropped_counts.get(proxy, 0)} | {error_500_counts.get(proxy, 0)} | {goaway_counts.get(proxy, 0)} | {reset_counts.get(proxy, 0)} | {received_counts.get(proxy, 0)} | {modified_count} | {unmodified_count} | {received_tests_str} |\n"
     
     # Write to file
     with open(os.path.join(summaries_dir, "result_counts.md"), "w") as f:
         f.write(table)
 
-def create_test_results_matrix(all_test_results, proxy_folders, summaries_dir):
+def create_test_results_matrix(all_test_results, proxy_configs, summaries_dir):
     """Create a matrix showing test results for each proxy and test ID."""
     all_test_ids = sorted(set().union(*[test_results.keys() for test_results in all_test_results.values()]),
                          key=lambda x: int(x) if x.isdigit() else float('inf'))
     
-    matrix_headers = ['Test ID'] + proxy_folders
+    proxies = list(proxy_configs.keys())  # Convert dict_keys to list
+    matrix_headers = ['Test ID'] + proxies
     matrix_data = []
-    outlier_counts = {proxy: 0 for proxy in proxy_folders}  # Track outliers for each proxy
+    outlier_counts = {proxy: 0 for proxy in proxies}  # Track outliers for each proxy
     
     for test_id in all_test_ids:
         row = [test_id]
         # First collect all results for this test
         test_row = []
-        for proxy in proxy_folders:
+        for proxy in proxies:  # Use the list of proxies
             if proxy in all_test_results:
                 result = all_test_results[proxy].get(test_id, "")
                 if result == "received":
@@ -608,17 +644,17 @@ def create_test_results_matrix(all_test_results, proxy_folders, summaries_dir):
                 for outlier in outlier_results:
                     idx = test_row.index(outlier)
                     test_row[idx] = f'**{outlier}**'
-                    outlier_counts[proxy_folders[idx]] += 1
+                    outlier_counts[proxies[idx]] += 1  # Use the list index
         
         row.extend(test_row)
         matrix_data.append(row)
     
     # Add empty row for spacing
-    matrix_data.append([''] * (len(proxy_folders) + 1))
+    matrix_data.append([''] * (len(proxies) + 1))
     
     # Add outlier count row
     outlier_row = ['Outlier Count']
-    outlier_row.extend(str(outlier_counts[proxy]) for proxy in proxy_folders)
+    outlier_row.extend(str(outlier_counts[proxy]) for proxy in proxies)
     matrix_data.append(outlier_row)
     
     matrix_table = create_markdown_table(matrix_headers, matrix_data)
@@ -637,7 +673,7 @@ def load_client_server_classification(json_path):
     
     return client_side_tests, server_side_tests
 
-def create_client_server_pie_charts(test_results, client_side_tests, server_side_tests, output_directory):
+def create_client_server_pie_charts(test_results, client_side_tests, server_side_tests, proxy_configs, output_directory):
     """
     Create pie charts showing dropped vs 500 error vs goaway vs reset vs received vs other proportions for each proxy,
     separated into client-side and server-side tests.
@@ -914,7 +950,7 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
         for _, row in df[df['Has Discrepancy']].iterrows():
             f.write(f"| {row['Proxy']} | {row['Test Pair']} | {row['Client Result']} | {row['Server Result']} | {row['Discrepancy Type']} |\n")
 
-def create_conformance_visualization(test_results, output_directory):
+def create_conformance_visualization(test_results, proxy_configs, output_directory):
     """
     Create visualizations showing how well each proxy conforms to the expected test results.
     
@@ -934,6 +970,10 @@ def create_conformance_visualization(test_results, output_directory):
     
     # Create a mapping of test ID to expected result
     expected_results = {str(case['id']): case['expected_result'] for case in test_cases}
+    
+    # Split proxies by scope
+    full_scope_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'full' and proxy in test_results]
+    client_only_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'client-only' and proxy in test_results]
     
     # Initialize data structures for tracking conformance
     conformance_data = {proxy: {'conformant': 0, 'non_conformant': 0, 'total': 0} 
@@ -1052,7 +1092,7 @@ def create_conformance_visualization(test_results, output_directory):
                                      if str(case['id']) == test_id), "N/A")
                     f.write(f"| {proxy} | {test_id} | {expected} | {result} | {description} |\n")
 
-def create_section_conformance_visualization(test_results, output_directory):
+def create_section_conformance_visualization(test_results, proxy_configs, output_directory):
     """
     Create visualizations showing how well each proxy conforms to each section of the RFC.
     """
@@ -1231,7 +1271,7 @@ def create_section_conformance_visualization(test_results, output_directory):
                                          if str(case['id']) == test_id), "N/A")
                         f.write(f"| {proxy} | {test_id} | {expected} | {result} | {description} |\n")
 
-def create_advanced_insights(test_results, output_directory):
+def create_advanced_insights(test_results, proxy_configs, output_directory):
     """
     Create additional insights and visualizations from the test results.
     """
@@ -1481,7 +1521,7 @@ def create_advanced_insights(test_results, output_directory):
         
         f.write(f"\nTotal non-conformant tests analyzed: {total_non_conformant}\n")
 
-def create_client_server_conformance_visualization(test_results, client_side_tests, server_side_tests, output_directory):
+def create_client_server_conformance_visualization(test_results, client_side_tests, server_side_tests, proxy_configs, output_directory):
     """
     Create visualizations showing how well each proxy conforms to client-side and server-side tests separately.
     """
@@ -1627,8 +1667,20 @@ def main():
     if not os.path.exists(summaries_dir):
         os.makedirs(summaries_dir)
     
-    # List of proxy folders (Nginx not included)
-    proxy_folders = ['Nghttpx', 'HAproxy', 'Apache', 'Caddy', 'Node', 'Envoy', 'H2O', 'Cloudflare', 'Mitmproxy']
+    # List of proxy folders with their test scope
+    proxy_configs = {
+        'Nghttpx': {'scope': 'full'},
+        'HAproxy': {'scope': 'full'},
+        'Apache': {'scope': 'full'},
+        'Caddy': {'scope': 'full'},
+        'Node': {'scope': 'full'},
+        'Envoy': {'scope': 'full'},
+        'H2O': {'scope': 'full'},
+        'Cloudflare': {'scope': 'full'},
+        'Mitmproxy': {'scope': 'full'},
+        'Azure-AG': {'scope': 'client-only'}
+    }
+    
     results_dir = 'results'
     
     # Prepare data for summary tables
@@ -1642,7 +1694,7 @@ def main():
     all_test_results = {}
     all_test_messages = {}
     
-    for proxy in proxy_folders:
+    for proxy, config in proxy_configs.items():
         proxy_dir = os.path.join(results_dir, proxy)
         if not os.path.exists(proxy_dir):
             continue
@@ -1662,31 +1714,37 @@ def main():
         all_test_results[proxy] = test_results
         all_test_messages[proxy] = test_messages
 
-    # Create tables
-    create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, reset_counts, received_counts, all_test_results, summaries_dir)
-    create_test_results_matrix(all_test_results, proxy_folders, summaries_dir)
+    # Split proxies by scope for different visualizations
+    full_scope_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'full']
+    client_only_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'client-only']
+
+    # Create tables with scope indicators
+    create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, reset_counts, received_counts, all_test_results, proxy_configs, summaries_dir)
+    create_test_results_matrix(all_test_results, proxy_configs, summaries_dir)
 
     # Create visualizations
     output_dir = 'visualizations'
-    create_proxy_correlation_matrix(all_test_results, output_dir)
-    create_proxy_vector_graph(all_test_results, output_dir)
-    create_proxy_result_pies(all_test_results, output_dir)
-    create_conformance_visualization(all_test_results, output_dir)
-    create_section_conformance_visualization(all_test_results, output_dir)
-    create_advanced_insights(all_test_results, output_dir)
+    create_proxy_correlation_matrix(all_test_results, proxy_configs, output_dir)
+    create_proxy_vector_graph(all_test_results, proxy_configs, output_dir)
+    create_proxy_result_pies(all_test_results, proxy_configs, output_dir)
+    create_conformance_visualization(all_test_results, proxy_configs, output_dir)
+    create_section_conformance_visualization(all_test_results, proxy_configs, output_dir)
+    create_advanced_insights(all_test_results, proxy_configs, output_dir)
     
     # Load client-server classification and create client-server visualizations
     try:
         client_side_tests, server_side_tests = load_client_server_classification('docs/clientside_vs_serverside.json')
-        create_client_server_pie_charts(all_test_results, client_side_tests, server_side_tests, output_dir)
-        create_client_server_conformance_visualization(all_test_results, client_side_tests, server_side_tests, output_dir)
+        create_client_server_pie_charts(all_test_results, client_side_tests, server_side_tests, proxy_configs, output_dir)
+        create_client_server_conformance_visualization(all_test_results, client_side_tests, server_side_tests, proxy_configs, output_dir)
     except Exception as e:
         print(f"Error creating client-server visualizations: {e}")
     
-    # Create client-server discrepancy visualization
+    # Create client-server discrepancy visualization (only for full-scope proxies)
     try:
         test_pairs = load_test_pairs()
-        create_client_server_discrepancy_visualization(all_test_results, test_pairs, output_dir)
+        full_scope_results = {proxy: results for proxy, results in all_test_results.items() 
+                            if proxy_configs[proxy]['scope'] == 'full'}
+        create_client_server_discrepancy_visualization(full_scope_results, test_pairs, output_dir)
     except Exception as e:
         print(f"Error creating client-server discrepancy visualization: {e}")
 

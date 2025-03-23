@@ -13,6 +13,7 @@
 | H2O | 44.8% | 72.7% |
 | Cloudflare | 39.4% | 81.8% |
 | Mitmproxy | 3.2% | 36.4% |
+| Azure-AG | 35.1% | 100.0% |
 
 ## Frame Type Analysis
 
@@ -30,6 +31,7 @@
 | H2O | 7 (77.8%) | 2 (22.2%) | 9 |
 | Cloudflare | 6 (66.7%) | 3 (33.3%) | 9 |
 | Mitmproxy | 0 (0.0%) | 9 (100.0%) | 9 |
+| Azure-AG | 4 (100.0%) | 0 (0.0%) | 4 |
 
 ### DATA Frame
 
@@ -44,6 +46,7 @@
 | H2O | 15 (50.0%) | 15 (50.0%) | 30 |
 | Cloudflare | 16 (53.3%) | 14 (46.7%) | 30 |
 | Mitmproxy | 0 (0.0%) | 30 (100.0%) | 30 |
+| Azure-AG | 5 (35.7%) | 9 (64.3%) | 14 |
 
 ### HEADERS Frame
 
@@ -58,6 +61,7 @@
 | H2O | 41 (40.2%) | 61 (59.8%) | 102 |
 | Cloudflare | 36 (35.0%) | 67 (65.0%) | 103 |
 | Mitmproxy | 1 (1.0%) | 102 (99.0%) | 103 |
+| Azure-AG | 18 (31.0%) | 40 (69.0%) | 58 |
 
 ### PING Frame
 
@@ -72,6 +76,7 @@
 | H2O | 2 (100.0%) | 0 (0.0%) | 2 |
 | Cloudflare | 1 (50.0%) | 1 (50.0%) | 2 |
 | Mitmproxy | 0 (0.0%) | 2 (100.0%) | 2 |
+| Azure-AG | 0 (0.0%) | 1 (100.0%) | 1 |
 
 ### PRIORITY Frame
 
@@ -86,6 +91,7 @@
 | H2O | 1 (50.0%) | 1 (50.0%) | 2 |
 | Cloudflare | 1 (50.0%) | 1 (50.0%) | 2 |
 | Mitmproxy | 0 (0.0%) | 2 (100.0%) | 2 |
+| Azure-AG | 1 (100.0%) | 0 (0.0%) | 1 |
 
 ### PUSH_PROMISE Frame
 
@@ -100,6 +106,7 @@
 | H2O | 2 (14.3%) | 12 (85.7%) | 14 |
 | Cloudflare | 9 (64.3%) | 5 (35.7%) | 14 |
 | Mitmproxy | 0 (0.0%) | 14 (100.0%) | 14 |
+| Azure-AG | 2 (100.0%) | 0 (0.0%) | 2 |
 
 ### RST_STREAM Frame
 
@@ -114,6 +121,7 @@
 | H2O | 7 (50.0%) | 7 (50.0%) | 14 |
 | Cloudflare | 6 (42.9%) | 8 (57.1%) | 14 |
 | Mitmproxy | 4 (28.6%) | 10 (71.4%) | 14 |
+| Azure-AG | 3 (50.0%) | 3 (50.0%) | 6 |
 
 ### SETTINGS Frame
 
@@ -128,6 +136,7 @@
 | H2O | 13 (72.2%) | 5 (27.8%) | 18 |
 | Cloudflare | 8 (44.4%) | 10 (55.6%) | 18 |
 | Mitmproxy | 0 (0.0%) | 18 (100.0%) | 18 |
+| Azure-AG | 8 (88.9%) | 1 (11.1%) | 9 |
 
 ### TRAILERS Frame
 
@@ -142,6 +151,7 @@
 | H2O | 3 (75.0%) | 1 (25.0%) | 4 |
 | Cloudflare | 2 (50.0%) | 2 (50.0%) | 4 |
 | Mitmproxy | 0 (0.0%) | 4 (100.0%) | 4 |
+| Azure-AG | 2 (100.0%) | 0 (0.0%) | 2 |
 
 ### UNKNOWN Frame
 
@@ -156,6 +166,7 @@
 | H2O | 4 (100.0%) | 0 (0.0%) | 4 |
 | Cloudflare | 4 (100.0%) | 0 (0.0%) | 4 |
 | Mitmproxy | 4 (100.0%) | 0 (0.0%) | 4 |
+| Azure-AG | 2 (100.0%) | 0 (0.0%) | 2 |
 
 ### WINDOW_UPDATE Frame
 
@@ -170,6 +181,7 @@
 | H2O | 4 (100.0%) | 0 (0.0%) | 4 |
 | Cloudflare | 1 (25.0%) | 3 (75.0%) | 4 |
 | Mitmproxy | 0 (0.0%) | 4 (100.0%) | 4 |
+| Azure-AG | 1 (50.0%) | 1 (50.0%) | 2 |
 
 ## Common Failure Patterns
 
@@ -177,11 +189,11 @@
 
 | Pattern | Percentage of Non-Conformant Tests | Count |
 |---------|-----------------------------------|-------|
-| MUST NOT violations | 54.9% | 390 |
-| MUST violations | 43.1% | 306 |
-| Header-related issues | 41.3% | 293 |
-| Frame-related issues | 37.6% | 267 |
-| Stream-related issues | 26.1% | 185 |
-| Pseudo-header issues | 23.9% | 170 |
+| MUST NOT violations | 55.1% | 419 |
+| MUST violations | 43.0% | 327 |
+| Header-related issues | 41.3% | 314 |
+| Frame-related issues | 37.5% | 285 |
+| Stream-related issues | 25.9% | 197 |
+| Pseudo-header issues | 24.2% | 184 |
 
-Total non-conformant tests analyzed: 710
+Total non-conformant tests analyzed: 760
