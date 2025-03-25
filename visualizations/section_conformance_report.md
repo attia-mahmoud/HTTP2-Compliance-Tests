@@ -15,6 +15,8 @@
 | Cloudflare | 0 (0.0%) | 4 (100.0%) | 4 |
 | Mitmproxy | 1 (25.0%) | 3 (75.0%) | 4 |
 | Azure-AG | 2 (50.0%) | 2 (50.0%) | 4 |
+| Nginx | 2 (50.0%) | 2 (50.0%) | 4 |
+| Lighttpd | 2 (50.0%) | 2 (50.0%) | 4 |
 
 ### Non-Conformant Tests
 
@@ -38,8 +40,12 @@
 | Mitmproxy | 3 | error | received | the connection preface starts with the string: PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n |
 | Mitmproxy | 4 | error | received | Client preface must include a SETTINGS frame |
 | Mitmproxy | 87 | error | received | A SETTINGS frame MUST be sent by both endpoints at the start of a connection and MAY be sent at any other time by either endpoint over the lifetime of the connection. (Tested from the client side.) |
-| Azure-AG | 4 | error | dropped | Client preface must include a SETTINGS frame |
-| Azure-AG | 87 | error | dropped | A SETTINGS frame MUST be sent by both endpoints at the start of a connection and MAY be sent at any other time by either endpoint over the lifetime of the connection. (Tested from the client side.) |
+| Azure-AG | 4 | error | received | Client preface must include a SETTINGS frame |
+| Azure-AG | 87 | error | received | A SETTINGS frame MUST be sent by both endpoints at the start of a connection and MAY be sent at any other time by either endpoint over the lifetime of the connection. (Tested from the client side.) |
+| Nginx | 4 | error | received | Client preface must include a SETTINGS frame |
+| Nginx | 87 | error | received | A SETTINGS frame MUST be sent by both endpoints at the start of a connection and MAY be sent at any other time by either endpoint over the lifetime of the connection. (Tested from the client side.) |
+| Lighttpd | 4 | error | received | Client preface must include a SETTINGS frame |
+| Lighttpd | 87 | error | received | A SETTINGS frame MUST be sent by both endpoints at the start of a connection and MAY be sent at any other time by either endpoint over the lifetime of the connection. (Tested from the client side.) |
 
 ## Section 4: HTTP Frames
 
@@ -55,6 +61,8 @@
 | Cloudflare | 6 (75.0%) | 2 (25.0%) | 8 |
 | Mitmproxy | 4 (50.0%) | 4 (50.0%) | 8 |
 | Azure-AG | 3 (75.0%) | 1 (25.0%) | 4 |
+| Nginx | 3 (75.0%) | 1 (25.0%) | 4 |
+| Lighttpd | 4 (100.0%) | 0 (0.0%) | 4 |
 
 ### Non-Conformant Tests
 
@@ -86,7 +94,8 @@
 | Mitmproxy | 10 | ignore | received | A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving. |
 | Mitmproxy | 108 | error | received | Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE. (server side) |
 | Mitmproxy | 110 | ignore | received | A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving. (server side) |
-| Azure-AG | 8 | error | dropped | Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE |
+| Azure-AG | 8 | error | received | Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE |
+| Nginx | 8 | error | received | Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE |
 
 ## Section 5: Streams and Multiplexing
 
@@ -102,6 +111,8 @@
 | Cloudflare | 14 (40.0%) | 21 (60.0%) | 35 |
 | Mitmproxy | 3 (8.6%) | 32 (91.4%) | 35 |
 | Azure-AG | 8 (47.1%) | 9 (52.9%) | 17 |
+| Nginx | 9 (52.9%) | 8 (47.1%) | 17 |
+| Lighttpd | 13 (76.5%) | 4 (23.5%) | 17 |
 
 ### Non-Conformant Tests
 
@@ -240,6 +251,18 @@
 | Azure-AG | 82 | error | dropped | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the idle state.) |
 | Azure-AG | 83 | error | dropped | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.) |
 | Azure-AG | 84 | error | dropped | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.) |
+| Nginx | 1 | error | dropped | Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR. |
+| Nginx | 7 | error | dropped | If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. |
+| Nginx | 77 | error | dropped | RST_STREAM frames MUST NOT be sent for a stream in the 'idle' state. |
+| Nginx | 78 | error | dropped | RST_STREAM frames MUST be associated with a stream. |
+| Nginx | 80 | error | dropped | DATA frames MUST be associated with a stream. |
+| Nginx | 82 | error | dropped | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the idle state.) |
+| Nginx | 83 | error | dropped | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.) |
+| Nginx | 84 | error | dropped | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.) |
+| Lighttpd | 7 | error | received | If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. |
+| Lighttpd | 76 | error | dropped | An endpoint MUST NOT send frames other than PRIORITY on a closed stream. |
+| Lighttpd | 83 | error | received | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.) |
+| Lighttpd | 84 | error | dropped | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.) |
 
 ## Section 6: Frame Definitions
 
@@ -255,6 +278,8 @@
 | Cloudflare | 27 (55.1%) | 22 (44.9%) | 49 |
 | Mitmproxy | 1 (2.0%) | 48 (98.0%) | 49 |
 | Azure-AG | 16 (80.0%) | 4 (20.0%) | 20 |
+| Nginx | 19 (95.0%) | 1 (5.0%) | 20 |
+| Lighttpd | 19 (95.0%) | 1 (5.0%) | 20 |
 
 ### Non-Conformant Tests
 
@@ -396,6 +421,8 @@
 | Azure-AG | 30 | error | dropped | If a PING frame is received with a Stream Identifier field value other than 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR. |
 | Azure-AG | 33 | error | dropped | A receiver MUST treat the receipt of a WINDOW_UPDATE frame with a flow-control window increment of 0 as a stream error (Section 5.4.2) of type PROTOCOL_ERROR. |
 | Azure-AG | 93 | error | dropped | The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver. |
+| Nginx | 93 | error | dropped | The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver. |
+| Lighttpd | 93 | error | dropped | The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver. |
 
 ## Section 8: HTTP Semantics in HTTP/2
 
@@ -411,6 +438,8 @@
 | Cloudflare | 23 (32.9%) | 47 (67.1%) | 70 |
 | Mitmproxy | 0 (0.0%) | 70 (100.0%) | 70 |
 | Azure-AG | 4 (10.5%) | 34 (89.5%) | 38 |
+| Nginx | 4 (10.5%) | 34 (89.5%) | 38 |
+| Lighttpd | 1 (2.6%) | 37 (97.4%) | 38 |
 
 ### Non-Conformant Tests
 
@@ -831,7 +860,7 @@
 | Azure-AG | 41 | error | dropped | Field names MUST be converted to lowercase when constructing an HTTP/2 message. |
 | Azure-AG | 42 | error | dropped | Field names MUST NOT contain control characters (0x00-0x1F) |
 | Azure-AG | 43 | error | dropped | Field names MUST NOT contain ASCII SP (0x20) |
-| Azure-AG | 44 | error | dropped | Field names MUST NOT contain DEL character (0x7F) |
+| Azure-AG | 44 | error | received | Field names MUST NOT contain DEL character (0x7F) |
 | Azure-AG | 45 | error | dropped | Field names MUST NOT contain high byte characters (0x80-0xFF) |
 | Azure-AG | 46 | error | dropped | With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a). |
 | Azure-AG | 47 | error | dropped | A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the start of the value) |
@@ -860,3 +889,74 @@
 | Azure-AG | 100 | error | dropped | A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value) |
 | Azure-AG | 101 | error | dropped | A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value) |
 | Azure-AG | 103 | error | dropped | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing) |
+| Nginx | 31 | error | dropped | With the CONNECT method, the " :scheme" and " :path" pseudo-header fields MUST be omitted. (Tested with only :path present) |
+| Nginx | 32 | error | dropped | With the CONNECT method, the " :scheme" and " :path" pseudo-header fields MUST be omitted. (Tested with only :scheme present) |
+| Nginx | 41 | error | dropped | Field names MUST be converted to lowercase when constructing an HTTP/2 message. |
+| Nginx | 42 | error | dropped | Field names MUST NOT contain control characters (0x00-0x1F) |
+| Nginx | 43 | error | dropped | Field names MUST NOT contain ASCII SP (0x20) |
+| Nginx | 44 | error | dropped | Field names MUST NOT contain DEL character (0x7F) |
+| Nginx | 45 | error | dropped | Field names MUST NOT contain high byte characters (0x80-0xFF) |
+| Nginx | 46 | error | dropped | With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a). |
+| Nginx | 47 | error | dropped | A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the start of the value) |
+| Nginx | 48 | error | dropped | A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the start of the value) |
+| Nginx | 49 | error | dropped | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| Nginx | 50 | error | dropped | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| Nginx | 51 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2) |
+| Nginx | 52 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2) |
+| Nginx | 53 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing keep-alive header field (RFC9113 Section 8.2.2) |
+| Nginx | 54 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2) |
+| Nginx | 55 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2) |
+| Nginx | 56 | error | dropped | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
+| Nginx | 57 | error | dropped | Pseudo-header fields are not HTTP header fields. Endpoints MUST NOT generate pseudo-header fields other than those defined in this document. |
+| Nginx | 59 | error | dropped | Pseudo-header fields defined for responses MUST NOT appear in requests. |
+| Nginx | 60 | error | dropped | All pseudo-header fields sent from a client MUST appear in a field block before all regular field lines. Any request or response that contains a pseudo-header field that appears in a field block after a regular field line MUST be treated as malformed (Section 8.1.1). |
+| Nginx | 62 | error | dropped | The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with the same value. |
+| Nginx | 63 | error | dropped | The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with different values. |
+| Nginx | 66 | error | dropped | Clients MUST NOT generate a request with a Host header field that differs from the ":authority" pseudo-header field. |
+| Nginx | 67 | error | dropped | ':authority' MUST NOT include the deprecated userinfo subcomponent for "http" or "https" schemed URIs. |
+| Nginx | 68 | error | dropped | The ":path" pseudo-header field MUST NOT be empty for "http" or "https" URIs; "http" or "https" URIs that do not contain a path component MUST include a value of '/'. |
+| Nginx | 69 | error | dropped | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :method missing) |
+| Nginx | 70 | error | dropped | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :scheme missing) |
+| Nginx | 74 | error | dropped | With the CONNECT method, the ":scheme" and ":path" pseudo-header fields MUST be omitted. (Tested with both present) |
+| Nginx | 98 | error | dropped | A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the middle of the value) |
+| Nginx | 99 | error | dropped | A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value) |
+| Nginx | 100 | error | dropped | A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value) |
+| Nginx | 101 | error | dropped | A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value) |
+| Nginx | 103 | error | dropped | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing) |
+| Lighttpd | 31 | error | dropped | With the CONNECT method, the " :scheme" and " :path" pseudo-header fields MUST be omitted. (Tested with only :path present) |
+| Lighttpd | 32 | error | dropped | With the CONNECT method, the " :scheme" and " :path" pseudo-header fields MUST be omitted. (Tested with only :scheme present) |
+| Lighttpd | 40 | error | dropped | Trailers MUST NOT include pseudo-header fields (Section 8.3). |
+| Lighttpd | 41 | error | dropped | Field names MUST be converted to lowercase when constructing an HTTP/2 message. |
+| Lighttpd | 42 | error | dropped | Field names MUST NOT contain control characters (0x00-0x1F) |
+| Lighttpd | 43 | error | dropped | Field names MUST NOT contain ASCII SP (0x20) |
+| Lighttpd | 44 | error | dropped | Field names MUST NOT contain DEL character (0x7F) |
+| Lighttpd | 45 | error | dropped | Field names MUST NOT contain high byte characters (0x80-0xFF) |
+| Lighttpd | 46 | error | dropped | With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a). |
+| Lighttpd | 47 | error | dropped | A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the start of the value) |
+| Lighttpd | 48 | error | dropped | A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the start of the value) |
+| Lighttpd | 49 | error | dropped | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| Lighttpd | 50 | error | dropped | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| Lighttpd | 51 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2) |
+| Lighttpd | 52 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2) |
+| Lighttpd | 53 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing keep-alive header field (RFC9113 Section 8.2.2) |
+| Lighttpd | 54 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2) |
+| Lighttpd | 55 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2) |
+| Lighttpd | 56 | error | dropped | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
+| Lighttpd | 57 | error | dropped | Pseudo-header fields are not HTTP header fields. Endpoints MUST NOT generate pseudo-header fields other than those defined in this document. |
+| Lighttpd | 59 | error | dropped | Pseudo-header fields defined for responses MUST NOT appear in requests. |
+| Lighttpd | 60 | error | dropped | All pseudo-header fields sent from a client MUST appear in a field block before all regular field lines. Any request or response that contains a pseudo-header field that appears in a field block after a regular field line MUST be treated as malformed (Section 8.1.1). |
+| Lighttpd | 62 | error | dropped | The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with the same value. |
+| Lighttpd | 63 | error | dropped | The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with different values. |
+| Lighttpd | 66 | error | dropped | Clients MUST NOT generate a request with a Host header field that differs from the ":authority" pseudo-header field. |
+| Lighttpd | 67 | error | dropped | ':authority' MUST NOT include the deprecated userinfo subcomponent for "http" or "https" schemed URIs. |
+| Lighttpd | 68 | error | dropped | The ":path" pseudo-header field MUST NOT be empty for "http" or "https" URIs; "http" or "https" URIs that do not contain a path component MUST include a value of '/'. |
+| Lighttpd | 69 | error | dropped | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :method missing) |
+| Lighttpd | 70 | error | dropped | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :scheme missing) |
+| Lighttpd | 74 | error | dropped | With the CONNECT method, the ":scheme" and ":path" pseudo-header fields MUST be omitted. (Tested with both present) |
+| Lighttpd | 97 | error | dropped | An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving the HEADERS frame that opens a request or after receiving a final (non-informational) status code MUST treat the corresponding request or response as malformed (Section 8.1.1). |
+| Lighttpd | 98 | error | dropped | A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the middle of the value) |
+| Lighttpd | 99 | error | dropped | A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value) |
+| Lighttpd | 100 | error | dropped | A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value) |
+| Lighttpd | 101 | error | dropped | A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value) |
+| Lighttpd | 102 | error | dropped | Pseudo-header fields MUST NOT appear in a trailer section. |
+| Lighttpd | 103 | error | dropped | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing) |

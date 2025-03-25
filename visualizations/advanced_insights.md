@@ -14,6 +14,8 @@
 | Cloudflare | 39.4% | 81.8% |
 | Mitmproxy | 3.2% | 36.4% |
 | Azure-AG | 35.1% | 100.0% |
+| Nginx | 40.3% | 100.0% |
+| Lighttpd | 42.9% | 100.0% |
 
 ## Frame Type Analysis
 
@@ -32,6 +34,8 @@
 | Cloudflare | 6 (66.7%) | 3 (33.3%) | 9 |
 | Mitmproxy | 0 (0.0%) | 9 (100.0%) | 9 |
 | Azure-AG | 4 (100.0%) | 0 (0.0%) | 4 |
+| Nginx | 4 (100.0%) | 0 (0.0%) | 4 |
+| Lighttpd | 4 (100.0%) | 0 (0.0%) | 4 |
 
 ### DATA Frame
 
@@ -47,6 +51,8 @@
 | Cloudflare | 16 (53.3%) | 14 (46.7%) | 30 |
 | Mitmproxy | 0 (0.0%) | 30 (100.0%) | 30 |
 | Azure-AG | 5 (35.7%) | 9 (64.3%) | 14 |
+| Nginx | 6 (42.9%) | 8 (57.1%) | 14 |
+| Lighttpd | 8 (57.1%) | 6 (42.9%) | 14 |
 
 ### HEADERS Frame
 
@@ -62,6 +68,8 @@
 | Cloudflare | 36 (35.0%) | 67 (65.0%) | 103 |
 | Mitmproxy | 1 (1.0%) | 102 (99.0%) | 103 |
 | Azure-AG | 18 (31.0%) | 40 (69.0%) | 58 |
+| Nginx | 19 (32.8%) | 39 (67.2%) | 58 |
+| Lighttpd | 16 (27.6%) | 42 (72.4%) | 58 |
 
 ### PING Frame
 
@@ -77,6 +85,8 @@
 | Cloudflare | 1 (50.0%) | 1 (50.0%) | 2 |
 | Mitmproxy | 0 (0.0%) | 2 (100.0%) | 2 |
 | Azure-AG | 0 (0.0%) | 1 (100.0%) | 1 |
+| Nginx | 1 (100.0%) | 0 (0.0%) | 1 |
+| Lighttpd | 1 (100.0%) | 0 (0.0%) | 1 |
 
 ### PRIORITY Frame
 
@@ -92,6 +102,8 @@
 | Cloudflare | 1 (50.0%) | 1 (50.0%) | 2 |
 | Mitmproxy | 0 (0.0%) | 2 (100.0%) | 2 |
 | Azure-AG | 1 (100.0%) | 0 (0.0%) | 1 |
+| Nginx | 1 (100.0%) | 0 (0.0%) | 1 |
+| Lighttpd | 1 (100.0%) | 0 (0.0%) | 1 |
 
 ### PUSH_PROMISE Frame
 
@@ -107,6 +119,8 @@
 | Cloudflare | 9 (64.3%) | 5 (35.7%) | 14 |
 | Mitmproxy | 0 (0.0%) | 14 (100.0%) | 14 |
 | Azure-AG | 2 (100.0%) | 0 (0.0%) | 2 |
+| Nginx | 2 (100.0%) | 0 (0.0%) | 2 |
+| Lighttpd | 2 (100.0%) | 0 (0.0%) | 2 |
 
 ### RST_STREAM Frame
 
@@ -122,6 +136,8 @@
 | Cloudflare | 6 (42.9%) | 8 (57.1%) | 14 |
 | Mitmproxy | 4 (28.6%) | 10 (71.4%) | 14 |
 | Azure-AG | 3 (50.0%) | 3 (50.0%) | 6 |
+| Nginx | 3 (50.0%) | 3 (50.0%) | 6 |
+| Lighttpd | 4 (66.7%) | 2 (33.3%) | 6 |
 
 ### SETTINGS Frame
 
@@ -137,6 +153,8 @@
 | Cloudflare | 8 (44.4%) | 10 (55.6%) | 18 |
 | Mitmproxy | 0 (0.0%) | 18 (100.0%) | 18 |
 | Azure-AG | 8 (88.9%) | 1 (11.1%) | 9 |
+| Nginx | 9 (100.0%) | 0 (0.0%) | 9 |
+| Lighttpd | 9 (100.0%) | 0 (0.0%) | 9 |
 
 ### TRAILERS Frame
 
@@ -152,6 +170,8 @@
 | Cloudflare | 2 (50.0%) | 2 (50.0%) | 4 |
 | Mitmproxy | 0 (0.0%) | 4 (100.0%) | 4 |
 | Azure-AG | 2 (100.0%) | 0 (0.0%) | 2 |
+| Nginx | 2 (100.0%) | 0 (0.0%) | 2 |
+| Lighttpd | 0 (0.0%) | 2 (100.0%) | 2 |
 
 ### UNKNOWN Frame
 
@@ -167,6 +187,8 @@
 | Cloudflare | 4 (100.0%) | 0 (0.0%) | 4 |
 | Mitmproxy | 4 (100.0%) | 0 (0.0%) | 4 |
 | Azure-AG | 2 (100.0%) | 0 (0.0%) | 2 |
+| Nginx | 2 (100.0%) | 0 (0.0%) | 2 |
+| Lighttpd | 2 (100.0%) | 0 (0.0%) | 2 |
 
 ### WINDOW_UPDATE Frame
 
@@ -182,6 +204,8 @@
 | Cloudflare | 1 (25.0%) | 3 (75.0%) | 4 |
 | Mitmproxy | 0 (0.0%) | 4 (100.0%) | 4 |
 | Azure-AG | 1 (50.0%) | 1 (50.0%) | 2 |
+| Nginx | 2 (100.0%) | 0 (0.0%) | 2 |
+| Lighttpd | 2 (100.0%) | 0 (0.0%) | 2 |
 
 ## Common Failure Patterns
 
@@ -189,11 +213,11 @@
 
 | Pattern | Percentage of Non-Conformant Tests | Count |
 |---------|-----------------------------------|-------|
-| MUST NOT violations | 55.1% | 419 |
-| MUST violations | 43.0% | 327 |
-| Header-related issues | 41.3% | 314 |
-| Frame-related issues | 37.5% | 285 |
-| Stream-related issues | 25.9% | 197 |
-| Pseudo-header issues | 24.2% | 184 |
+| MUST NOT violations | 56.2% | 478 |
+| MUST violations | 42.1% | 358 |
+| Header-related issues | 42.1% | 358 |
+| Frame-related issues | 36.4% | 309 |
+| Pseudo-header issues | 25.2% | 214 |
+| Stream-related issues | 24.7% | 210 |
 
-Total non-conformant tests analyzed: 760
+Total non-conformant tests analyzed: 850

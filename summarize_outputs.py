@@ -59,18 +59,26 @@ def analyze_results(filename):
         
         vars1 = worker1.get('Variables', {}) or {}
         vars2 = worker2.get('Variables', {}) or {}
+
+        if vars2.get('result', '').startswith('Received'):
+            is_received = True
+            message = vars2['result']
         
-        if vars1.get('client_result', '') == 'Test result: MODIFIED':
+        elif vars1.get('client_result', '') == 'Test result: MODIFIED':
             is_modified = True
+            message = vars1['client_result']
         elif vars1.get('client_result', '') == 'Test result: UNMODIFIED':
             is_unmodified = True
+            message = vars1['client_result']
 
-        if vars2.get('server_result', '') == 'Test result: MODIFIED':
+        elif vars2.get('server_result', '') == 'Test result: MODIFIED':
             is_modified = True
+            message = vars2['server_result']
         elif vars2.get('server_result', '') == 'Test result: UNMODIFIED':
             is_unmodified = True
+            message = vars2['server_result']
             
-        if worker1 and worker1.get('State', '') == 'GOAWAY_RECEIVED':
+        elif worker1 and worker1.get('State', '') == 'GOAWAY_RECEIVED':
             is_goaway = True
             message = vars1['msg'] if vars1.get('msg', '') else vars1['client_result']
         elif worker2 and worker2.get('State', '') == 'GOAWAY_RECEIVED':
@@ -1678,7 +1686,9 @@ def main():
         'H2O': {'scope': 'full'},
         'Cloudflare': {'scope': 'full'},
         'Mitmproxy': {'scope': 'full'},
-        'Azure-AG': {'scope': 'client-only'}
+        'Azure-AG': {'scope': 'client-only'},
+        'Nginx': {'scope': 'client-only'},
+        'Lighttpd': {'scope': 'client-only'}
     }
     
     results_dir = 'results'
