@@ -6,7 +6,7 @@
 |-------|----------------------|----------------------|
 | Nghttpx | 66.2% | 90.9% |
 | HAproxy | 72.7% | 36.4% |
-| Apache | 72.1% | 45.5% |
+| Apache | 72.7% | 45.5% |
 | Caddy | 63.0% | 27.3% |
 | Node | 50.6% | 90.9% |
 | Envoy | 54.5% | 45.5% |
@@ -43,7 +43,7 @@
 |-------|------------|----------------|-------------|
 | Nghttpx | 21 (70.0%) | 9 (30.0%) | 30 |
 | HAproxy | 20 (66.7%) | 10 (33.3%) | 30 |
-| Apache | 24 (80.0%) | 6 (20.0%) | 30 |
+| Apache | 25 (83.3%) | 5 (16.7%) | 30 |
 | Caddy | 19 (63.3%) | 11 (36.7%) | 30 |
 | Node | 18 (60.0%) | 12 (40.0%) | 30 |
 | Envoy | 18 (60.0%) | 12 (40.0%) | 30 |
@@ -60,7 +60,7 @@
 |-------|------------|----------------|-------------|
 | Nghttpx | 52 (51.0%) | 50 (49.0%) | 102 |
 | HAproxy | 60 (58.8%) | 42 (41.2%) | 102 |
-| Apache | 58 (56.9%) | 44 (43.1%) | 102 |
+| Apache | 59 (57.8%) | 43 (42.2%) | 102 |
 | Caddy | 43 (42.2%) | 59 (57.8%) | 102 |
 | Node | 35 (34.3%) | 67 (65.7%) | 102 |
 | Envoy | 45 (44.1%) | 57 (55.9%) | 102 |
@@ -213,11 +213,11 @@
 
 | Pattern | Percentage of Non-Conformant Tests | Count |
 |---------|-----------------------------------|-------|
-| MUST NOT violations | 56.2% | 478 |
-| MUST violations | 42.1% | 358 |
-| Header-related issues | 42.1% | 358 |
-| Frame-related issues | 36.4% | 309 |
+| MUST NOT violations | 56.3% | 478 |
+| Header-related issues | 42.2% | 358 |
+| MUST violations | 42.0% | 357 |
+| Frame-related issues | 36.3% | 308 |
 | Pseudo-header issues | 25.2% | 214 |
-| Stream-related issues | 24.7% | 210 |
+| Stream-related issues | 24.6% | 209 |
 
-Total non-conformant tests analyzed: 850
+Total non-conformant tests analyzed: 849

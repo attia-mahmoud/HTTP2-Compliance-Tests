@@ -6,7 +6,7 @@
 |-------|------------|----------------|-------------|
 | Nghttpx | 102 (61.8%) | 52 (31.5%) | 165 |
 | HAproxy | 112 (67.9%) | 42 (25.5%) | 165 |
-| Apache | 111 (67.3%) | 43 (26.1%) | 165 |
+| Apache | 112 (67.9%) | 42 (25.5%) | 165 |
 | Caddy | 97 (58.8%) | 57 (34.5%) | 165 |
 | Node | 78 (47.3%) | 76 (46.1%) | 165 |
 | Envoy | 84 (50.9%) | 70 (42.4%) | 165 |
@@ -114,9 +114,9 @@
 | HAproxy | 110 | ignore | received | A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving. (server side) |
 | HAproxy | 119 | ignore | 500 | An endpoint that receives a SETTINGS frame with any unknown or unsupported identifier MUST ignore that setting. |
 | HAproxy | 126 | error | received | Trailers MUST NOT include pseudo-header fields (Section 8.3). |
-| HAproxy | 135 | error | received | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
-| HAproxy | 136 | error | received | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
-| HAproxy | 142 | error | received | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
+| HAproxy | 135 | error | dropped | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| HAproxy | 136 | error | unmodified | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| HAproxy | 142 | error | unmodified | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
 | HAproxy | 144 | error | dropped | An endpoint MUST NOT send frames other than PRIORITY on a closed stream. |
 | HAproxy | 147 | ignore | 500 | Implementations MUST discard frames that have unknown or unsupported types. |
 | HAproxy | 151 | error | received | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.) |
@@ -169,7 +169,6 @@
 | Apache | 119 | ignore | 500 | An endpoint that receives a SETTINGS frame with any unknown or unsupported identifier MUST ignore that setting. |
 | Apache | 144 | error | dropped | An endpoint MUST NOT send frames other than PRIORITY on a closed stream. |
 | Apache | 147 | ignore | 500 | Implementations MUST discard frames that have unknown or unsupported types. |
-| Apache | 151 | error | received | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.) |
 | Apache | 155 | ignore | 500 | Unsupported settings MUST be ignored. |
 | Apache | 156 | error | dropped | The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver. |
 | Caddy | 3 | error | dropped | the connection preface starts with the string: PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n |
@@ -221,14 +220,14 @@
 | Caddy | 119 | ignore | 500 | An endpoint that receives a SETTINGS frame with any unknown or unsupported identifier MUST ignore that setting. |
 | Caddy | 125 | error | dropped | A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using HEADERS frame with END_HEADERS flag set) |
 | Caddy | 126 | error | dropped | Trailers MUST NOT include pseudo-header fields (Section 8.3). |
-| Caddy | 135 | error | received | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
-| Caddy | 136 | error | received | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
-| Caddy | 137 | error | received | An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2) |
-| Caddy | 138 | error | received | An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2) |
-| Caddy | 139 | error | received | An endpoint MUST NOT generate an HTTP/2 message containing keep-alive header field (RFC9113 Section 8.2.2) |
-| Caddy | 140 | error | received | An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2) |
-| Caddy | 141 | error | received | An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2) |
-| Caddy | 142 | error | received | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
+| Caddy | 135 | error | unmodified | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| Caddy | 136 | error | unmodified | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| Caddy | 137 | error | modified | An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2) |
+| Caddy | 138 | error | modified | An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2) |
+| Caddy | 139 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing keep-alive header field (RFC9113 Section 8.2.2) |
+| Caddy | 140 | error | modified | An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2) |
+| Caddy | 141 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2) |
+| Caddy | 142 | error | modified | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
 | Caddy | 144 | error | dropped | An endpoint MUST NOT send frames other than PRIORITY on a closed stream. |
 | Caddy | 147 | ignore | 500 | Implementations MUST discard frames that have unknown or unsupported types. |
 | Caddy | 149 | error | dropped | If a DATA frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR. |

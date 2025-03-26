@@ -2520,8 +2520,8 @@
         "Variables": {
           "client_result": "Successfully received all 1/1 frames.",
           "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('date', 'Sat, 08 Mar 2025 04:08:26 GMT'), ('server', 'Caddy'), ('server', 'nopasaran-http2-server')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('date', 'Wed, 26 Mar 2025 11:39:43 GMT'), ('server', 'Caddy'), ('server', 'nopasaran-http2-server')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       },
       "Worker_2": {
@@ -2529,7 +2529,7 @@
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
           "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.133'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('x-forwarded-host', '192.168.122.133'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('accept-encoding', 'gzip')]>]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.6'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('x-forwarded-host', '192.168.122.6'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('accept-encoding', 'gzip')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'reserved_bit': True}]"
         }
       }
@@ -3082,22 +3082,22 @@
   "135": {
     "description": "A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).",
     "result": {
-      "Worker_1": {
-        "State": "FINAL",
-        "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('x-leading-space', ' value'), ('date', 'Sat, 08 Mar 2025 04:17:16 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
-        }
-      },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.133'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('x-forwarded-host', '192.168.122.133'), ('accept-encoding', 'gzip')]>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-leading-space': ' value'}}]"
+          "client_result": "Test result: UNMODIFIED",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.6'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('x-forwarded-host', '192.168.122.6'), ('accept-encoding', 'gzip')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-leading-space': ' value'}, 'test': {'function': 'check_header_field', 'params': {'name': 'x-leading-space', 'value': ' value'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "client_result": "Test result: UNMODIFIED",
+          "server_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('x-leading-space', ' value'), ('date', 'Wed, 26 Mar 2025 11:40:02 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       }
     }
@@ -3109,18 +3109,18 @@
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.133'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('x-forwarded-host', '192.168.122.133'), ('accept-encoding', 'gzip')]>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-trailing-space': 'value '}}]"
+          "client_result": "Test result: UNMODIFIED",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.6'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('x-forwarded-host', '192.168.122.6'), ('accept-encoding', 'gzip')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-trailing-space': 'value '}, 'test': {'function': 'check_header_field', 'params': {'name': 'x-trailing-space', 'value': 'value '}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
         }
       },
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: UNMODIFIED",
           "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('x-trailing-space', 'value '), ('date', 'Sat, 08 Mar 2025 12:53:29 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('x-trailing-space', 'value '), ('date', 'Wed, 26 Mar 2025 11:40:20 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       }
     }
@@ -3132,18 +3132,18 @@
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.133'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('x-forwarded-host', '192.168.122.133'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('accept-encoding', 'gzip')]>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'connection': 'keep-alive'}}]"
+          "client_result": "Test result: MODIFIED",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.6'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('x-forwarded-host', '192.168.122.6'), ('accept-encoding', 'gzip')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'connection': 'keep-alive'}, 'test': {'function': 'check_header_field', 'params': {'name': 'connection'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
         }
       },
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
+        "State": "FINAL",
         "Variables": {
-          "result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('date', 'Sat, 08 Mar 2025 12:53:50 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]",
-          "msg": "Server_Received_Error_From_Proxy"
+          "client_result": "Test result: MODIFIED",
+          "server_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('date', 'Wed, 26 Mar 2025 11:41:18 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       }
     }
@@ -3151,22 +3151,22 @@
   "138": {
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2)",
     "result": {
-      "Worker_1": {
-        "State": "FINAL",
-        "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('date', 'Sat, 08 Mar 2025 04:18:25 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
-        }
-      },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.133'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('x-forwarded-host', '192.168.122.133'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('accept-encoding', 'gzip')]>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'proxy-connection': 'keep-alive'}}]"
+          "client_result": "Test result: MODIFIED",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.6'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('x-forwarded-host', '192.168.122.6'), ('accept-encoding', 'gzip')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'proxy-connection': 'keep-alive'}, 'test': {'function': 'check_header_field', 'params': {'name': 'proxy-connection'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "client_result": "Test result: MODIFIED",
+          "server_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('date', 'Wed, 26 Mar 2025 11:41:37 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       }
     }
@@ -3178,18 +3178,18 @@
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.133'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('x-forwarded-host', '192.168.122.133'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('accept-encoding', 'gzip')]>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'keep-alive': 'timeout=5'}}]"
+          "client_result": "Test result: MODIFIED",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.6'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('x-forwarded-host', '192.168.122.6'), ('user-agent', 'nopasaran-http2-client'), ('accept-encoding', 'gzip')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'keep-alive': 'timeout=5'}, 'test': {'function': 'check_header_field', 'params': {'name': 'keep-alive'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
         }
       },
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('date', 'Sat, 08 Mar 2025 12:54:17 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
+          "result": "Test result: MODIFIED",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('date', 'Wed, 26 Mar 2025 11:42:26 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
+          "msg": "Server_Received_Error_From_Proxy"
         }
       }
     }
@@ -3201,18 +3201,18 @@
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.133'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('x-forwarded-host', '192.168.122.133'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('accept-encoding', 'gzip')]>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'transfer-encoding': 'chunked'}}]"
+          "client_result": "Test result: MODIFIED",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.6'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('x-forwarded-host', '192.168.122.6'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('accept-encoding', 'gzip')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'transfer-encoding': 'chunked'}, 'test': {'function': 'check_header_field', 'params': {'name': 'transfer-encoding'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
         }
       },
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
           "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('date', 'Sat, 08 Mar 2025 12:54:37 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('date', 'Wed, 26 Mar 2025 11:43:20 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       }
     }
@@ -3220,22 +3220,22 @@
   "141": {
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2)",
     "result": {
-      "Worker_1": {
-        "State": "FINAL",
-        "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('date', 'Sat, 08 Mar 2025 12:54:59 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
-        }
-      },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.133'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('x-forwarded-host', '192.168.122.133'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('accept-encoding', 'gzip')]>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'upgrade': 'h2c'}}]"
+          "client_result": "Test result: MODIFIED",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.6'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('x-forwarded-host', '192.168.122.6'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('accept-encoding', 'gzip')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'upgrade': 'h2c'}, 'test': {'function': 'check_header_field', 'params': {'name': 'upgrade'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Test result: MODIFIED",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('date', 'Wed, 26 Mar 2025 11:44:08 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
+          "msg": "Server_Received_Error_From_Proxy"
         }
       }
     }
@@ -3243,22 +3243,22 @@
   "142": {
     "description": "The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'.",
     "result": {
-      "Worker_1": {
-        "State": "FINAL",
-        "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('date', 'Sat, 08 Mar 2025 04:19:46 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
-        }
-      },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.133'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('x-forwarded-host', '192.168.122.133'), ('accept-encoding', 'gzip')]>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'te': 'gzip'}}]"
+          "client_result": "Test result: MODIFIED",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':authority', '192.168.122.6'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-proto', 'http'), ('x-forwarded-host', '192.168.122.6'), ('accept-encoding', 'gzip')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'te': 'gzip'}, 'test': {'function': 'check_header_field', 'params': {'name': 'te', 'value': 'gzip'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "client_result": "Test result: MODIFIED",
+          "server_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('server', 'Caddy'), ('date', 'Wed, 26 Mar 2025 11:44:44 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       }
     }

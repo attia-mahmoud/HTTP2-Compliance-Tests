@@ -1,6 +1,6 @@
 4
 Client preface must include a SETTINGS frame
-Received: Cloudflare
+Received modified: Cloudflare
 
 8
 Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE
@@ -85,13 +85,3 @@ Received unmodified: HAProxy
 165
 Pseudo-header fields MUST NOT appear in a trailer section.
 Received: HAProxy
-
-
-
-
-
-
-
-
-
-

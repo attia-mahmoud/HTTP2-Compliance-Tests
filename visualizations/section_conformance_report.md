@@ -103,7 +103,7 @@
 |-------|------------|----------------|-------------|
 | Nghttpx | 27 (77.1%) | 8 (22.9%) | 35 |
 | HAproxy | 28 (80.0%) | 7 (20.0%) | 35 |
-| Apache | 29 (82.9%) | 6 (17.1%) | 35 |
+| Apache | 30 (85.7%) | 5 (14.3%) | 35 |
 | Caddy | 27 (77.1%) | 8 (22.9%) | 35 |
 | Node | 27 (77.1%) | 8 (22.9%) | 35 |
 | Envoy | 18 (51.4%) | 17 (48.6%) | 35 |
@@ -138,7 +138,6 @@
 | Apache | 76 | error | dropped | An endpoint MUST NOT send frames other than PRIORITY on a closed stream. |
 | Apache | 84 | error | dropped | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.) |
 | Apache | 144 | error | dropped | An endpoint MUST NOT send frames other than PRIORITY on a closed stream. |
-| Apache | 151 | error | received | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.) |
 | Caddy | 7 | error | dropped | If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. |
 | Caddy | 14 | error | dropped | An endpoint MUST NOT send a RST_STREAM in response to a RST_STREAM frame |
 | Caddy | 16 | error | dropped | After receiving a RST_STREAM on a stream, the receiver MUST NOT send additional frames for that stream, except for PRIORITY |
@@ -512,9 +511,9 @@
 | HAproxy | 102 | error | dropped | Pseudo-header fields MUST NOT appear in a trailer section. |
 | HAproxy | 103 | error | dropped | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing) |
 | HAproxy | 126 | error | received | Trailers MUST NOT include pseudo-header fields (Section 8.3). |
-| HAproxy | 135 | error | received | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
-| HAproxy | 136 | error | received | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
-| HAproxy | 142 | error | received | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
+| HAproxy | 135 | error | dropped | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| HAproxy | 136 | error | unmodified | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| HAproxy | 142 | error | unmodified | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
 | HAproxy | 165 | error | received | Pseudo-header fields MUST NOT appear in a trailer section. |
 | Apache | 31 | error | dropped | With the CONNECT method, the " :scheme" and " :path" pseudo-header fields MUST be omitted. (Tested with only :path present) |
 | Apache | 32 | error | dropped | With the CONNECT method, the " :scheme" and " :path" pseudo-header fields MUST be omitted. (Tested with only :scheme present) |
@@ -586,14 +585,14 @@
 | Caddy | 102 | error | dropped | Pseudo-header fields MUST NOT appear in a trailer section. |
 | Caddy | 103 | error | dropped | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing) |
 | Caddy | 126 | error | dropped | Trailers MUST NOT include pseudo-header fields (Section 8.3). |
-| Caddy | 135 | error | received | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
-| Caddy | 136 | error | received | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
-| Caddy | 137 | error | received | An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2) |
-| Caddy | 138 | error | received | An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2) |
-| Caddy | 139 | error | received | An endpoint MUST NOT generate an HTTP/2 message containing keep-alive header field (RFC9113 Section 8.2.2) |
-| Caddy | 140 | error | received | An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2) |
-| Caddy | 141 | error | received | An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2) |
-| Caddy | 142 | error | received | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
+| Caddy | 135 | error | unmodified | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| Caddy | 136 | error | unmodified | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). |
+| Caddy | 137 | error | modified | An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2) |
+| Caddy | 138 | error | modified | An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2) |
+| Caddy | 139 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing keep-alive header field (RFC9113 Section 8.2.2) |
+| Caddy | 140 | error | modified | An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2) |
+| Caddy | 141 | error | dropped | An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2) |
+| Caddy | 142 | error | modified | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. |
 | Caddy | 160 | error | dropped | An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving the HEADERS frame that opens a request or after receiving a final (non-informational) status code MUST treat the corresponding request or response as malformed (Section 8.1.1). |
 | Caddy | 165 | error | dropped | Pseudo-header fields MUST NOT appear in a trailer section. |
 | Node | 31 | error | dropped | With the CONNECT method, the " :scheme" and " :path" pseudo-header fields MUST be omitted. (Tested with only :path present) |

@@ -3418,22 +3418,20 @@
   "151": {
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)",
     "result": {
-      "Worker_1": {
-        "State": "FINAL",
+      "Worker_2": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER",
         "Variables": {
-          "client_result": "Successfully received all 2/2 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'nopasaran-http2-server'), ('date', 'Sat, 08 Mar 2025 03:21:19 GMT'), ('vary', 'Accept-Encoding')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
+          "result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':scheme', 'http'), (':authority', '192.168.122.6'), (':path', '/test-frame'), (':method', 'GET'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('te', 'trailers'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-host', '192.168.122.6'), ('x-forwarded-server', '192.168.122.133')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': True}}, {'type': 'DATA'}]",
+          "msg": "Client_Failed_To_Receive_All_Frames"
         }
       },
-      "Worker_2": {
-        "State": "FINAL",
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 2/2 frames.",
-          "frames_received": "[<RequestReceived stream_id:1, headers:[(':scheme', 'http'), (':authority', '192.168.122.133'), (':path', '/test-frame'), (':method', 'GET'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('te', 'trailers'), ('x-forwarded-for', '192.168.122.148'), ('x-forwarded-host', '192.168.122.133'), ('x-forwarded-server', '192.168.122.133')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA'}]"
+          "client_result": "Peer terminated connection after receiving 1/2 frames. Got error code 0.",
+          "frames_received": "[<ConnectionTerminated error_code:0, last_stream_id:1, additional_data:74696d656f7574>]"
         }
       }
     }
