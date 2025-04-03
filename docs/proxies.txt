@@ -1,8 +1,10 @@
-apache | 2.4.62 (latest)
-caddy | 2.9.1 (latest)
-envoy | 1.32.2 (latest)
-h2o | 2.3.0 (tls enabled) (latest)
-haproxy | 2.4.22 -> 3.1
-mitmproxy | 6.0.2 (tls enabled) -> 11.1.3
-nghttpx | 1.43.0 -> 1.65
-node | 20.16.0 -> 23.10.0	
+apache | 2.4.62
+caddy | 2.9.1
+envoy | 1.32.2
+h2o | 2.3.0 (tls enabled)
+haproxy | 2.9.10 -> 3.1
+mitmproxy | 11.1.0
+nghttpx | 1.62.1
+node | 20.16.0 -> 23.10.0
+lighttpd | 1.4.76
+nginx | 1.26.0
