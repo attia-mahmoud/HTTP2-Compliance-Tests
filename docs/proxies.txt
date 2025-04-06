@@ -1,10 +1,14 @@
-apache | 2.4.62
-caddy | 2.9.1
-envoy | 1.32.2
-h2o | 2.3.0 (tls enabled)
-haproxy | 2.9.10 -> 3.1
-mitmproxy | 11.1.0
-nghttpx | 1.62.1
-node | 20.16.0 -> 23.10.0
-lighttpd | 1.4.76
-nginx | 1.26.0
+proxy | version | Release Date | Protocol | with TLS
+
+apache | 2.4.62 | Jul 17, 2024 | H2EE | 
+caddy | 2.9.1 | Jan 08, 2025 | H2EE | 
+envoy | 1.32.2 | Dec 08, 2024 | H2EE | 
+h2o | 2.3.0  | Aug 13, 2019 | H2EE | True
+haproxy | 2.9.10 | Sep 03, 2024 | H2EE | 
+mitmproxy | 11.1.0 | Jan 12, 2025 | H2EE | True
+nghttpx | 1.62.1 | May 19, 2024 | H2EE | 
+node | 20.16.0 | Mar 13, 2025 | H2EE | 
+Cloudflare | N/A | N/A | H2EE | True
+lighttpd | 1.4.76 | Apr 12, 2024 | H2H1 | True
+nginx | 1.26.0 | Apr 23, 2024 | H2H1 | True
+Azure AG | N/A | N/A | H2H1 | True
