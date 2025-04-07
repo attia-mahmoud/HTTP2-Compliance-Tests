@@ -4,7 +4,7 @@
 
 | Proxy | Discrepancy Rate |
 |-------|------------------|
-| Caddy | 87.5% |
+| Caddy | 90.6% |
 | Cloudflare | 81.2% |
 | Envoy | 71.9% |
 | Apache | 48.4% |
@@ -21,12 +21,12 @@
 | Nghttpx | dropped→reset | 24 | 85.7% |
 | HAproxy | dropped→500 | 20 | 66.7% |
 | Apache | dropped→500 | 26 | 83.9% |
-| Caddy | goaway→500 | 22 | 39.3% |
+| Caddy | goaway→500 | 22 | 37.9% |
 | Node | dropped→500 | 11 | 39.3% |
 | Envoy | dropped→500 | 37 | 80.4% |
 | H2O | goaway→dropped | 21 | 75.0% |
 | Cloudflare | dropped→500 | 35 | 67.3% |
-| Mitmproxy | received→dropped | 2 | 50.0% |
+| Mitmproxy | other→dropped | 2 | 50.0% |
 
 ## Detailed Discrepancies
 
@@ -38,17 +38,17 @@
 | HAproxy | C7/S107 | dropped | 500 | dropped→500 |
 | Caddy | C7/S107 | dropped | 500 | dropped→500 |
 | H2O | C8/S108 | goaway | dropped | goaway→dropped |
-| Cloudflare | C8/S108 | received | 500 | received→500 |
+| Cloudflare | C8/S108 | other | 500 | other→500 |
 | HAproxy | C9/S109 | dropped | 500 | dropped→500 |
 | Apache | C9/S109 | dropped | 500 | dropped→500 |
 | Caddy | C9/S109 | dropped | 500 | dropped→500 |
 | Envoy | C9/S109 | dropped | 500 | dropped→500 |
-| Nghttpx | C10/S110 | dropped | received | dropped→received |
-| HAproxy | C10/S110 | 500 | received | 500→received |
-| Caddy | C10/S110 | 500 | received | 500→received |
-| Node | C10/S110 | dropped | received | dropped→received |
-| Envoy | C10/S110 | 500 | received | 500→received |
-| Cloudflare | C10/S110 | dropped | received | dropped→received |
+| Nghttpx | C10/S110 | dropped | other | dropped→other |
+| HAproxy | C10/S110 | 500 | other | 500→other |
+| Caddy | C10/S110 | 500 | other | 500→other |
+| Node | C10/S110 | dropped | other | dropped→other |
+| Envoy | C10/S110 | 500 | other | 500→other |
+| Cloudflare | C10/S110 | dropped | other | dropped→other |
 | Nghttpx | C15/S111 | goaway | dropped | goaway→dropped |
 | Caddy | C15/S111 | goaway | 500 | goaway→500 |
 | Envoy | C15/S111 | dropped | 500 | dropped→500 |
@@ -72,7 +72,7 @@
 | Cloudflare | C21/S116 | dropped | 500 | dropped→500 |
 | Caddy | C25/S117 | goaway | 500 | goaway→500 |
 | Envoy | C25/S117 | dropped | 500 | dropped→500 |
-| Mitmproxy | C25/S117 | received | dropped | received→dropped |
+| Mitmproxy | C25/S117 | other | dropped | other→dropped |
 | Caddy | C26/S118 | goaway | 500 | goaway→500 |
 | Envoy | C26/S118 | dropped | 500 | dropped→500 |
 | Cloudflare | C26/S118 | dropped | 500 | dropped→500 |
@@ -92,7 +92,7 @@
 | Node | C34/S122 | goaway | dropped | goaway→dropped |
 | Envoy | C34/S122 | dropped | 500 | dropped→500 |
 | Cloudflare | C35/S123 | dropped | 500 | dropped→500 |
-| Mitmproxy | C35/S123 | received | dropped | received→dropped |
+| Mitmproxy | C35/S123 | other | dropped | other→dropped |
 | Caddy | C36/S124 | goaway | 500 | goaway→500 |
 | H2O | C36/S124 | goaway | dropped | goaway→dropped |
 | Cloudflare | C36/S124 | goaway | dropped | goaway→dropped |
@@ -100,10 +100,10 @@
 | Node | C37/S125 | goaway | dropped | goaway→dropped |
 | Envoy | C37/S125 | goaway | dropped | goaway→dropped |
 | Cloudflare | C37/S125 | dropped | reset | dropped→reset |
-| HAproxy | C40/S126 | dropped | received | dropped→received |
+| HAproxy | C40/S126 | dropped | other | dropped→other |
 | Apache | C40/S126 | dropped | goaway | dropped→goaway |
 | H2O | C40/S126 | goaway | dropped | goaway→dropped |
-| Cloudflare | C40/S126 | goaway | received | goaway→received |
+| Cloudflare | C40/S126 | goaway | other | goaway→other |
 | Nghttpx | C41/S127 | dropped | reset | dropped→reset |
 | HAproxy | C41/S127 | dropped | 500 | dropped→500 |
 | Apache | C41/S127 | dropped | 500 | dropped→500 |
@@ -116,13 +116,13 @@
 | HAproxy | C42/S128 | goaway | 500 | goaway→500 |
 | Apache | C42/S128 | dropped | 500 | dropped→500 |
 | Caddy | C42/S128 | dropped | 500 | dropped→500 |
-| Node | C42/S128 | dropped | received | dropped→received |
+| Node | C42/S128 | dropped | other | dropped→other |
 | Envoy | C42/S128 | dropped | 500 | dropped→500 |
 | Nghttpx | C43/S129 | dropped | reset | dropped→reset |
 | HAproxy | C43/S129 | dropped | 500 | dropped→500 |
 | Apache | C43/S129 | dropped | 500 | dropped→500 |
 | Caddy | C43/S129 | dropped | 500 | dropped→500 |
-| Node | C43/S129 | dropped | received | dropped→received |
+| Node | C43/S129 | dropped | other | dropped→other |
 | Envoy | C43/S129 | dropped | 500 | dropped→500 |
 | Cloudflare | C43/S129 | dropped | 500 | dropped→500 |
 | Nghttpx | C44/S130 | dropped | reset | dropped→reset |
@@ -134,38 +134,38 @@
 | HAproxy | C45/S131 | dropped | 500 | dropped→500 |
 | Apache | C45/S131 | dropped | 500 | dropped→500 |
 | Caddy | C45/S131 | dropped | 500 | dropped→500 |
-| Node | C45/S131 | dropped | received | dropped→received |
+| Node | C45/S131 | dropped | other | dropped→other |
 | Envoy | C45/S131 | dropped | 500 | dropped→500 |
 | Cloudflare | C45/S131 | dropped | 500 | dropped→500 |
 | Nghttpx | C46/S132 | dropped | reset | dropped→reset |
 | HAproxy | C46/S132 | dropped | 500 | dropped→500 |
 | Apache | C46/S132 | dropped | 500 | dropped→500 |
 | Caddy | C46/S132 | dropped | 500 | dropped→500 |
-| Node | C46/S132 | dropped | received | dropped→received |
+| Node | C46/S132 | dropped | other | dropped→other |
 | Envoy | C46/S132 | dropped | 500 | dropped→500 |
 | Nghttpx | C47/S133 | dropped | reset | dropped→reset |
 | Apache | C47/S133 | dropped | 500 | dropped→500 |
 | Caddy | C47/S133 | dropped | 500 | dropped→500 |
-| Node | C47/S133 | dropped | received | dropped→received |
+| Node | C47/S133 | dropped | other | dropped→other |
 | Envoy | C47/S133 | dropped | 500 | dropped→500 |
 | Cloudflare | C47/S133 | dropped | 500 | dropped→500 |
 | Nghttpx | C48/S134 | dropped | reset | dropped→reset |
 | Apache | C48/S134 | dropped | 500 | dropped→500 |
 | Caddy | C48/S134 | dropped | 500 | dropped→500 |
-| Node | C48/S134 | dropped | received | dropped→received |
+| Node | C48/S134 | dropped | other | dropped→other |
 | Envoy | C48/S134 | dropped | 500 | dropped→500 |
 | Cloudflare | C48/S134 | dropped | 500 | dropped→500 |
 | Nghttpx | C49/S135 | dropped | reset | dropped→reset |
-| HAproxy | C49/S135 | 500 | dropped | 500→dropped |
+| HAproxy | C49/S135 | 500 | other | 500→other |
 | Caddy | C49/S135 | 500 | other | 500→other |
-| Node | C49/S135 | dropped | received | dropped→received |
-| Envoy | C49/S135 | 500 | received | 500→received |
+| Node | C49/S135 | dropped | other | dropped→other |
+| Envoy | C49/S135 | 500 | other | 500→other |
 | Cloudflare | C49/S135 | dropped | other | dropped→other |
 | Nghttpx | C50/S136 | dropped | reset | dropped→reset |
 | HAproxy | C50/S136 | 500 | other | 500→other |
 | Caddy | C50/S136 | 500 | other | 500→other |
-| Node | C50/S136 | dropped | received | dropped→received |
-| Envoy | C50/S136 | 500 | received | 500→received |
+| Node | C50/S136 | dropped | other | dropped→other |
+| Envoy | C50/S136 | 500 | other | 500→other |
 | Cloudflare | C50/S136 | dropped | reset | dropped→reset |
 | Nghttpx | C51/S137 | dropped | reset | dropped→reset |
 | HAproxy | C51/S137 | dropped | 500 | dropped→500 |
@@ -185,6 +185,7 @@
 | Nghttpx | C53/S139 | dropped | reset | dropped→reset |
 | HAproxy | C53/S139 | dropped | 500 | dropped→500 |
 | Apache | C53/S139 | dropped | 500 | dropped→500 |
+| Caddy | C53/S139 | dropped | other | dropped→other |
 | Node | C53/S139 | dropped | 500 | dropped→500 |
 | Envoy | C53/S139 | dropped | 500 | dropped→500 |
 | Cloudflare | C53/S139 | dropped | 500 | dropped→500 |
@@ -199,6 +200,7 @@
 | Nghttpx | C55/S141 | dropped | reset | dropped→reset |
 | HAproxy | C55/S141 | dropped | 500 | dropped→500 |
 | Apache | C55/S141 | dropped | 500 | dropped→500 |
+| Caddy | C55/S141 | dropped | other | dropped→other |
 | Node | C55/S141 | dropped | 500 | dropped→500 |
 | Envoy | C55/S141 | dropped | 500 | dropped→500 |
 | H2O | C55/S141 | goaway | dropped | goaway→dropped |
@@ -274,12 +276,12 @@
 | Caddy | C82/S150 | goaway | 500 | goaway→500 |
 | Envoy | C82/S150 | goaway | dropped | goaway→dropped |
 | Cloudflare | C82/S150 | dropped | 500 | dropped→500 |
-| Nghttpx | C83/S151 | goaway | received | goaway→received |
-| HAproxy | C83/S151 | dropped | received | dropped→received |
-| Caddy | C83/S151 | dropped | received | dropped→received |
-| Node | C83/S151 | goaway | received | goaway→received |
-| Envoy | C83/S151 | goaway | received | goaway→received |
-| Cloudflare | C83/S151 | dropped | received | dropped→received |
+| Nghttpx | C83/S151 | goaway | other | goaway→other |
+| HAproxy | C83/S151 | dropped | other | dropped→other |
+| Caddy | C83/S151 | dropped | other | dropped→other |
+| Node | C83/S151 | goaway | other | goaway→other |
+| Envoy | C83/S151 | goaway | other | goaway→other |
+| Cloudflare | C83/S151 | dropped | other | dropped→other |
 | HAproxy | C84/S152 | dropped | 500 | dropped→500 |
 | Apache | C84/S152 | dropped | goaway | dropped→goaway |
 | Caddy | C84/S152 | dropped | 500 | dropped→500 |
@@ -332,6 +334,6 @@
 | Envoy | C101/S164 | dropped | 500 | dropped→500 |
 | H2O | C101/S164 | dropped | 500 | dropped→500 |
 | Cloudflare | C101/S164 | dropped | 500 | dropped→500 |
-| HAproxy | C102/S165 | dropped | received | dropped→received |
+| HAproxy | C102/S165 | dropped | other | dropped→other |
 | Apache | C102/S165 | dropped | goaway | dropped→goaway |
 | Cloudflare | C102/S165 | goaway | dropped | goaway→dropped |

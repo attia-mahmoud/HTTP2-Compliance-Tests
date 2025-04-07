@@ -3297,22 +3297,22 @@
   "135": {
     "description": "A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).",
     "result": {
-      "Worker_1": {
-        "State": "FINAL",
-        "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('x-leading-space', ' value'), ('date', 'Sat, 08 Mar 2025 19:47:05 GMT'), ('server', 'envoy')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
-        }
-      },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':path', '/test-frame'), (':authority', '192.168.122.133'), (':scheme', 'http'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-proto', 'http'), ('x-request-id', '02f0ca26-e11a-4e22-ba3b-2be682ca49c6'), ('x-envoy-expected-rq-timeout-ms', '15000')]>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-leading-space': ' value'}}]"
+          "client_result": "Test result: UNMODIFIED",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':path', '/test-frame'), (':authority', '192.168.122.6'), (':scheme', 'http'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-proto', 'http'), ('x-request-id', '58e60004-a58c-4c8f-b5d4-1ffe931bf94a'), ('x-envoy-expected-rq-timeout-ms', '15000')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-leading-space': ' value'}, 'test': {'function': 'check_header_field', 'params': {'name': 'x-leading-space', 'value': ' value'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Test result: UNMODIFIED",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('x-leading-space', ' value'), ('x-envoy-upstream-service-time', '93'), ('date', 'Sun, 06 Apr 2025 12:39:30 GMT'), ('server', 'envoy')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
+          "msg": "Server_Received_Error_From_Proxy"
         }
       }
     }
@@ -3320,22 +3320,22 @@
   "136": {
     "description": "A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).",
     "result": {
-      "Worker_1": {
-        "State": "FINAL",
-        "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('x-trailing-space', 'value '), ('date', 'Sat, 08 Mar 2025 19:47:29 GMT'), ('server', 'envoy')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
-        }
-      },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':path', '/test-frame'), (':authority', '192.168.122.133'), (':scheme', 'http'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-proto', 'http'), ('x-request-id', '21abf210-ff34-4da1-b5e2-405c967ccc42'), ('x-envoy-expected-rq-timeout-ms', '15000')]>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-trailing-space': 'value '}}]"
+          "client_result": "Test result: UNMODIFIED",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':path', '/test-frame'), (':authority', '192.168.122.6'), (':scheme', 'http'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-forwarded-proto', 'http'), ('x-request-id', '9e590cec-b5dd-4543-8bad-7bbf30f3d025'), ('x-envoy-expected-rq-timeout-ms', '15000')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-trailing-space': 'value '}, 'test': {'function': 'check_header_field', 'params': {'name': 'x-trailing-space', 'value': 'value '}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "client_result": "Test result: UNMODIFIED",
+          "server_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('x-trailing-space', 'value '), ('x-envoy-upstream-service-time', '96'), ('date', 'Sun, 06 Apr 2025 12:39:50 GMT'), ('server', 'envoy')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       }
     }

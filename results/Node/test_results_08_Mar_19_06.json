@@ -2993,12 +2993,12 @@
         }
       },
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'nopasaran-http2-server'), ('date', 'Sat, 08 Mar 2025 17:04:51 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
+          "result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'nopasaran-http2-server'), ('date', 'Sun, 06 Apr 2025 08:17:58 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
+          "msg": "Server_Received_Error_From_Proxy"
         }
       }
     }
@@ -3566,22 +3566,22 @@
   "128": {
     "description": "Field names MUST NOT contain control characters (0x00-0x1F)",
     "result": {
-      "Worker_1": {
-        "State": "FINAL",
-        "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sat, 08 Mar 2025 17:16:05 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
-        }
-      },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
           "frames_received": "[<RemoteSettingsChanged changed_settings:{}>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x\\x08y': 'backspace'}}]"
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x\\x08y': 'backspace'}, 'test': {'function': 'check_header_field', 'params': {'name': 'x\\\\x08y'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Test result: MODIFIED",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sun, 06 Apr 2025 08:18:18 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
+          "msg": "Server_Received_Error_From_Proxy"
         }
       }
     }
@@ -3589,22 +3589,22 @@
   "129": {
     "description": "Field names MUST NOT contain ASCII SP (0x20)",
     "result": {
-      "Worker_1": {
-        "State": "FINAL",
-        "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sat, 08 Mar 2025 17:16:26 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
-        }
-      },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
           "frames_received": "[<RemoteSettingsChanged changed_settings:{}>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'content type': 'text/html; charset=UTF-8'}}]"
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'content type': 'text/html; charset=UTF-8'}, 'test': {'function': 'check_header_field', 'params': {'name': 'content type'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "client_result": "Test result: MODIFIED",
+          "server_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sun, 06 Apr 2025 08:18:37 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       }
     }
@@ -3643,17 +3643,17 @@
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
           "frames_received": "[<RemoteSettingsChanged changed_settings:{}>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x\u00a8y': 'diaeresis'}}]"
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x\u00a8y': 'diaeresis'}, 'test': {'function': 'check_header_field', 'params': {'name': 'x\u00a8y'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
         }
       },
       "Worker_1": {
         "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sat, 08 Mar 2025 17:17:50 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]",
+          "result": "Test result: MODIFIED",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sun, 06 Apr 2025 08:18:52 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
           "msg": "Server_Received_Error_From_Proxy"
         }
       }
@@ -3662,22 +3662,22 @@
   "132": {
     "description": "With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a).",
     "result": {
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "client_result": "Test result: MODIFIED",
+          "server_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sun, 06 Apr 2025 08:19:13 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
+        }
+      },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
           "frames_received": "[<RemoteSettingsChanged changed_settings:{}>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x:y': 'invalid-colon'}}]"
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sat, 08 Mar 2025 17:18:11 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]",
-          "msg": "Server_Received_Error_From_Proxy"
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x:y': 'invalid-colon'}, 'test': {'function': 'check_header_field', 'params': {'name': 'x:y'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
         }
       }
     }
@@ -3685,22 +3685,22 @@
   "133": {
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the start of the value)",
     "result": {
-      "Worker_1": {
-        "State": "FINAL",
-        "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sat, 08 Mar 2025 17:18:38 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
-        }
-      },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
           "frames_received": "[<RemoteSettingsChanged changed_settings:{}>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-lf-start': '\\nvalue'}}]"
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-lf-start': '\\nvalue'}, 'test': {'function': 'check_header_field', 'params': {'name': 'x-lf-start'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "client_result": "Test result: MODIFIED",
+          "server_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sun, 06 Apr 2025 08:19:28 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       }
     }
@@ -3708,22 +3708,22 @@
   "134": {
     "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the start of the value)",
     "result": {
-      "Worker_1": {
-        "State": "FINAL",
-        "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sat, 08 Mar 2025 17:19:20 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
-        }
-      },
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
           "frames_received": "[<RemoteSettingsChanged changed_settings:{}>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-cr-start': '\\rvalue'}}]"
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-cr-start': '\\rvalue'}, 'test': {'function': 'check_header_field', 'params': {'name': 'x-cr-start'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
+        }
+      },
+      "Worker_1": {
+        "State": "FINAL",
+        "Variables": {
+          "client_result": "Test result: MODIFIED",
+          "server_result": "Successfully received all 1/1 frames.",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sun, 06 Apr 2025 08:19:40 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       }
     }
@@ -3735,18 +3735,18 @@
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
           "frames_received": "[<RemoteSettingsChanged changed_settings:{}>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-leading-space': ' value'}}]"
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-leading-space': ' value'}, 'test': {'function': 'check_header_field', 'params': {'name': 'x-leading-space', 'value': ' value'}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
         }
       },
       "Worker_1": {
-        "State": "FINAL",
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sat, 08 Mar 2025 17:19:38 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
+          "result": "Test result: MODIFIED",
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sun, 06 Apr 2025 08:20:18 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
+          "msg": "Server_Received_Error_From_Proxy"
         }
       }
     }
@@ -3758,18 +3758,18 @@
         "State": "FINAL",
         "Variables": {
           "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
           "frames_received": "[<RemoteSettingsChanged changed_settings:{}>]",
-          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-trailing-space': 'value '}}]"
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':status': '200', 'x-trailing-space': 'value '}, 'test': {'function': 'check_header_field', 'params': {'name': 'x-trailing-space', 'value': 'value '}, 'if_true': 'UNMODIFIED', 'if_false': 'MODIFIED'}}]"
         }
       },
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
           "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sat, 08 Mar 2025 17:20:03 GMT')]>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('date', 'Sun, 06 Apr 2025 08:20:42 GMT')]>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       }
     }
@@ -4157,7 +4157,7 @@
           "server_result": "Successfully received all 1/1 frames.",
           "client_result": "Successfully received all 2/2 frames.",
           "frames_received": "[<RemoteSettingsChanged changed_settings:{}>]",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA'}]"
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': True}}, {'type': 'DATA'}]"
         }
       },
       "Worker_1": {
@@ -4165,8 +4165,8 @@
         "Variables": {
           "client_result": "Successfully received all 2/2 frames.",
           "server_result": "Successfully received all 1/1 frames.",
-          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'nopasaran-http2-server'), ('date', 'Sat, 08 Mar 2025 17:29:19 GMT')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
-          "sent_frames": "[{'type': 'HEADERS'}]"
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'nopasaran-http2-server'), ('date', 'Sun, 06 Apr 2025 08:21:01 GMT')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
       }
     }

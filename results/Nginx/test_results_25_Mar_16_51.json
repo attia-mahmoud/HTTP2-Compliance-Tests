@@ -1,26 +1,4 @@
 {
-  "0": {
-    "description": "A normal GET request from the client, followed by small DATA. The server responds with a 200 HEADERS, some DATA, and a final set of trailers. Checks a typical request/response flow in HTTP/2.",
-    "result": {
-      "Worker_2": {
-        "State": "FINAL",
-        "Variables": {
-          "server": null,
-          "result": "Received 1 HTTP/1.1 requests.",
-          "result_received": "Successfully sent 1 frames.",
-          "packets_received": "['GET /test-frame HTTP/1.1\\r\\nHost: 192.168.122.214:8080\\r\\nuser-agent: nopasaran-http2-client\\r\\naccept: */*\\r\\n\\r\\n']"
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': True}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
-        }
-      }
-    }
-  },
   "1": {
     "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {

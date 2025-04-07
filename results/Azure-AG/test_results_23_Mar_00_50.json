@@ -777,7 +777,7 @@
         "State": "FINAL",
         "Variables": {
           "server": null,
-          "result": "Received 1 HTTP/1.1 requests.",
+          "result": "Test result: MODIFIED",
           "result_received": "Successfully sent 1 frames.",
           "packets_received": "['CONNECT www.google.com:443 HTTP/1.1\\r\\nHost: www.google.com:443\\r\\nUser-Agent: Go-http-client/1.1\\r\\n\\r\\n']"
         }
