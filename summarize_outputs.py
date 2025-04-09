@@ -766,6 +766,133 @@ def create_test_results_matrix(all_test_results, proxy_configs, summaries_dir):
     with open(os.path.join(summaries_dir, 'test_results_matrix.md'), 'w') as f:
         f.write(matrix_table)
 
+def extract_and_save_outliers(all_test_results, proxy_configs, summaries_dir):
+    """
+    Extract outliers from test results and save them to dedicated files based on test scope.
+    
+    Outliers are defined as tests where exactly one proxy behaves differently from all others
+    that have the same scope (full or client-only).
+    
+    Args:
+        all_test_results: Dictionary mapping proxy names to their test results
+        proxy_configs: Dictionary mapping proxy names to their configurations
+        summaries_dir: Directory to save the output report
+    """
+    # Load test descriptions
+    try:
+        with open('test_cases.json', 'r') as f:
+            test_cases = json.load(f)
+        test_descriptions = {str(case['id']): case['description'] for case in test_cases}
+    except Exception as e:
+        print(f"Warning: Could not load test descriptions from test_cases.json: {e}")
+        test_descriptions = {}
+    
+    # Get list of proxies by scope
+    full_scope_proxies = [proxy for proxy, config in proxy_configs.items() 
+                         if config['scope'] == 'full' and proxy in all_test_results]
+    client_only_proxies = [proxy for proxy, config in proxy_configs.items() 
+                         if config['scope'] == 'client-only' and proxy in all_test_results]
+    
+    # Get all test IDs
+    all_test_ids = sorted(set().union(*[results.keys() for results in all_test_results.values()]),
+                         key=lambda x: int(x) if x.isdigit() else float('inf'))
+    
+    # Dictionary to collect outliers by scope
+    # {test_id: {outlier_proxy, outlier_behavior, common_behavior}}
+    full_scope_outliers = {}
+    client_only_outliers = {}
+    
+    # Function to process tests for a given scope
+    def process_scope(test_id, scope_proxies, outliers_dict):
+        # Skip if we don't have at least 3 proxies to compare
+        if len(scope_proxies) < 3:
+            return
+        
+        # Collect results for this test from proxies in this scope
+        test_results = {}
+        for proxy in scope_proxies:
+            if test_id in all_test_results[proxy]:
+                test_results[proxy] = all_test_results[proxy][test_id]
+        
+        # Skip if not enough proxies have results for this test
+        if len(test_results) < 3:
+            return
+        
+        # Following the vector graph logic:
+        # Count occurrences of each result value
+        result_counts = {}
+        for result in test_results.values():
+            result_counts[result] = result_counts.get(result, 0) + 1
+        
+        # Check if there's exactly one outlier (one result value with count=1)
+        if 1 in result_counts.values() and len(result_counts) > 1:
+            # Find the outlier result(s)
+            outlier_results = [r for r, count in result_counts.items() if count == 1]
+            
+            for outlier_result in outlier_results:
+                # Find which proxy had the outlier result
+                outlier_proxy = None
+                for proxy, result in test_results.items():
+                    if result == outlier_result:
+                        outlier_proxy = proxy
+                        break
+                
+                # Find the most common result (this is the "normal" behavior)
+                common_result = max(result_counts.items(), key=lambda x: x[1])[0]
+                
+                # Store the outlier information
+                outliers_dict[test_id] = {
+                    'outlier_proxy': outlier_proxy,
+                    'outlier_behavior': outlier_result,
+                    'common_behavior': common_result
+                }
+    
+    # Process each test for both scopes
+    for test_id in all_test_ids:
+        process_scope(test_id, full_scope_proxies, full_scope_outliers)
+        process_scope(test_id, client_only_proxies, client_only_outliers)
+    
+    # Helper function to write outliers to a file
+    def write_outliers_file(outliers, filename, scope_name):
+        output_file = os.path.join(summaries_dir, filename)
+        
+        with open(output_file, 'w') as f:
+            f.write(f"# Outlier Behaviors in HTTP/2 Conformance Tests - {scope_name} Scope\n\n")
+            f.write("This document lists tests where exactly one proxy behaved differently than all others.\n\n")
+            f.write(f"Total outliers found: {len(outliers)}\n\n")
+            
+            # Sort outliers by proxy to group them
+            proxy_outliers = {}
+            for test_id, data in outliers.items():
+                proxy = data['outlier_proxy']
+                if proxy not in proxy_outliers:
+                    proxy_outliers[proxy] = []
+                proxy_outliers[proxy].append((test_id, data))
+            
+            # Write grouped by proxy
+            for proxy in sorted(proxy_outliers.keys()):
+                f.write(f"## Outliers for {proxy}\n\n")
+                
+                # Create table header
+                f.write("| Test ID | Description | Outlier Behavior | Common Behavior |\n")
+                f.write("|---------|-------------|------------------|----------------|\n")
+                
+                # Add each outlier for this proxy
+                for test_id, data in sorted(proxy_outliers[proxy], key=lambda x: int(x[0]) if x[0].isdigit() else float('inf')):
+                    description = test_descriptions.get(test_id, "No description available")
+                    outlier_behavior = data['outlier_behavior']
+                    common_behavior = data['common_behavior']
+                    
+                    f.write(f"| {test_id} | {description} | {outlier_behavior} | {common_behavior} |\n")
+                
+                f.write("\n")
+            
+    # Write both files
+    write_outliers_file(full_scope_outliers, "outlier_behaviors_full.md", "Full")
+    write_outliers_file(client_only_outliers, "outlier_behaviors_client_only.md", "Client-Only")
+    
+    return full_scope_outliers, client_only_outliers
+
 def load_client_server_classification(json_path):
     """Load the classification of tests as client-side or server-side."""
     with open(json_path, 'r') as f:
@@ -830,10 +957,6 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
         output_directory: Directory to save the visualization
     """
     os.makedirs(output_directory, exist_ok=True)
-    
-    # Create transitions directory
-    transitions_dir = os.path.join(output_directory, 'transitions')
-    os.makedirs(transitions_dir, exist_ok=True)
     
     # Create a DataFrame to store discrepancies
     discrepancy_data = []
@@ -919,711 +1042,6 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
     plt.savefig(os.path.join(output_directory, 'client_server_discrepancies.png'), 
                 dpi=300, bbox_inches='tight')
     plt.close()
-    
-    # Create transition matrix heatmaps
-    for proxy_name, matrix in transition_matrices.items():
-        # Skip if the matrix is empty (all zeros)
-        if matrix.values.sum() == 0:
-            continue
-            
-        # Normalize the matrix to be between 0 and 1
-        normalized_matrix = matrix.copy()
-        matrix_sum = matrix.values.sum()
-        if matrix_sum > 0:  # Avoid division by zero
-            normalized_matrix = matrix / matrix_sum
-            
-        # Create the heatmap
-        plt.figure(figsize=(10, 8))
-        
-        # Use a custom colormap that highlights discrepancies
-        cmap = plt.cm.YlOrRd
-        
-        # Create the heatmap with annotations (using original counts for annotations)
-        ax = sns.heatmap(normalized_matrix, annot=normalized_matrix.values, fmt=".2f", cmap=cmap, 
-                     linewidths=0.5, cbar_kws={'label': 'Normalized Count'})
-        
-        # Customize the plot
-        plt.title(f'Client→Server Result Transition Matrix: {proxy_name}', fontsize=14, fontweight='bold')
-        plt.xlabel('Server Result', fontsize=12)
-        plt.ylabel('Client Result', fontsize=12)
-        
-        # Highlight the diagonal (where client and server results match)
-        for i in range(len(result_types)):
-            ax.add_patch(plt.Rectangle((i, i), 1, 1, fill=False, edgecolor='blue', lw=2))
-        
-        plt.tight_layout()
-        
-        # Save the heatmap in the transitions directory
-        plt.savefig(os.path.join(transitions_dir, f'transition_matrix_{proxy_name}.png'), 
-                    dpi=300, bbox_inches='tight')
-        plt.close()
-    
-    # Create a combined heatmap for all proxies
-    plt.figure(figsize=(15, 10))
-    
-    # Calculate the grid dimensions
-    n_proxies = len(transition_matrices)
-    n_cols = min(3, n_proxies)  # Maximum 3 columns
-    n_rows = (n_proxies + n_cols - 1) // n_cols
-    
-    # Create subplots
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(5*n_cols, 4*n_rows))
-    
-    # Flatten axes if there are multiple rows
-    if n_rows > 1:
-        axes = axes.flatten()
-    elif n_cols == 1:
-        axes = [axes]  # Make it iterable if there's only one subplot
-    
-    # Create heatmaps for each proxy
-    for i, (proxy_name, matrix) in enumerate(transition_matrices.items()):
-        if i < len(axes):
-            # Skip if the matrix is empty
-            if matrix.values.sum() == 0:
-                axes[i].text(0.5, 0.5, "No data", ha='center', va='center', fontsize=14)
-                axes[i].axis('off')
-                axes[i].set_title(proxy_name)
-                continue
-                
-            # Normalize the matrix to be between 0 and 1
-            normalized_matrix = matrix.copy()
-            matrix_sum = matrix.values.sum()
-            if matrix_sum > 0:  # Avoid division by zero
-                normalized_matrix = matrix / matrix_sum
-                
-            # Create the heatmap
-            sns.heatmap(normalized_matrix, annot=normalized_matrix.values, fmt=".2f", cmap=plt.cm.YlOrRd, 
-                    linewidths=0.5, ax=axes[i], cbar=False)
-            
-            # Customize the subplot
-            axes[i].set_title(proxy_name, fontsize=12, fontweight='bold')
-            axes[i].set_xlabel('Server Result', fontsize=10)
-            axes[i].set_ylabel('Client Result', fontsize=10)
-            
-            # Highlight the diagonal
-            for j in range(len(result_types)):
-                axes[i].add_patch(plt.Rectangle((j, j), 1, 1, fill=False, edgecolor='blue', lw=2))
-    
-    # Hide any unused subplots
-    for i in range(len(transition_matrices), len(axes)):
-        axes[i].axis('off')
-    
-    # Add a colorbar for the entire figure
-    # fig.colorbar(plt.cm.ScalarMappable(cmap=plt.cm.YlOrRd), ax=axes, label='Normalized Count')
-    
-    plt.suptitle('Client→Server Result Transition Matrices by Proxy', fontsize=16, fontweight='bold')
-    plt.tight_layout(rect=[0, 0, 1, 0.96])  # Make room for the suptitle
-    
-    # Save the combined heatmap in the transitions directory
-    plt.savefig(os.path.join(transitions_dir, 'transition_matrices_all_proxies.png'), 
-                dpi=300, bbox_inches='tight')
-    plt.close()
-    
-    # Create a detailed markdown table of discrepancies
-    with open(os.path.join(output_directory, 'client_server_discrepancies.md'), 'w') as f:
-        f.write("# Client/Server Test Pair Discrepancies\n\n")
-        
-        # Summary table
-        f.write("## Summary\n\n")
-        f.write("| Proxy | Discrepancy Rate |\n")
-        f.write("|-------|------------------|\n")
-        for _, row in summary.iterrows():
-            f.write(f"| {row['Proxy']} | {row['Discrepancy Rate']:.1%} |\n")
-        
-        # Most common discrepancy types
-        f.write("\n## Most Common Discrepancy Types by Proxy\n\n")
-        f.write("| Proxy | Most Common Discrepancy | Count | Percentage |\n")
-        f.write("|-------|-------------------------|-------|------------|\n")
-        
-        for proxy_name in test_results.keys():
-            proxy_discrepancies = df[(df['Proxy'] == proxy_name) & (df['Has Discrepancy'])]
-            if not proxy_discrepancies.empty:
-                discrepancy_counts = proxy_discrepancies['Discrepancy Type'].value_counts()
-                most_common = discrepancy_counts.index[0]
-                count = discrepancy_counts.iloc[0]
-                percentage = count / len(proxy_discrepancies) * 100
-                f.write(f"| {proxy_name} | {most_common} | {count} | {percentage:.1f}% |\n")
-            else:
-                f.write(f"| {proxy_name} | No discrepancies | 0 | 0% |\n")
-        
-        # Detailed discrepancies
-        f.write("\n## Detailed Discrepancies\n\n")
-        f.write("| Proxy | Test Pair | Client Result | Server Result | Discrepancy Type |\n")
-        f.write("|-------|-----------|--------------|---------------|------------------|\n")
-        
-        for _, row in df[df['Has Discrepancy']].iterrows():
-            f.write(f"| {row['Proxy']} | {row['Test Pair']} | {row['Client Result']} | {row['Server Result']} | {row['Discrepancy Type']} |\n")
-
-def create_conformance_visualization(test_results, proxy_configs, output_directory):
-    """
-    Create visualizations showing how well each proxy conforms to the expected test results.
-    
-    For each test:
-    - If expected_result is "error":
-        - GOAWAY/RESET/500 response = conformant
-        - RECEIVED/DROPPED = non-conformant
-    - If expected_result is "ignore":
-        - DROPPED = conformant
-        - GOAWAY/RESET/500/RECEIVED = non-conformant
-    """
-    os.makedirs(output_directory, exist_ok=True)
-    
-    # First, load the test cases to get expected results
-    with open('test_cases.json', 'r') as f:
-        test_cases = json.load(f)
-    
-    # Create a mapping of test ID to expected result
-    expected_results = {str(case['id']): case['expected_result'] for case in test_cases}
-    
-    # Split proxies by scope
-    full_scope_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'full' and proxy in test_results]
-    client_only_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'client-only' and proxy in test_results]
-    
-    # Initialize data structures for tracking conformance
-    conformance_data = {proxy: {'conformant': 0, 'non_conformant': 0, 'total': 0} 
-                       for proxy in test_results.keys()}
-    
-    # Analyze each proxy's results
-    for proxy, results in test_results.items():
-        for test_id, result in results.items():
-            if test_id not in expected_results:
-                continue
-                
-            expected = expected_results[test_id]
-            conformance_data[proxy]['total'] += 1
-            
-            if expected == "error":
-                if result in ["goaway", "reset", "500"]:
-                    conformance_data[proxy]['conformant'] += 1
-                else:  # dropped or received
-                    conformance_data[proxy]['non_conformant'] += 1
-    
-    # Create the visualization
-    plt.figure(figsize=(12, 6))
-    
-    # Prepare data for plotting
-    proxies = list(conformance_data.keys())
-    conformant_pcts = []
-    non_conformant_pcts = []
-    
-    for proxy in proxies:
-        total = conformance_data[proxy]['total']
-        if total > 0:
-            conformant_pcts.append(conformance_data[proxy]['conformant'] / total * 100)
-            non_conformant_pcts.append(conformance_data[proxy]['non_conformant'] / total * 100)
-        else:
-            conformant_pcts.append(0)
-            non_conformant_pcts.append(0)
-    
-    # Create stacked bar chart
-    bar_width = 0.8
-    indices = range(len(proxies))
-    
-    plt.bar(indices, conformant_pcts, bar_width, label='Conformant', color='#2ecc71')
-    plt.bar(indices, non_conformant_pcts, bar_width, bottom=conformant_pcts, 
-            label='Non-Conformant', color='#e74c3c')
-    
-    # Customize the plot
-    plt.xlabel('Proxy')
-    plt.ylabel('Percentage of Tests')
-    plt.title('HTTP/2 Conformance Test Results by Proxy', pad=20)
-    plt.xticks(indices, proxies, rotation=45, ha='right')
-    plt.legend()
-    
-    # Add percentage labels on the bars
-    for i in indices:
-        # Add label for conformant percentage
-        if conformant_pcts[i] > 0:
-            plt.text(i, conformant_pcts[i]/2, 
-                    f'{conformant_pcts[i]:.1f}%', 
-                    ha='center', va='center')
-        
-        # Add label for non-conformant percentage
-        if non_conformant_pcts[i] > 0:
-            plt.text(i, conformant_pcts[i] + non_conformant_pcts[i]/2,
-                    f'{non_conformant_pcts[i]:.1f}%', 
-                    ha='center', va='center')
-    
-    plt.ylim(0, 100)
-    plt.grid(True, axis='y', alpha=0.3)
-    plt.tight_layout()
-    
-    # Save the plot
-    plt.savefig(os.path.join(output_directory, 'conformance_results.png'), 
-                dpi=300, bbox_inches='tight')
-    plt.close()
-    
-    # Create a detailed markdown report
-    with open(os.path.join(output_directory, 'conformance_report.md'), 'w') as f:
-        f.write("# HTTP/2 Conformance Test Results\n\n")
-        
-        # Overall summary table
-        f.write("## Summary\n\n")
-        f.write("| Proxy | Conformant | Non-Conformant | Total Tests |\n")
-        f.write("|-------|------------|----------------|-------------|\n")
-        
-        for proxy, data in conformance_data.items():
-            total = data['total']
-            if total > 0:
-                conformant_pct = (data['conformant'] / total) * 100
-                non_conformant_pct = (data['non_conformant'] / total) * 100
-                
-                f.write(f"| {proxy} | {data['conformant']} ({conformant_pct:.1f}%) | "
-                       f"{data['non_conformant']} ({non_conformant_pct:.1f}%) | {total} |\n")
-        
-        # Detailed non-conformance analysis
-        f.write("\n## Non-Conformant Test Details\n\n")
-        f.write("| Proxy | Test ID | Expected | Actual | Description |\n")
-        f.write("|-------|---------|-----------|--------|-------------|\n")
-        
-        for proxy, results in test_results.items():
-            for test_id, result in results.items():
-                if test_id not in expected_results:
-                    continue
-                    
-                expected = expected_results[test_id]
-                is_non_conformant = False
-                
-                if expected == "error":
-                    if result not in ["goaway", "reset", "500"]:
-                        is_non_conformant = True
-                elif expected == "ignore":
-                    if result != "dropped":
-                        is_non_conformant = True
-                
-                if is_non_conformant:
-                    description = next((case['description'] for case in test_cases 
-                                     if str(case['id']) == test_id), "N/A")
-                    f.write(f"| {proxy} | {test_id} | {expected} | {result} | {description} |\n")
-
-def create_section_conformance_visualization(test_results, proxy_configs, output_directory):
-    """
-    Create visualizations showing how well each proxy conforms to each section of the RFC.
-    """
-    os.makedirs(output_directory, exist_ok=True)
-    
-    # First, load the test cases to get sections and expected results
-    with open('test_cases.json', 'r') as f:
-        test_cases = json.load(f)
-    
-    # Create mappings
-    test_sections = {str(case['id']): case['section'] for case in test_cases}
-    test_expected = {str(case['id']): case['expected_result'] for case in test_cases}
-    
-    # Define section names
-    section_names = {
-        "3": "Starting HTTP/2",
-        "4": "HTTP Frames",
-        "5": "Streams and Multiplexing",
-        "6": "Frame Definitions",
-        "8": "HTTP Semantics in HTTP/2"
-    }
-    
-    # Get unique sections
-    sections = sorted(set(test_sections.values()))
-    
-    # Initialize data structures for tracking section-wise conformance
-    section_data = {
-        proxy: {section: {'conformant': 0, 'non_conformant': 0, 'total': 0} 
-               for section in sections}
-        for proxy in test_results.keys()
-    }
-    
-    # Analyze each proxy's results by section
-    for proxy, results in test_results.items():
-        for test_id, result in results.items():
-            if test_id not in test_sections:
-                continue
-                
-            section = test_sections[test_id]
-            expected = test_expected[test_id]
-            section_data[proxy][section]['total'] += 1
-            
-            if expected == "error":
-                if result in ["goaway", "reset", "500"]:
-                    section_data[proxy][section]['conformant'] += 1
-                else:  # dropped or received
-                    section_data[proxy][section]['non_conformant'] += 1
-            elif expected == "ignore":
-                if result == "dropped":
-                    section_data[proxy][section]['conformant'] += 1
-                else:  # goaway, reset, 500, or received
-                    section_data[proxy][section]['non_conformant'] += 1
-    
-    # Create the visualization - one subplot per section
-    n_sections = len(sections)
-    n_cols = min(3, n_sections)  # Maximum 3 columns
-    n_rows = (n_sections + n_cols - 1) // n_cols
-    
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(6*n_cols, 4*n_rows))
-    fig.suptitle('HTTP/2 Section-wise Conformance by Proxy', fontsize=16, y=0.95)
-    
-    # Flatten axes if there are multiple rows
-    if n_rows > 1:
-        axes = axes.flatten()
-    elif n_cols == 1:
-        axes = [axes]
-    
-    # Create a bar chart for each section
-    for idx, section in enumerate(sections):
-        ax = axes[idx]
-        
-        # Prepare data for this section
-        proxies = list(test_results.keys())
-        conformant_pcts = []
-        non_conformant_pcts = []
-        
-        for proxy in proxies:
-            total = section_data[proxy][section]['total']
-            if total > 0:
-                conformant_pcts.append(section_data[proxy][section]['conformant'] / total * 100)
-                non_conformant_pcts.append(section_data[proxy][section]['non_conformant'] / total * 100)
-            else:
-                conformant_pcts.append(0)
-                non_conformant_pcts.append(0)
-        
-        # Create stacked bar chart
-        bar_width = 0.8
-        indices = range(len(proxies))
-        
-        ax.bar(indices, conformant_pcts, bar_width, label='Conformant', color='#2ecc71')
-        ax.bar(indices, non_conformant_pcts, bar_width, bottom=conformant_pcts, 
-               label='Non-Conformant', color='#e74c3c')
-        
-        # Customize the subplot
-        ax.set_ylim(0, 100)
-        ax.set_xlabel('Proxy')
-        ax.set_ylabel('Percentage')
-        section_title = f'Section {section}: {section_names.get(section, "")}'
-        ax.set_title(section_title, fontsize=10, pad=10)
-        ax.set_xticks(indices)
-        ax.set_xticklabels(proxies, rotation=45, ha='right', fontsize=8)
-        
-        # Add percentage labels
-        for i in indices:
-            if conformant_pcts[i] > 0:
-                ax.text(i, conformant_pcts[i]/2, 
-                        f'{conformant_pcts[i]:.1f}%', 
-                        ha='center', va='center', fontsize=8)
-            
-            if non_conformant_pcts[i] > 0:
-                ax.text(i, conformant_pcts[i] + non_conformant_pcts[i]/2,
-                        f'{non_conformant_pcts[i]:.1f}%', 
-                        ha='center', va='center', fontsize=8)
-        
-        ax.grid(True, axis='y', alpha=0.3)
-        
-        # Only add legend to first subplot
-        if idx == 0:
-            ax.legend(fontsize=8)
-    
-    # Hide any unused subplots
-    for idx in range(len(sections), len(axes)):
-        axes[idx].axis('off')
-    
-    plt.tight_layout(rect=[0, 0, 1, 0.95])  # Make room for suptitle
-    
-    # Save the plot
-    plt.savefig(os.path.join(output_directory, 'section_conformance.png'), 
-                dpi=300, bbox_inches='tight')
-    plt.close()
-    
-    # Create a detailed markdown report
-    with open(os.path.join(output_directory, 'section_conformance_report.md'), 'w') as f:
-        f.write("# HTTP/2 Section-wise Conformance Results\n\n")
-        
-        for section in sections:
-            section_name = section_names.get(section, "")
-            f.write(f"\n## Section {section}: {section_name}\n\n")
-            f.write("| Proxy | Conformant | Non-Conformant | Total Tests |\n")
-            f.write("|-------|------------|----------------|-------------|\n")
-            
-            for proxy in test_results.keys():
-                data = section_data[proxy][section]
-                total = data['total']
-                if total > 0:
-                    conformant_pct = (data['conformant'] / total) * 100
-                    non_conformant_pct = (data['non_conformant'] / total) * 100
-                    
-                    f.write(f"| {proxy} | {data['conformant']} ({conformant_pct:.1f}%) | "
-                           f"{data['non_conformant']} ({non_conformant_pct:.1f}%) | {total} |\n")
-            
-            # Add list of non-conformant tests for this section
-            f.write("\n### Non-Conformant Tests\n\n")
-            f.write("| Proxy | Test ID | Expected | Actual | Description |\n")
-            f.write("|-------|---------|-----------|--------|-------------|\n")
-            
-            for proxy, results in test_results.items():
-                for test_id, result in results.items():
-                    if (test_id not in test_sections or 
-                        test_sections[test_id] != section or 
-                        test_id not in test_expected):
-                        continue
-                    
-                    expected = test_expected[test_id]
-                    is_non_conformant = False
-                    
-                    if expected == "error":
-                        if result not in ["goaway", "reset", "500"]:
-                            is_non_conformant = True
-                    elif expected == "ignore":
-                        if result != "dropped":
-                            is_non_conformant = True
-                    
-                    if is_non_conformant:
-                        description = next((case['description'] for case in test_cases 
-                                         if str(case['id']) == test_id), "N/A")
-                        f.write(f"| {proxy} | {test_id} | {expected} | {result} | {description} |\n")
-
-def create_advanced_insights(test_results, proxy_configs, output_directory):
-    """
-    Create additional insights and visualizations from the test results.
-    """
-    os.makedirs(output_directory, exist_ok=True)
-    
-    # Load test cases
-    with open('test_cases.json', 'r') as f:
-        test_cases = json.load(f)
-    
-    # Create mappings
-    test_expected = {str(case['id']): case['expected_result'] for case in test_cases}
-    test_descriptions = {str(case['id']): case['description'] for case in test_cases}
-    
-    # Extract frame types from test descriptions and client/server frames
-    frame_types = set()
-    test_frame_types = {}  # test_id -> set of frame types
-    for case in test_cases:
-        test_id = str(case['id'])
-        frames = set()
-        
-        # Extract from client frames
-        if 'client_frames' in case:
-            for frame in case['client_frames']:
-                if 'type' in frame:
-                    frames.add(frame['type'])
-                    frame_types.add(frame['type'])
-        
-        # Extract from server frames
-        if 'server_frames' in case:
-            for frame in case['server_frames']:
-                if 'type' in frame:
-                    frames.add(frame['type'])
-                    frame_types.add(frame['type'])
-        
-        test_frame_types[test_id] = frames
-    
-    # 1. Test Type Analysis
-    test_type_data = {
-        proxy: {'error': {'conformant': 0, 'non_conformant': 0},
-                'ignore': {'conformant': 0, 'non_conformant': 0}}
-        for proxy in test_results.keys()
-    }
-    
-    for proxy, results in test_results.items():
-        for test_id, result in results.items():
-            if test_id not in test_expected:
-                continue
-            
-            expected = test_expected[test_id]
-            
-            if expected == "error":
-                if result in ["goaway", "reset", "500"]:
-                    test_type_data[proxy]['error']['conformant'] += 1
-                else:
-                    test_type_data[proxy]['error']['non_conformant'] += 1
-            elif expected == "ignore":
-                if result == "dropped":
-                    test_type_data[proxy]['ignore']['conformant'] += 1
-                else:
-                    test_type_data[proxy]['ignore']['non_conformant'] += 1
-    
-    # 2. Frame Type Analysis
-    frame_type_data = {
-        proxy: {frame_type: {'conformant': 0, 'non_conformant': 0, 'total': 0}
-               for frame_type in frame_types}
-        for proxy in test_results.keys()
-    }
-    
-    for proxy, results in test_results.items():
-        for test_id, result in results.items():
-            if test_id not in test_frame_types or test_id not in test_expected:
-                continue
-            
-            expected = test_expected[test_id]
-            is_conformant = (
-                (expected == "error" and result in ["goaway", "reset", "500"]) or
-                (expected == "ignore" and result == "dropped")
-            )
-            
-            for frame_type in test_frame_types[test_id]:
-                frame_type_data[proxy][frame_type]['total'] += 1
-                if is_conformant:
-                    frame_type_data[proxy][frame_type]['conformant'] += 1
-                else:
-                    frame_type_data[proxy][frame_type]['non_conformant'] += 1
-    
-    # Create frame type analysis visualization
-    n_frame_types = len(frame_types)
-    n_cols = min(3, n_frame_types)
-    n_rows = (n_frame_types + n_cols - 1) // n_cols
-    
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(6*n_cols, 4*n_rows))
-    fig.suptitle('Frame Type Conformance by Proxy', fontsize=16, y=0.95)
-    
-    # Flatten axes if there are multiple rows
-    if n_rows > 1:
-        axes = axes.flatten()
-    elif n_cols == 1:
-        axes = [axes]
-
-    # Define proxies list
-    proxies = list(test_results.keys())
-    
-    for idx, frame_type in enumerate(sorted(frame_types)):
-        ax = axes[idx]
-        
-        # Prepare data for this frame type
-        conformant_pcts = []
-        non_conformant_pcts = []
-        
-        for proxy in proxies:
-            total = frame_type_data[proxy][frame_type]['total']
-            if total > 0:
-                conformant_pcts.append(frame_type_data[proxy][frame_type]['conformant'] / total * 100)
-                non_conformant_pcts.append(frame_type_data[proxy][frame_type]['non_conformant'] / total * 100)
-            else:
-                conformant_pcts.append(0)
-                non_conformant_pcts.append(0)
-        
-        # Create stacked bar chart
-        bar_width = 0.8
-        indices = range(len(proxies))
-        
-        ax.bar(indices, conformant_pcts, bar_width, label='Conformant', color='#2ecc71')
-        ax.bar(indices, non_conformant_pcts, bar_width, bottom=conformant_pcts, 
-               label='Non-Conformant', color='#e74c3c')
-        
-        ax.set_ylim(0, 100)
-        ax.set_xlabel('Proxy')
-        ax.set_ylabel('Percentage')
-        ax.set_title(f'{frame_type} Frame', fontsize=10, pad=10)
-        ax.set_xticks(indices)
-        ax.set_xticklabels(proxies, rotation=45, ha='right', fontsize=8)
-        
-        # Add percentage labels
-        for i in indices:
-            if conformant_pcts[i] > 0:
-                ax.text(i, conformant_pcts[i]/2, 
-                        f'{conformant_pcts[i]:.1f}%', 
-                        ha='center', va='center', fontsize=8)
-            if non_conformant_pcts[i] > 0:
-                ax.text(i, conformant_pcts[i] + non_conformant_pcts[i]/2,
-                        f'{non_conformant_pcts[i]:.1f}%', 
-                        ha='center', va='center', fontsize=8)
-        
-        ax.grid(True, axis='y', alpha=0.3)
-        
-        if idx == 0:
-            ax.legend(fontsize=8)
-    
-    # Hide any unused subplots
-    for idx in range(len(frame_types), len(axes)):
-        axes[idx].axis('off')
-    
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
-    plt.savefig(os.path.join(output_directory, 'frame_type_analysis.png'), 
-                dpi=300, bbox_inches='tight')
-    plt.close()
-    
-    # Create detailed markdown report
-    with open(os.path.join(output_directory, 'advanced_insights.md'), 'w') as f:
-        f.write("# Advanced HTTP/2 Conformance Insights\n\n")
-        
-        # Test Type Analysis
-        f.write("## Test Type Analysis\n\n")
-        f.write("| Proxy | Error Tests Conformance | Ignore Tests Conformance |\n")
-        f.write("|-------|----------------------|----------------------|\n")
-        
-        for proxy in proxies:
-            error_conf = (test_type_data[proxy]['error']['conformant'] / 
-                        (test_type_data[proxy]['error']['conformant'] + 
-                         test_type_data[proxy]['error']['non_conformant']) * 100
-                        if (test_type_data[proxy]['error']['conformant'] + 
-                            test_type_data[proxy]['error']['non_conformant']) > 0 
-                        else 0)
-            
-            ignore_conf = (test_type_data[proxy]['ignore']['conformant'] / 
-                         (test_type_data[proxy]['ignore']['conformant'] + 
-                          test_type_data[proxy]['ignore']['non_conformant']) * 100
-                         if (test_type_data[proxy]['ignore']['conformant'] + 
-                             test_type_data[proxy]['ignore']['non_conformant']) > 0 
-                         else 0)
-            
-            f.write(f"| {proxy} | {error_conf:.1f}% | {ignore_conf:.1f}% |\n")
-        
-        # Frame Type Analysis
-        f.write("\n## Frame Type Analysis\n\n")
-        
-        for frame_type in sorted(frame_types):
-            f.write(f"\n### {frame_type} Frame\n\n")
-            f.write("| Proxy | Conformant | Non-Conformant | Total Tests |\n")
-            f.write("|-------|------------|----------------|-------------|\n")
-            
-            for proxy in proxies:
-                data = frame_type_data[proxy][frame_type]
-                total = data['total']
-                if total > 0:
-                    conformant_pct = (data['conformant'] / total) * 100
-                    non_conformant_pct = (data['non_conformant'] / total) * 100
-                    
-                    f.write(f"| {proxy} | {data['conformant']} ({conformant_pct:.1f}%) | "
-                           f"{data['non_conformant']} ({non_conformant_pct:.1f}%) | {total} |\n")
-        
-        # Common Failure Patterns
-        f.write("\n## Common Failure Patterns\n\n")
-        
-        # Group non-conformant tests by description patterns
-        failure_patterns = defaultdict(int)
-        total_non_conformant = 0
-        
-        for proxy, results in test_results.items():
-            for test_id, result in results.items():
-                if test_id not in test_expected or test_id not in test_descriptions:
-                    continue
-                
-                expected = test_expected[test_id]
-                is_non_conformant = (
-                    (expected == "error" and result not in ["goaway", "reset", "500"]) or
-                    (expected == "ignore" and result != "dropped")
-                )
-                
-                if is_non_conformant:
-                    total_non_conformant += 1
-                    # Extract key phrases from description
-                    desc = test_descriptions[test_id].lower()
-                    if "must not" in desc:
-                        failure_patterns["MUST NOT violations"] += 1
-                    if "must" in desc and "must not" not in desc:
-                        failure_patterns["MUST violations"] += 1
-                    if "stream" in desc:
-                        failure_patterns["Stream-related issues"] += 1
-                    if "frame" in desc:
-                        failure_patterns["Frame-related issues"] += 1
-                    if "header" in desc:
-                        failure_patterns["Header-related issues"] += 1
-                    if "pseudo-header" in desc:
-                        failure_patterns["Pseudo-header issues"] += 1
-        
-        f.write("### Most Common Types of Non-Conformance (Normalized)\n\n")
-        f.write("| Pattern | Percentage of Non-Conformant Tests | Count |\n")
-        f.write("|---------|-----------------------------------|-------|\n")
-        
-        if total_non_conformant > 0:
-            for pattern, count in sorted(failure_patterns.items(), key=lambda x: x[1], reverse=True):
-                percentage = (count / total_non_conformant) * 100
-                f.write(f"| {pattern} | {percentage:.1f}% | {count} |\n")
-        
-        f.write(f"\nTotal non-conformant tests analyzed: {total_non_conformant}\n")
 
 def create_client_server_conformance_visualization(test_results, client_side_tests, server_side_tests, proxy_configs, output_directory):
     """
@@ -1686,33 +1104,35 @@ def create_client_server_conformance_visualization(test_results, client_side_tes
     x = np.arange(len(proxies))
     width = 0.35  # Width of the bars
     
-    # Calculate percentages
-    client_conformant = []
-    server_conformant = []
+    # Calculate non-conformance percentages (1 - conformance)
+    client_non_conformant = []
+    server_non_conformant = []
     
     for proxy in proxies:
         # Client data
         client_total = client_conformance_data[proxy]['total']
         if client_total > 0:
-            client_conformant.append(client_conformance_data[proxy]['conformant'] / client_total * 100)
+            client_non_conformant.append(
+                (client_total - client_conformance_data[proxy]['conformant']) / client_total * 100)
         else:
-            client_conformant.append(0)
+            client_non_conformant.append(0)
         
         # Server data
         server_total = server_conformance_data[proxy]['total']
         if server_total > 0:
-            server_conformant.append(server_conformance_data[proxy]['conformant'] / server_total * 100)
+            server_non_conformant.append(
+                (server_total - server_conformance_data[proxy]['conformant']) / server_total * 100)
         else:
-            server_conformant.append(0)
+            server_non_conformant.append(0)
     
     # Create bars
-    plt.bar(x - width/2, client_conformant, width, label='Client Conformant', color='#2ecc71')
-    plt.bar(x + width/2, server_conformant, width, label='Server Conformant', color='#3498db')
+    plt.bar(x - width/2, client_non_conformant, width, label='Client Non-Conformant', color='#2ecc71')
+    plt.bar(x + width/2, server_non_conformant, width, label='Server Non-Conformant', color='#3498db')
     
     # Customize the plot
     plt.xlabel('Proxy')
-    plt.ylabel('Percentage of Conformant Tests')
-    plt.title('HTTP/2 Client-Side vs Server-Side Conformance by Proxy', pad=20)
+    plt.ylabel('Percentage of Non-Conformant Tests')
+    plt.title('HTTP/2 Client-Side vs Server-Side Non-Conformance by Proxy', pad=20)
     plt.xticks(x, proxies, rotation=45, ha='right')
     plt.legend()
     
@@ -1720,44 +1140,22 @@ def create_client_server_conformance_visualization(test_results, client_side_tes
     def add_labels(x_pos, heights):
         for i, height in enumerate(heights):
             if height > 0:  # Only add label if there's a non-zero value
-                plt.text(x_pos[i], height/2,
+                plt.text(x_pos[i], height + 1,
                         f'{height:.1f}%',
-                        ha='center', va='center')
+                        ha='center', va='bottom')
     
     # Add labels for client and server bars
-    add_labels(x - width/2, client_conformant)
-    add_labels(x + width/2, server_conformant)
+    add_labels(x - width/2, client_non_conformant)
+    add_labels(x + width/2, server_non_conformant)
     
     plt.ylim(0, 100)
     plt.grid(True, axis='y', alpha=0.3)
     plt.tight_layout()
     
     # Save the plot
-    plt.savefig(os.path.join(output_directory, 'client_server_conformance.png'), 
+    plt.savefig(os.path.join(output_directory, 'client_server_non_conformance.png'), 
                 dpi=300, bbox_inches='tight')
     plt.close()
-    
-    # Create a detailed markdown report
-    with open(os.path.join(output_directory, 'client_server_conformance_report.md'), 'w') as f:
-        f.write("# Client-Side vs Server-Side HTTP/2 Conformance Results\n\n")
-        
-        # Combined summary table
-        f.write("## Combined Results\n\n")
-        f.write("| Proxy | Client Conformant | Client Total | Server Conformant | Server Total |\n")
-        f.write("|-------|------------------|--------------|------------------|-------------|\n")
-        
-        for proxy in proxies:
-            client_data = client_conformance_data[proxy]
-            server_data = server_conformance_data[proxy]
-            
-            client_total = client_data['total']
-            server_total = server_data['total']
-            
-            client_conf_pct = (client_data['conformant'] / client_total * 100) if client_total > 0 else 0
-            server_conf_pct = (server_data['conformant'] / server_total * 100) if server_total > 0 else 0
-            
-            f.write(f"| {proxy} | {client_data['conformant']} ({client_conf_pct:.1f}%) | {client_total} | "
-                   f"{server_data['conformant']} ({server_conf_pct:.1f}%) | {server_total} |\n")
 
 def load_test_pairs(pairs_file='docs/pairs.json'):
     """Load the test pairs from the JSON file."""
@@ -1779,6 +1177,8 @@ def create_test_outcome_by_id_table(all_test_results, summaries_dir):
     
     # Process each proxy's results
     for proxy, results in all_test_results.items():
+        if proxy in ["Mitmproxy"]:
+            continue
         for test_id, result in results.items():
             if test_id not in test_outcomes:
                 test_outcomes[test_id] = {
@@ -1824,6 +1224,169 @@ def create_test_outcome_by_id_table(all_test_results, summaries_dir):
                 # Add a separator between tests
                 f.write("\n")
 
+def compare_cloudflare_variants(all_test_results, summaries_dir):
+    """
+    Compare test results between Cloudflare, Cloudflare2, and Cloudflare3 and identify differences.
+    
+    Args:
+        all_test_results: Dictionary mapping proxy names to their test results
+        summaries_dir: Directory to save the output report
+    """
+    # Check if all Cloudflare variants are present
+    cf_variants = ["Cloudflare", "Cloudflare2", "Cloudflare3", "Cloudflare4"]
+    for variant in cf_variants:
+        if variant not in all_test_results:
+            print(f"Warning: {variant} results not found in the dataset")
+    
+    # Filter available Cloudflare variants
+    available_variants = [v for v in cf_variants if v in all_test_results]
+    if len(available_variants) < 2:
+        print("Not enough Cloudflare variants to compare")
+        return
+    
+    # Get the common test IDs across available variants
+    common_test_ids = set()
+    for variant in available_variants:
+        if common_test_ids:
+            common_test_ids &= set(all_test_results[variant].keys())
+        else:
+            common_test_ids = set(all_test_results[variant].keys())
+    
+    # Find tests with different outcomes
+    different_outcomes = {}
+    for test_id in common_test_ids:
+        # Collect results for this test across variants
+        test_results = {variant: all_test_results[variant][test_id] for variant in available_variants}
+        
+        # Check if there are differences
+        if len(set(test_results.values())) > 1:
+            different_outcomes[test_id] = test_results
+    
+    # Load test descriptions
+    try:
+        with open('test_cases.json', 'r') as f:
+            test_cases = json.load(f)
+        test_descriptions = {str(case['id']): case['description'] for case in test_cases}
+    except:
+        print("Warning: Could not load test descriptions from test_cases.json")
+        test_descriptions = {}
+    
+    # Create the output file
+    output_file = os.path.join(summaries_dir, "cloudflare_variant_differences.txt")
+    
+    with open(output_file, 'w') as f:
+        f.write("# Differences Between Cloudflare Variants\n\n")
+        f.write(f"Comparing {', '.join(available_variants)}\n\n")
+        f.write(f"Total tests with different outcomes: {len(different_outcomes)}\n\n")
+        
+        # Sort test IDs numerically
+        sorted_test_ids = sorted(different_outcomes.keys(), key=lambda x: int(x) if x.isdigit() else float('inf'))
+        
+        for test_id in sorted_test_ids:
+            description = test_descriptions.get(test_id, "No description available")
+            results = different_outcomes[test_id]
+            
+            f.write(f"## Test {test_id}: {description}\n\n")
+            
+            # Create a table for this test
+            f.write("| Variant | Outcome |\n")
+            f.write("|---------|--------|\n")
+            
+            for variant in available_variants:
+                f.write(f"| {variant} | {results[variant]} |\n")
+            
+            f.write("\n")
+
+    return different_outcomes
+
+def create_cloudflare_correlation_matrix(all_test_results, output_directory):
+    """
+    Create a Pearson correlation matrix visualization specifically for Cloudflare variants.
+    
+    Args:
+        all_test_results: Dictionary mapping proxy names to their test results
+        output_directory: Directory to save the visualization
+    """
+    os.makedirs(output_directory, exist_ok=True)
+    
+    # Filter for Cloudflare variants
+    cf_variants = ["Cloudflare", "Cloudflare2", "Cloudflare3", "Cloudflare4"]
+    available_variants = [v for v in cf_variants if v in all_test_results]
+    
+    if len(available_variants) < 2:
+        print("Not enough Cloudflare variants to create correlation matrix")
+        return
+    
+    # Get test IDs from all available variants
+    test_ids = sorted(list(set().union(*[results.keys() for proxy, results in all_test_results.items() 
+                                       if proxy in available_variants])),
+                     key=lambda x: int(x) if x.isdigit() else float('inf'))
+    
+    # Create matrix data with the same encoding as the original function
+    matrix_data = np.zeros((len(available_variants), len(test_ids)))
+    for i, proxy in enumerate(available_variants):
+        for j, test_id in enumerate(test_ids):
+            # Convert result to numeric value with better separation
+            result = all_test_results[proxy].get(test_id, "other")
+            if result == "received":
+                matrix_data[i][j] = 4  # Success
+            elif result == "reset":
+                matrix_data[i][j] = 3  # Reset
+            elif result == "goaway":
+                matrix_data[i][j] = 2  # Goaway
+            elif result == "500":
+                matrix_data[i][j] = 1  # 500 error
+            elif result == "dropped":
+                matrix_data[i][j] = 0  # Failure
+            else:  # other
+                matrix_data[i][j] = np.nan  # Use NaN to exclude "other" from correlation
+    
+    # Calculate correlation matrix with NaN handling
+    correlation_matrix = np.zeros((len(available_variants), len(available_variants)))
+    for i in range(len(available_variants)):
+        for j in range(len(available_variants)):
+            # Calculate correlation for each pair, ignoring NaNs
+            valid_indices = ~(np.isnan(matrix_data[i]) | np.isnan(matrix_data[j]))
+            if np.sum(valid_indices) > 1:  # Need at least 2 valid points
+                correlation_matrix[i, j] = np.corrcoef(
+                    matrix_data[i, valid_indices], 
+                    matrix_data[j, valid_indices]
+                )[0, 1]
+            else:
+                correlation_matrix[i, j] = 0
+    
+    # Create figure
+    plt.figure(figsize=(12, 10))
+    
+    # Create heatmap
+    im = plt.imshow(correlation_matrix, cmap='coolwarm', aspect='equal', vmin=-1, vmax=1)
+    
+    # Add colorbar
+    plt.colorbar(im)
+    
+    # Configure ticks and labels
+    plt.xticks(np.arange(len(available_variants)), available_variants, rotation=45, ha='right')
+    plt.yticks(np.arange(len(available_variants)), available_variants)
+    
+    # Add correlation values as text
+    for i in range(len(available_variants)):
+        for j in range(len(available_variants)):
+            text = plt.text(j, i, f'{correlation_matrix[i, j]:.2f}',
+                          ha='center', va='center', color='black')
+            
+            # Make text white for dark background
+            if abs(correlation_matrix[i, j]) > 0.5:
+                text.set_color('white')
+    
+    plt.title('Cloudflare Variants Correlation Matrix', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    
+    # Save the plot
+    filename = 'cloudflare_correlation_matrix.png'
+    plt.savefig(os.path.join(output_directory, filename), 
+                dpi=300, bbox_inches='tight')
+    plt.close()
+
 def main():
     # Create summaries directory if it doesn't exist
     summaries_dir = 'summaries'
@@ -1835,11 +1398,15 @@ def main():
         'Nghttpx': {'scope': 'full'},
         'HAproxy': {'scope': 'full'},
         'Apache': {'scope': 'full'},
+        # 'ApacheTest': {'scope': 'full'},
         'Caddy': {'scope': 'full'},
         'Node': {'scope': 'full'},
         'Envoy': {'scope': 'full'},
         'H2O': {'scope': 'full'},
         'Cloudflare': {'scope': 'full'},
+        # 'Cloudflare2': {'scope': 'full'},
+        # 'Cloudflare3': {'scope': 'full'},
+        # 'Cloudflare4': {'scope': 'full'},
         'Mitmproxy': {'scope': 'full'},
         'Azure-AG': {'scope': 'client-only'},
         'Nginx': {'scope': 'client-only'},
@@ -1886,6 +1453,9 @@ def main():
     # Create tables with scope indicators
     create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, reset_counts, received_counts, all_test_results, proxy_configs, summaries_dir)
     create_test_results_matrix(all_test_results, proxy_configs, summaries_dir)
+    
+    # Extract and save outliers
+    extract_and_save_outliers(all_test_results, proxy_configs, summaries_dir)
 
     # Create visualizations
     output_dir = 'visualizations'
@@ -1893,9 +1463,12 @@ def main():
     create_proxy_vector_graph(all_test_results, proxy_configs, output_dir)
     create_proxy_result_pies(all_test_results, proxy_configs, output_dir)
     create_proxy_line_graphs(all_test_results, proxy_configs, output_dir)
-    create_conformance_visualization(all_test_results, proxy_configs, output_dir)
-    create_section_conformance_visualization(all_test_results, proxy_configs, output_dir)
-    create_advanced_insights(all_test_results, proxy_configs, output_dir)
+
+    # Compare Cloudflare variants
+    compare_cloudflare_variants(all_test_results, summaries_dir)
+    
+    # Create Cloudflare correlation matrix
+    create_cloudflare_correlation_matrix(all_test_results, output_dir)
     
     # Load client-server classification and create client-server visualizations
     try:
