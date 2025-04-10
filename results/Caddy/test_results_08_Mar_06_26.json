@@ -1823,7 +1823,26 @@
   },
   "79": {
     "description": "Implementations MUST discard frames that have unknown or unsupported types.",
-    "result": null
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "ERROR",
+        "Variables": {
+          "msg": "Timeout occurred after 5.0s while trying to connect to server at 192.168.122.6:7701: timed out"
+        }
+      }
+    }
   },
   "80": {
     "description": "DATA frames MUST be associated with a stream.",
