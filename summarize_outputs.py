@@ -504,6 +504,21 @@ def create_proxy_line_graphs(test_results, proxy_configs, output_directory):
     categories = ['dropped', '500', 'goaway', 'reset', 'unmodified', 'modified']
     category_display_names = ['D', 'E', 'G', 'R', 'U', 'M']
     
+    # Load test_cases.json to determine optimum behavior
+    with open('test_cases.json', 'r') as f:
+        test_cases = json.load(f)
+    
+    # Create a mapping from test ID to whether it should use stream reset or goaway
+    test_error_types = {}
+    for test in test_cases:
+        test_id = str(test['id'])
+        if test.get('error_type') == 'stream':
+            test_error_types[test_id] = 'reset'
+        elif test.get('expected_result') == 'error':
+            test_error_types[test_id] = 'goaway'
+        elif test.get('expected_result') == 'ignore':
+            test_error_types[test_id] = 'ignore'
+    
     # Create separate graphs for full scope and client-only proxies
     for scope, proxies in [('full', full_scope_proxies), ('client-only', client_only_proxies)]:
         if not proxies:  # Skip if no proxies in this category
@@ -542,6 +557,42 @@ def create_proxy_line_graphs(test_results, proxy_configs, output_directory):
             # Plot the line for this proxy
             plt.plot(range(len(categories)), cum_percentages, marker='o', linewidth=2, 
                      color=colors[i], label=f"{proxy}")
+        
+        # Add the optimum/baseline behavior
+        # For full scope, use all test cases; for client-only, use only client-side tests
+        if scope == 'full':
+            relevant_test_cases = test_error_types
+        else:
+            # For client-only proxies, we'll skip the baseline since they don't handle server-side tests
+            relevant_test_cases = {}
+        
+        if relevant_test_cases:
+            # Initialize category counts for baseline
+            baseline_counts = {cat: 0 for cat in categories}
+            total_baseline_tests = len(relevant_test_cases)
+            
+            # Count ideal responses based on error_type
+            for test_id, error_type in relevant_test_cases.items():
+                if error_type == 'reset':
+                    baseline_counts['reset'] += 1
+                elif error_type == 'goaway':
+                    baseline_counts['goaway'] += 1
+                elif error_type == 'ignore':
+                    baseline_counts['dropped'] += 1
+            
+            # Calculate percentages
+            baseline_percentages = [baseline_counts[cat] / total_baseline_tests * 100 for cat in categories]
+            
+            # Calculate cumulative percentages
+            baseline_cum_percentages = []
+            cum_sum = 0
+            for pct in baseline_percentages:
+                cum_sum += pct
+                baseline_cum_percentages.append(cum_sum)
+            
+            # Plot the baseline with a distinct style
+            plt.plot(range(len(categories)), baseline_cum_percentages, 'k--', linewidth=2.5, 
+                     marker='*', markersize=10, label="RFC Ideal")
         
         # Configure the plot
         plt.xticks(range(len(categories)), category_display_names, rotation=45)
@@ -1387,6 +1438,136 @@ def create_cloudflare_correlation_matrix(all_test_results, output_directory):
                 dpi=300, bbox_inches='tight')
     plt.close()
 
+def create_client_server_proxy_line_graphs(test_results, proxy_configs, client_side_tests, server_side_tests, output_directory):
+    """Create line graphs showing test result categories with different proxies as lines in CDF style,
+    separated by client-side and server-side tests."""
+    os.makedirs(output_directory, exist_ok=True)
+    
+    # Filter for full-scope proxies only
+    full_scope_proxies = [proxy for proxy, config in proxy_configs.items() 
+                         if config['scope'] == 'full' and proxy in test_results]
+    
+    if not full_scope_proxies:
+        print("No full-scope proxies found for client-server line graphs")
+        return
+    
+    # Define the categories in the order we want them on the x-axis
+    categories = ['dropped', '500', 'goaway', 'reset', 'unmodified', 'modified']
+    category_display_names = ['D', 'E', 'G', 'R', 'U', 'M']
+    
+    # Load test_cases.json to determine optimum behavior
+    with open('test_cases.json', 'r') as f:
+        test_cases = json.load(f)
+    
+    # Create a mapping from test ID to whether it should use stream reset or goaway
+    test_error_types = {}
+    for test in test_cases:
+        test_id = str(test['id'])
+        if test.get('error_type') == 'stream':
+            test_error_types[test_id] = 'reset'
+        elif test.get('expected_result') == 'error':
+            test_error_types[test_id] = 'goaway'
+        elif test.get('expected_result') == 'ignore':
+            test_error_types[test_id] = 'ignore'
+    
+    # Process separately for client-side and server-side tests
+    for test_type, test_set in [('client_side', client_side_tests), ('server_side', server_side_tests)]:
+        plt.figure(figsize=(12, 8))
+        
+        # Define a colormap for the lines
+        colors = plt.cm.viridis(np.linspace(0, 1, len(full_scope_proxies)))
+        
+        # Calculate percentages for each proxy and category
+        for i, proxy in enumerate(full_scope_proxies):
+            proxy_results = {test_id: result for test_id, result in test_results[proxy].items() 
+                            if test_id in test_set}
+            
+            total_tests = len(proxy_results)
+            
+            if total_tests == 0:
+                continue
+                
+            # Count occurrences of each category
+            category_counts = {cat: 0 for cat in categories}
+            
+            for result in proxy_results.values():
+                if result in category_counts:
+                    category_counts[result] += 1
+                    
+            # Calculate raw percentages
+            percentages = [category_counts[cat] / total_tests * 100 for cat in categories]
+            
+            # Calculate cumulative percentages for CDF
+            cum_percentages = []
+            cum_sum = 0
+            for pct in percentages:
+                cum_sum += pct
+                cum_percentages.append(cum_sum)
+            
+            # Plot the line for this proxy
+            plt.plot(range(len(categories)), cum_percentages, marker='o', linewidth=2, 
+                     color=colors[i], label=f"{proxy}")
+        
+        # Add the optimum/baseline behavior
+        # For full scope, use all test cases; for client-only, use only client-side tests
+        if test_type == 'full':
+            relevant_test_cases = test_error_types
+        else:
+            # For client-only proxies, we'll skip the baseline since they don't handle server-side tests
+            relevant_test_cases = {}
+        
+        if relevant_test_cases:
+            # Initialize category counts for baseline
+            baseline_counts = {cat: 0 for cat in categories}
+            total_baseline_tests = len(relevant_test_cases)
+            
+            # Count ideal responses based on error_type
+            for test_id, error_type in relevant_test_cases.items():
+                if error_type == 'reset':
+                    baseline_counts['reset'] += 1
+                elif error_type == 'goaway':
+                    baseline_counts['goaway'] += 1
+                elif error_type == 'ignore':
+                    baseline_counts['dropped'] += 1
+            
+            # Calculate percentages
+            baseline_percentages = [baseline_counts[cat] / total_baseline_tests * 100 for cat in categories]
+            
+            # Calculate cumulative percentages
+            baseline_cum_percentages = []
+            cum_sum = 0
+            for pct in baseline_percentages:
+                cum_sum += pct
+                baseline_cum_percentages.append(cum_sum)
+            
+            # Plot the baseline with a distinct style
+            plt.plot(range(len(categories)), baseline_cum_percentages, 'k--', linewidth=2.5, 
+                     marker='*', markersize=10, label="RFC Ideal")
+        
+        # Configure the plot
+        plt.xticks(range(len(categories)), category_display_names, rotation=45)
+        plt.xlim(-0.5, len(categories) - 0.5)
+        plt.ylim(0, 110)  # Increased from 100 to 110 to provide more padding at the top
+        plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+        
+        # Get test count for this test type
+        test_count = len(test_set)
+        test_type_display = "Client-side" if test_type == "client_side" else "Server-side"
+        
+        plt.title(f'HTTP/2 Test Result Distribution - {test_type_display} Only ({test_count} tests)', 
+                  fontsize=14, fontweight='bold')
+        plt.ylabel('Cumulative Percentage (%)', fontsize=12)
+        
+        # Add legend with smaller font size
+        plt.legend(loc='lower right', fontsize=10)
+        
+        plt.tight_layout()
+        
+        # Save the figure
+        filename = f'proxy_result_cdf_{test_type}.png'
+        plt.savefig(os.path.join(output_directory, filename), dpi=300, bbox_inches='tight')
+        plt.close()
+
 def main():
     # Create summaries directory if it doesn't exist
     summaries_dir = 'summaries'
@@ -1475,6 +1656,8 @@ def main():
         client_side_tests, server_side_tests = load_client_server_classification('docs/clientside_vs_serverside.json')
         create_client_server_pie_charts(all_test_results, client_side_tests, server_side_tests, proxy_configs, output_dir)
         create_client_server_conformance_visualization(all_test_results, client_side_tests, server_side_tests, proxy_configs, output_dir)
+        # Add the new client-server CDF graphs
+        create_client_server_proxy_line_graphs(all_test_results, proxy_configs, client_side_tests, server_side_tests, output_dir)
     except Exception as e:
         print(f"Error creating client-server visualizations: {e}")
     
