@@ -72,6 +72,7 @@
     "description": "If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED.",
     "section": "5",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -416,6 +417,7 @@
     "description": "With the CONNECT method, the \" :scheme\" and \" :path\" pseudo-header fields MUST be omitted. (Tested with only :path present)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -432,6 +434,7 @@
     "description": "With the CONNECT method, the \" :scheme\" and \" :path\" pseudo-header fields MUST be omitted. (Tested with only :scheme present)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -448,6 +451,7 @@
     "description": "A receiver MUST treat the receipt of a WINDOW_UPDATE frame with a flow-control window increment of 0 as a stream error (Section 5.4.2) of type PROTOCOL_ERROR.",
     "section": "6",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "WINDOW_UPDATE",
@@ -538,6 +542,7 @@
     "description": "The header fields in PUSH_PROMISE and any subsequent CONTINUATION frames MUST be a valid and complete set of request header fields.",
     "section": "6",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
@@ -554,6 +559,7 @@
     "description": "Trailers MUST NOT include pseudo-header fields (Section 8.3).",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -574,6 +580,7 @@
     "description": "Field names MUST be converted to lowercase when constructing an HTTP/2 message.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -591,6 +598,7 @@
     "description": "Field names MUST NOT contain control characters (0x00-0x1F)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -616,6 +624,7 @@
     "description": "Field names MUST NOT contain ASCII SP (0x20)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -634,6 +643,7 @@
     "description": "Field names MUST NOT contain DEL character (0x7F)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -652,6 +662,7 @@
     "description": "Field names MUST NOT contain high byte characters (0x80-0xFF)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -685,6 +696,7 @@
     "description": "With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a).",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -703,6 +715,7 @@
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the start of the value)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -722,6 +735,7 @@
     "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the start of the value)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -741,6 +755,7 @@
     "description": "A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -759,6 +774,7 @@
     "description": "A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -777,6 +793,7 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -795,6 +812,7 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -813,6 +831,7 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing keep-alive header field (RFC9113 Section 8.2.2)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -831,6 +850,7 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -849,6 +869,7 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -867,6 +888,7 @@
     "description": "The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -885,6 +907,7 @@
     "description": "Pseudo-header fields are not HTTP header fields. Endpoints MUST NOT generate pseudo-header fields other than those defined in this document.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -903,6 +926,7 @@
     "description": "Pseudo-header fields defined for requests MUST NOT appear in responses.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -926,6 +950,7 @@
     "description": "Pseudo-header fields defined for responses MUST NOT appear in requests.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -944,6 +969,7 @@
     "description": "All pseudo-header fields sent from a client MUST appear in a field block before all regular field lines. Any request or response that contains a pseudo-header field that appears in a field block after a regular field line MUST be treated as malformed (Section 8.1.1).",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -962,6 +988,7 @@
     "description": "All pseudo-header fields sent from a server MUST appear in a field block before all regular field lines. Any request or response that contains a pseudo-header field that appears in a field block after a regular field line MUST be treated as malformed (Section 8.1.1).",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -977,6 +1004,7 @@
     "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with the same value.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -997,6 +1025,7 @@
     "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with different values.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1017,6 +1046,7 @@
     "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a response frame with the same value.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -1031,6 +1061,7 @@
     "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a response frame with different values.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -1045,6 +1076,7 @@
     "description": "Clients MUST NOT generate a request with a Host header field that differs from the \":authority\" pseudo-header field.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1063,6 +1095,7 @@
     "description": "':authority' MUST NOT include the deprecated userinfo subcomponent for \"http\" or \"https\" schemed URIs.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1080,6 +1113,7 @@
     "description": "The \":path\" pseudo-header field MUST NOT be empty for \"http\" or \"https\" URIs; \"http\" or \"https\" URIs that do not contain a path component MUST include a value of '/'.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1097,6 +1131,7 @@
     "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :method missing)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1113,6 +1148,7 @@
     "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :scheme missing)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1129,6 +1165,7 @@
     "description": "For HTTP/2 responses, a single \":status\" pseudo-header field is defined that carries the HTTP status code field. This pseudo-header field MUST be included in all responses, including interim responses; otherwise, the response is malformed.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -1143,6 +1180,7 @@
     "description": "A client cannot push. Thus, servers MUST treat the receipt of a PUSH_PROMISE frame as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "section": "5",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1160,6 +1198,7 @@
     "description": "In the PUSH_PROMISE frame, the server MUST include a method in the \":method\" pseudo-header field that is safe and cacheable.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
@@ -1177,6 +1216,7 @@
     "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted. (Tested with both present)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1194,6 +1234,7 @@
     "description": "With the CONNECT method, The \":authority\" pseudo-header field contains the host and port to connect to",
     "section": "8",
     "expected_result": "ignore",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1291,6 +1332,7 @@
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the idle state.)",
     "section": "5",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "DATA"
@@ -1302,6 +1344,7 @@
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)",
     "section": "5",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1319,6 +1362,7 @@
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.)",
     "section": "5",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1532,6 +1576,7 @@
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the middle of the value)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1551,6 +1596,7 @@
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1570,6 +1616,7 @@
     "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1589,6 +1636,7 @@
     "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1608,6 +1656,7 @@
     "description": "Pseudo-header fields MUST NOT appear in a trailer section.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS"
@@ -1628,6 +1677,7 @@
     "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "client_frames": [
       {
         "type": "HEADERS",
@@ -1644,6 +1694,7 @@
     "description": "Promised requests MUST be safe (see Section 9.2.1 of [HTTP]) and cacheable (see Section 9.2.3 of [HTTP]).",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "PUSH_PROMISE",
@@ -1690,6 +1741,7 @@
     "description": "If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (server side)",
     "section": "5",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "DATA",
@@ -1880,6 +1932,7 @@
     "description": "A receiver MUST treat the receipt of a WINDOW_UPDATE frame with a flow-control window increment of 0 as a stream error (Section 5.4.2) of type PROTOCOL_ERROR.",
     "section": "6",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "WINDOW_UPDATE",
@@ -1953,6 +2006,7 @@
     "description": "Trailers MUST NOT include pseudo-header fields (Section 8.3).",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS"
@@ -1973,6 +2027,7 @@
     "description": "Field names MUST be converted to lowercase when constructing an HTTP/2 message.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -1987,6 +2042,7 @@
     "description": "Field names MUST NOT contain control characters (0x00-0x1F)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2011,6 +2067,7 @@
     "description": "Field names MUST NOT contain ASCII SP (0x20)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2035,6 +2092,7 @@
     "description": "Field names MUST NOT contain DEL character (0x7F)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2051,6 +2109,7 @@
     "description": "Field names MUST NOT contain high byte characters (0x80-0xFF)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2075,6 +2134,7 @@
     "description": "With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a).",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2099,6 +2159,7 @@
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the start of the value)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2123,6 +2184,7 @@
     "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the start of the value)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2147,6 +2209,7 @@
     "description": "A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2172,6 +2235,7 @@
     "description": "A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2197,6 +2261,7 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2221,6 +2286,7 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2245,6 +2311,7 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing keep-alive header field (RFC9113 Section 8.2.2)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2269,6 +2336,7 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2293,6 +2361,7 @@
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2317,6 +2386,7 @@
     "description": "The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2342,6 +2412,7 @@
     "description": "Pseudo-header fields are not HTTP header fields. Endpoints MUST NOT generate pseudo-header fields other than those defined in this document.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2439,6 +2510,7 @@
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the idle state.)",
     "section": "5",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "DATA",
@@ -2451,6 +2523,7 @@
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)",
     "section": "5",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2468,6 +2541,7 @@
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.)",
     "section": "5",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "RST_STREAM"
@@ -2603,6 +2677,7 @@
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the middle of the value)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2619,6 +2694,7 @@
     "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2635,6 +2711,7 @@
     "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2651,6 +2728,7 @@
     "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value)",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
@@ -2667,6 +2745,7 @@
     "description": "Pseudo-header fields MUST NOT appear in a trailer section.",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS"
@@ -2687,6 +2766,7 @@
     "description": "HTTP/2 does not support the 101 (Switching Protocols) informational status code (Section 15.2.2 of [HTTP]).",
     "section": "8",
     "expected_result": "error",
+    "error_type": "stream",
     "server_frames": [
       {
         "type": "HEADERS",
