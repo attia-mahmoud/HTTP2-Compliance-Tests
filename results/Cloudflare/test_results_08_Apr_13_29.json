@@ -1,4 +1,11 @@
 {
+  "metadata": {
+    "date": "2025-04-08 13:29:00",
+    "proxy": "Cloudflare",
+    "master": "mahmoudmaster.admin.master.nopasaran.org",
+    "client_worker": "linodeparis.admin.worker.nopasaran.org",
+    "server_worker": "linodeaustralia.admin.worker.nopasaran.org"
+  },
   "1": {
     "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
