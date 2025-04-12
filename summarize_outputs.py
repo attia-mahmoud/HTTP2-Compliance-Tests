@@ -1275,169 +1275,6 @@ def create_test_outcome_by_id_table(all_test_results, summaries_dir):
                 # Add a separator between tests
                 f.write("\n")
 
-def compare_cloudflare_variants(all_test_results, summaries_dir):
-    """
-    Compare test results between Cloudflare, Cloudflare2, and Cloudflare3 and identify differences.
-    
-    Args:
-        all_test_results: Dictionary mapping proxy names to their test results
-        summaries_dir: Directory to save the output report
-    """
-    # Check if all Cloudflare variants are present
-    cf_variants = ["Cloudflare", "Cloudflare2", "Cloudflare3", "Cloudflare4"]
-    for variant in cf_variants:
-        if variant not in all_test_results:
-            print(f"Warning: {variant} results not found in the dataset")
-    
-    # Filter available Cloudflare variants
-    available_variants = [v for v in cf_variants if v in all_test_results]
-    if len(available_variants) < 2:
-        print("Not enough Cloudflare variants to compare")
-        return
-    
-    # Get the common test IDs across available variants
-    common_test_ids = set()
-    for variant in available_variants:
-        if common_test_ids:
-            common_test_ids &= set(all_test_results[variant].keys())
-        else:
-            common_test_ids = set(all_test_results[variant].keys())
-    
-    # Find tests with different outcomes
-    different_outcomes = {}
-    for test_id in common_test_ids:
-        # Collect results for this test across variants
-        test_results = {variant: all_test_results[variant][test_id] for variant in available_variants}
-        
-        # Check if there are differences
-        if len(set(test_results.values())) > 1:
-            different_outcomes[test_id] = test_results
-    
-    # Load test descriptions
-    try:
-        with open('test_cases.json', 'r') as f:
-            test_cases = json.load(f)
-        test_descriptions = {str(case['id']): case['description'] for case in test_cases}
-    except:
-        print("Warning: Could not load test descriptions from test_cases.json")
-        test_descriptions = {}
-    
-    # Create the output file
-    output_file = os.path.join(summaries_dir, "cloudflare_variant_differences.txt")
-    
-    with open(output_file, 'w') as f:
-        f.write("# Differences Between Cloudflare Variants\n\n")
-        f.write(f"Comparing {', '.join(available_variants)}\n\n")
-        f.write(f"Total tests with different outcomes: {len(different_outcomes)}\n\n")
-        
-        # Sort test IDs numerically
-        sorted_test_ids = sorted(different_outcomes.keys(), key=lambda x: int(x) if x.isdigit() else float('inf'))
-        
-        for test_id in sorted_test_ids:
-            description = test_descriptions.get(test_id, "No description available")
-            results = different_outcomes[test_id]
-            
-            f.write(f"## Test {test_id}: {description}\n\n")
-            
-            # Create a table for this test
-            f.write("| Variant | Outcome |\n")
-            f.write("|---------|--------|\n")
-            
-            for variant in available_variants:
-                f.write(f"| {variant} | {results[variant]} |\n")
-            
-            f.write("\n")
-
-    return different_outcomes
-
-def create_cloudflare_correlation_matrix(all_test_results, output_directory):
-    """
-    Create a Pearson correlation matrix visualization specifically for Cloudflare variants.
-    
-    Args:
-        all_test_results: Dictionary mapping proxy names to their test results
-        output_directory: Directory to save the visualization
-    """
-    os.makedirs(output_directory, exist_ok=True)
-    
-    # Filter for Cloudflare variants
-    cf_variants = ["Cloudflare", "Cloudflare2", "Cloudflare3", "Cloudflare4"]
-    available_variants = [v for v in cf_variants if v in all_test_results]
-    
-    if len(available_variants) < 2:
-        print("Not enough Cloudflare variants to create correlation matrix")
-        return
-    
-    # Get test IDs from all available variants
-    test_ids = sorted(list(set().union(*[results.keys() for proxy, results in all_test_results.items() 
-                                       if proxy in available_variants])),
-                     key=lambda x: int(x) if x.isdigit() else float('inf'))
-    
-    # Create matrix data with the same encoding as the original function
-    matrix_data = np.zeros((len(available_variants), len(test_ids)))
-    for i, proxy in enumerate(available_variants):
-        for j, test_id in enumerate(test_ids):
-            # Convert result to numeric value with better separation
-            result = all_test_results[proxy].get(test_id, "other")
-            if result == "received":
-                matrix_data[i][j] = 4  # Success
-            elif result == "reset":
-                matrix_data[i][j] = 3  # Reset
-            elif result == "goaway":
-                matrix_data[i][j] = 2  # Goaway
-            elif result == "500":
-                matrix_data[i][j] = 1  # 500 error
-            elif result == "dropped":
-                matrix_data[i][j] = 0  # Failure
-            else:  # other
-                matrix_data[i][j] = np.nan  # Use NaN to exclude "other" from correlation
-    
-    # Calculate correlation matrix with NaN handling
-    correlation_matrix = np.zeros((len(available_variants), len(available_variants)))
-    for i in range(len(available_variants)):
-        for j in range(len(available_variants)):
-            # Calculate correlation for each pair, ignoring NaNs
-            valid_indices = ~(np.isnan(matrix_data[i]) | np.isnan(matrix_data[j]))
-            if np.sum(valid_indices) > 1:  # Need at least 2 valid points
-                correlation_matrix[i, j] = np.corrcoef(
-                    matrix_data[i, valid_indices], 
-                    matrix_data[j, valid_indices]
-                )[0, 1]
-            else:
-                correlation_matrix[i, j] = 0
-    
-    # Create figure
-    plt.figure(figsize=(12, 10))
-    
-    # Create heatmap
-    im = plt.imshow(correlation_matrix, cmap='coolwarm', aspect='equal', vmin=-1, vmax=1)
-    
-    # Add colorbar
-    plt.colorbar(im)
-    
-    # Configure ticks and labels
-    plt.xticks(np.arange(len(available_variants)), available_variants, rotation=45, ha='right')
-    plt.yticks(np.arange(len(available_variants)), available_variants)
-    
-    # Add correlation values as text
-    for i in range(len(available_variants)):
-        for j in range(len(available_variants)):
-            text = plt.text(j, i, f'{correlation_matrix[i, j]:.2f}',
-                          ha='center', va='center', color='black')
-            
-            # Make text white for dark background
-            if abs(correlation_matrix[i, j]) > 0.5:
-                text.set_color('white')
-    
-    plt.title('Cloudflare Variants Correlation Matrix', fontsize=14, fontweight='bold')
-    plt.tight_layout()
-    
-    # Save the plot
-    filename = 'cloudflare_correlation_matrix.png'
-    plt.savefig(os.path.join(output_directory, filename), 
-                dpi=300, bbox_inches='tight')
-    plt.close()
-
 def create_client_server_proxy_line_graphs(test_results, proxy_configs, client_side_tests, server_side_tests, output_directory):
     """Create line graphs showing test result categories with different proxies as lines in CDF style,
     separated by client-side and server-side tests."""
@@ -1645,11 +1482,15 @@ def main():
     create_proxy_result_pies(all_test_results, proxy_configs, output_dir)
     create_proxy_line_graphs(all_test_results, proxy_configs, output_dir)
 
-    # Compare Cloudflare variants
-    compare_cloudflare_variants(all_test_results, summaries_dir)
+    # Use the Cloudflare analysis module
+    from cloudflare_analysis import compare_cloudflare_variants, create_cloudflare_correlation_matrix, load_cloudflare_results, create_cloudflare_test_variance_chart
     
-    # Create Cloudflare correlation matrix
-    create_cloudflare_correlation_matrix(all_test_results, output_dir)
+    # Load CloudFlare results and run analysis
+    cloudflare_results = load_cloudflare_results(results_dir)
+    if cloudflare_results:
+        compare_cloudflare_variants(cloudflare_results, summaries_dir)
+        create_cloudflare_correlation_matrix(cloudflare_results, output_dir)
+        create_cloudflare_test_variance_chart(cloudflare_results, output_dir)
     
     # Load client-server classification and create client-server visualizations
     try:
