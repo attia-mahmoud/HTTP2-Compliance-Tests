@@ -613,6 +613,469 @@ def create_cloudflare_test_variance_chart(all_test_results, output_directory):
     }
 
 
+def create_grouped_correlation_matrix(all_test_results, output_directory):
+    """
+    Create a custom correlation matrix visualization that groups Cloudflare variants by location pairs,
+    showing multiple dates for each location pair in a grid of subplots.
+    
+    Args:
+        all_test_results: Dictionary mapping variant names to their test results
+        output_directory: Directory to save the visualization
+    """
+    os.makedirs(output_directory, exist_ok=True)
+    
+    # Get the list of all variants
+    all_variants = list(all_test_results.keys())
+    
+    if len(all_variants) < 2:
+        print("Not enough Cloudflare variants to create grouped correlation matrix")
+        return
+    
+    # Parse the variant names to extract location pairs and dates
+    location_pairs = {}
+    for variant in all_variants:
+        # Expected format: CF-location1-to-location2-YYYY-MM-DD
+        parts = variant.split('-')
+        if len(parts) >= 5 and parts[1] and parts[3]:
+            # Extract the location pair and date
+            location_pair = f"{parts[1]}-to-{parts[3]}"
+            date = "-".join(parts[4:])  # Handle dates that might contain additional hyphens
+            
+            if location_pair not in location_pairs:
+                location_pairs[location_pair] = []
+            location_pairs[location_pair].append((variant, date))
+    
+    # Sort the location pairs for consistent ordering
+    sorted_location_pairs = sorted(location_pairs.keys())
+    
+    # Get test IDs from all variants
+    test_ids = sorted(list(set().union(*[results.keys() for results in all_test_results.values()])),
+                    key=lambda x: int(x) if x.isdigit() else float('inf'))
+    
+    # Create matrix data with the same encoding as the original function
+    matrix_data = {}
+    for variant in all_variants:
+        matrix_data[variant] = np.zeros(len(test_ids))
+        for j, test_id in enumerate(test_ids):
+            # Convert result to numeric value with better separation
+            result = all_test_results[variant].get(test_id, "other")
+            if result == "received":
+                matrix_data[variant][j] = 4  # Success
+            elif result == "reset":
+                matrix_data[variant][j] = 3  # Reset
+            elif result == "goaway":
+                matrix_data[variant][j] = 2  # Goaway
+            elif result == "500":
+                matrix_data[variant][j] = 1  # 500 error
+            elif result == "dropped":
+                matrix_data[variant][j] = 0  # Failure
+            else:  # other
+                matrix_data[variant][j] = np.nan  # Use NaN to exclude "other" from correlation
+    
+    # Calculate correlation matrix
+    correlation_values = {}
+    for variant1 in all_variants:
+        correlation_values[variant1] = {}
+        for variant2 in all_variants:
+            # Skip self-correlations
+            if variant1 == variant2:
+                correlation_values[variant1][variant2] = 1.0
+                continue
+                
+            # Get valid indices (non-NaN in both variants)
+            valid_indices = ~(np.isnan(matrix_data[variant1]) | np.isnan(matrix_data[variant2]))
+            valid_count = np.sum(valid_indices)
+            
+            # Skip if not enough valid data points
+            if valid_count < 2:
+                correlation_values[variant1][variant2] = np.nan
+                continue
+            
+            # Calculate standard deviations, ignoring NaNs
+            std_dev1 = np.std(matrix_data[variant1][valid_indices])
+            std_dev2 = np.std(matrix_data[variant2][valid_indices])
+            
+            # Check for zero standard deviation
+            if std_dev1 == 0 or std_dev2 == 0:
+                # Check if data is identical
+                identical = np.array_equal(
+                    matrix_data[variant1][valid_indices],
+                    matrix_data[variant2][valid_indices]
+                )
+                
+                if identical:
+                    correlation_values[variant1][variant2] = 1.0
+                else:
+                    correlation_values[variant1][variant2] = np.nan
+            else:
+                # Normal correlation calculation
+                try:
+                    with np.errstate(divide='ignore', invalid='ignore'):
+                        corr = np.corrcoef(
+                            matrix_data[variant1][valid_indices], 
+                            matrix_data[variant2][valid_indices]
+                        )[0, 1]
+                    
+                    correlation_values[variant1][variant2] = corr
+                except Exception:
+                    correlation_values[variant1][variant2] = np.nan
+    
+    # Determine grid dimensions based on number of location pairs
+    grid_size = int(np.ceil(np.sqrt(len(sorted_location_pairs))))
+    
+    # Create figure
+    fig = plt.figure(figsize=(grid_size * 6, grid_size * 5))
+    fig.suptitle('Cloudflare Variants Correlation Matrix by Location', fontsize=16, fontweight='bold')
+    
+    # Create a subplot for each location pair
+    for idx, location_pair in enumerate(sorted_location_pairs):
+        variants_in_pair = [v[0] for v in location_pairs[location_pair]]
+        
+        # Create subplot
+        ax = fig.add_subplot(grid_size, grid_size, idx + 1)
+        
+        # Create matrix for this location pair
+        n_variants = len(variants_in_pair)
+        pair_matrix = np.zeros((n_variants, n_variants))
+        
+        # Fill matrix with correlation values
+        for i, variant1 in enumerate(variants_in_pair):
+            for j, variant2 in enumerate(variants_in_pair):
+                pair_matrix[i, j] = correlation_values[variant1][variant2]
+        
+        # Create heatmap
+        masked_matrix = np.ma.masked_invalid(pair_matrix)
+        im = ax.imshow(masked_matrix, cmap='coolwarm', aspect='equal', vmin=-1, vmax=1)
+        
+        # Label the axes with dates only (more compact)
+        date_labels = [v[1] for v in location_pairs[location_pair]]
+        ax.set_xticks(np.arange(n_variants))
+        ax.set_yticks(np.arange(n_variants))
+        ax.set_xticklabels(date_labels, rotation=45, ha='right', fontsize=7)
+        ax.set_yticklabels(date_labels, fontsize=7)
+        
+        # Set title for this subplot
+        ax.set_title(location_pair, fontsize=10)
+        
+        # Add correlation values as text
+        for i in range(n_variants):
+            for j in range(n_variants):
+                value = pair_matrix[i, j]
+                if np.isnan(value):
+                    text = "---"
+                elif i == j:
+                    text = "1.00"
+                else:
+                    text = f"{value:.2f}"
+                
+                ax.text(j, i, text, ha='center', va='center', fontsize=8,
+                        color='white' if not np.isnan(value) and 0.3 < value < 0.7 else 'black')
+    
+    # Add colorbar to the figure
+    cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
+    cbar = fig.colorbar(im, cax=cbar_ax)
+    cbar.set_label('Correlation Coefficient')
+    
+    plt.tight_layout(rect=[0, 0, 0.9, 0.95])
+    
+    # Save the plot
+    filename = 'cloudflare_grouped_correlation_matrix.png'
+    plt.savefig(os.path.join(output_directory, filename), 
+                dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    return {
+        "total_location_pairs": len(sorted_location_pairs),
+        "total_variants": len(all_variants)
+    }
+
+
+def create_cross_location_correlation_matrix(all_test_results, output_directory):
+    """
+    Create a comprehensive correlation matrix that shows both within-location and
+    cross-location correlations between different Cloudflare test variants.
+    
+    Args:
+        all_test_results: Dictionary mapping variant names to their test results
+        output_directory: Directory to save the visualization
+    """
+    os.makedirs(output_directory, exist_ok=True)
+    
+    # Get the list of all variants
+    all_variants = list(all_test_results.keys())
+    
+    if len(all_variants) < 2:
+        print("Not enough Cloudflare variants to create cross-location correlation matrix")
+        return
+    
+    # Parse the variant names to extract location pairs and dates
+    location_pairs = {}
+    for variant in all_variants:
+        # Expected format: CF-location1-to-location2-YYYY-MM-DD
+        parts = variant.split('-')
+        if len(parts) >= 5 and parts[1] and parts[3]:
+            # Extract the location pair and date
+            location_pair = f"{parts[1]}-to-{parts[3]}"
+            date = "-".join(parts[4:])  # Handle dates that might contain additional hyphens
+            
+            if location_pair not in location_pairs:
+                location_pairs[location_pair] = []
+            location_pairs[location_pair].append((variant, date))
+    
+    # Sort the location pairs for consistent ordering
+    sorted_location_pairs = sorted(location_pairs.keys())
+    
+    # Get test IDs from all variants
+    test_ids = sorted(list(set().union(*[results.keys() for results in all_test_results.values()])),
+                    key=lambda x: int(x) if x.isdigit() else float('inf'))
+    
+    # Create matrix data with the same encoding as the original function
+    matrix_data = {}
+    for variant in all_variants:
+        matrix_data[variant] = np.zeros(len(test_ids))
+        for j, test_id in enumerate(test_ids):
+            # Convert result to numeric value with better separation
+            result = all_test_results[variant].get(test_id, "other")
+            if result == "modified":
+                matrix_data[variant][j] = 6  # Modified
+            elif result == "unmodified":
+                matrix_data[variant][j] = 5  # Unmodified
+            elif result == "received":
+                matrix_data[variant][j] = 4  # Success
+            elif result == "reset":
+                matrix_data[variant][j] = 3  # Reset
+            elif result == "goaway":
+                matrix_data[variant][j] = 2  # Goaway
+            elif result == "500":
+                matrix_data[variant][j] = 1  # 500 error
+            elif result == "dropped":
+                matrix_data[variant][j] = 0  # Failure
+            else:  # other
+                matrix_data[variant][j] = np.nan  # Use NaN to exclude "other" from correlation
+    
+    # Calculate correlation matrix
+    correlation_values = {}
+    for variant1 in all_variants:
+        correlation_values[variant1] = {}
+        for variant2 in all_variants:
+            # Skip self-correlations
+            if variant1 == variant2:
+                correlation_values[variant1][variant2] = 1.0
+                continue
+                
+            # Get valid indices (non-NaN in both variants)
+            valid_indices = ~(np.isnan(matrix_data[variant1]) | np.isnan(matrix_data[variant2]))
+            valid_count = np.sum(valid_indices)
+            
+            # Skip if not enough valid data points
+            if valid_count < 2:
+                correlation_values[variant1][variant2] = np.nan
+                continue
+            
+            # Calculate standard deviations, ignoring NaNs
+            std_dev1 = np.std(matrix_data[variant1][valid_indices])
+            std_dev2 = np.std(matrix_data[variant2][valid_indices])
+            
+            # Check for zero standard deviation
+            if std_dev1 == 0 or std_dev2 == 0:
+                # Check if data is identical
+                identical = np.array_equal(
+                    matrix_data[variant1][valid_indices],
+                    matrix_data[variant2][valid_indices]
+                )
+                
+                if identical:
+                    correlation_values[variant1][variant2] = 1.0
+                else:
+                    correlation_values[variant1][variant2] = np.nan
+            else:
+                # Normal correlation calculation
+                try:
+                    with np.errstate(divide='ignore', invalid='ignore'):
+                        corr = np.corrcoef(
+                            matrix_data[variant1][valid_indices], 
+                            matrix_data[variant2][valid_indices]
+                        )[0, 1]
+                    
+                    correlation_values[variant1][variant2] = corr
+                except Exception:
+                    correlation_values[variant1][variant2] = np.nan
+    
+    # Create the figure
+    n_locations = len(sorted_location_pairs)
+    fig_size = max(12, n_locations * 2)
+    fig, axes = plt.subplots(n_locations, n_locations, figsize=(fig_size, fig_size))
+    
+    # Flat array access for single location case
+    if n_locations == 1:
+        axes = np.array([[axes]])
+    
+    # Set title
+    fig.suptitle('Cloudflare Variants Correlation Matrix - Cross-Location Analysis', fontsize=16, fontweight='bold')
+    
+    # Create a mapping of variants by location for easier access
+    variants_by_location = {}
+    for loc_pair in sorted_location_pairs:
+        variants_by_location[loc_pair] = [v[0] for v in location_pairs[loc_pair]]
+    
+    # Fill in each subplot with the appropriate correlation matrix
+    for i, loc1 in enumerate(sorted_location_pairs):
+        for j, loc2 in enumerate(sorted_location_pairs):
+            ax = axes[i, j]
+            
+            # Get variants for each location
+            variants1 = variants_by_location[loc1]
+            variants2 = variants_by_location[loc2]
+            
+            # Create correlation matrix for this location pair
+            corr_matrix = np.zeros((len(variants1), len(variants2)))
+            
+            # Fill matrix with correlation values
+            for i_var, var1 in enumerate(variants1):
+                for j_var, var2 in enumerate(variants2):
+                    corr_matrix[i_var, j_var] = correlation_values[var1][var2]
+            
+            # Create the heatmap
+            masked_matrix = np.ma.masked_invalid(corr_matrix)
+            im = ax.imshow(masked_matrix, cmap='coolwarm', aspect='equal', vmin=-1, vmax=1)
+            
+            # Set axis labels
+            if i == n_locations - 1:  # Bottom row gets x labels
+                date_labels = [v[1] for v in location_pairs[loc2]]
+                ax.set_xticks(np.arange(len(variants2)))
+                ax.set_xticklabels(date_labels, rotation=45, ha='right', fontsize=7)
+            else:
+                ax.set_xticks([])
+            
+            if j == 0:  # Left column gets y labels
+                date_labels = [v[1] for v in location_pairs[loc1]]
+                ax.set_yticks(np.arange(len(variants1)))
+                ax.set_yticklabels(date_labels, fontsize=7)
+            else:
+                ax.set_yticks([])
+            
+            # Set title for diagonal elements only
+            if i == j:
+                ax.set_title(loc1, fontsize=9)
+            
+            # Add correlation values as text
+            for i_text in range(len(variants1)):
+                for j_text in range(len(variants2)):
+                    value = corr_matrix[i_text, j_text]
+                    if np.isnan(value):
+                        text = "---"
+                    elif i == j and i_text == j_text:  # Diagonal within a location
+                        text = "1.00"
+                    else:
+                        text = f"{value:.2f}"
+                    
+                    # Adjust text color based on background
+                    text_color = 'white' if not np.isnan(value) and value > 0.5 else 'black'
+                    
+                    ax.text(j_text, i_text, text, ha='center', va='center', fontsize=7, color=text_color)
+    
+    # Add overall column and row labels
+    for i, loc in enumerate(sorted_location_pairs):
+        # Create row labels on the left side
+        row_label_ax = fig.add_subplot(n_locations, 1, i + 1, frameon=False)
+        row_label_ax.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
+        row_label_ax.grid(False)
+        row_label_ax.set_ylabel(loc, fontsize=10, rotation=90, labelpad=20)
+        
+        # Create column labels on the top
+        col_label_ax = fig.add_subplot(1, n_locations, i + 1, frameon=False)
+        col_label_ax.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
+        col_label_ax.grid(False)
+        col_label_ax.set_title(loc, fontsize=10, pad=20)
+    
+    # Add colorbar
+    cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
+    cbar = fig.colorbar(im, cax=cbar_ax)
+    cbar.set_label('Correlation Coefficient')
+    
+    plt.tight_layout(rect=[0.02, 0.02, 0.9, 0.95])
+    
+    # Save the plot
+    filename = 'cloudflare_cross_location_correlation_matrix.png'
+    plt.savefig(os.path.join(output_directory, filename), 
+                dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # Calculate average correlations between location pairs
+    location_avg_correlations = {}
+    for loc1 in sorted_location_pairs:
+        location_avg_correlations[loc1] = {}
+        vars1 = variants_by_location[loc1]
+        
+        for loc2 in sorted_location_pairs:
+            if loc1 == loc2:
+                location_avg_correlations[loc1][loc2] = 1.0
+                continue
+                
+            vars2 = variants_by_location[loc2]
+            
+            # Calculate average correlation between locations
+            valid_corrs = []
+            for var1 in vars1:
+                for var2 in vars2:
+                    corr = correlation_values[var1][var2]
+                    if not np.isnan(corr):
+                        valid_corrs.append(corr)
+            
+            if valid_corrs:
+                location_avg_correlations[loc1][loc2] = np.mean(valid_corrs)
+            else:
+                location_avg_correlations[loc1][loc2] = np.nan
+    
+    # Create a summary heatmap of average correlations between locations
+    fig, ax = plt.subplots(figsize=(10, 8))
+    avg_corr_matrix = np.zeros((n_locations, n_locations))
+    
+    for i, loc1 in enumerate(sorted_location_pairs):
+        for j, loc2 in enumerate(sorted_location_pairs):
+            avg_corr_matrix[i, j] = location_avg_correlations[loc1][loc2]
+    
+    masked_avg_matrix = np.ma.masked_invalid(avg_corr_matrix)
+    im = ax.imshow(masked_avg_matrix, cmap='coolwarm', aspect='equal', vmin=-1, vmax=1)
+    
+    # Add labels
+    ax.set_xticks(np.arange(n_locations))
+    ax.set_yticks(np.arange(n_locations))
+    ax.set_xticklabels(sorted_location_pairs, rotation=45, ha='right')
+    ax.set_yticklabels(sorted_location_pairs)
+    
+    # Add title
+    ax.set_title('Average Correlation Between Location Pairs', fontsize=14)
+    
+    # Add text annotations
+    for i in range(n_locations):
+        for j in range(n_locations):
+            value = avg_corr_matrix[i, j]
+            if np.isnan(value):
+                text = "---"
+            else:
+                text = f"{value:.2f}"
+            
+            # Adjust text color based on background
+            text_color = 'white' if not np.isnan(value) and value > 0.5 else 'black'
+            
+            ax.text(j, i, text, ha='center', va='center', color=text_color)
+    
+    plt.colorbar(im)
+    plt.tight_layout()
+    
+    # Save the summary plot
+    filename = 'cloudflare_location_avg_correlation.png'
+    plt.savefig(os.path.join(output_directory, filename), 
+                dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    return {
+        "total_location_pairs": n_locations,
+        "total_variants": len(all_variants)
+    }
+
+
 # Add a main function to run the analysis if this script is executed directly
 if __name__ == "__main__":
     import argparse
@@ -636,9 +1099,15 @@ if __name__ == "__main__":
         corr_stats = create_cloudflare_correlation_matrix(all_test_results, args.output_dir)
         test_stats = create_cloudflare_test_variance_chart(all_test_results, args.output_dir)
         
+        # Add the new grouped correlation matrices
+        grouping_stats = create_grouped_correlation_matrix(all_test_results, args.output_dir)
+        cross_loc_stats = create_cross_location_correlation_matrix(all_test_results, args.output_dir)
+        
         print("Cloudflare variant analysis complete.")
         print(f"Correlation stats: {corr_stats}")
         if test_stats:
             print(f"Test variance stats: {test_stats}")
+        print(f"Grouping stats: {grouping_stats}")
+        print(f"Cross-location stats: {cross_loc_stats}")
     else:
         print("No Cloudflare results found. Analysis skipped.") 
