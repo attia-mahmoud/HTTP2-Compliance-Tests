@@ -86,6 +86,7 @@ list_of_workers = [
     # {"WORKER": "linodelondon.admin.worker.nopasaran.org", "PORT": "443"},
     {"WORKER": "linodejapan.admin.worker.nopasaran.org", "PORT": "443", "PROXY_IP": "japancloudflare.nopasaran.co"},
     {"WORKER": "linodelosangeles.admin.worker.nopasaran.org", "PORT": "443", "PROXY_IP": "losangelescloudflare.nopasaran.co"},
+    {"WORKER": "linodegermany.admin.worker.nopasaran.org", "PORT": "443", "PROXY_IP": "germanycloudflare.nopasaran.co"},
 ]
 
 CLIENT_WORKER = "linodeparis.admin.worker.nopasaran.org"
