@@ -2,22 +2,23 @@
 
 This document lists tests where exactly one proxy behaved differently than all others.
 
-Total outliers found: 144
+Total outliers found: 143
 
 ## Outliers for Apache
 
 | Test ID | Description | Outlier Behavior | Common Behavior |
 |---------|-------------|------------------|----------------|
+| 110 | A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving. (server side) | 500 | unmodified |
 | 126 | Trailers MUST NOT include pseudo-header fields (Section 8.3). | goaway | dropped |
+| 151 | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.) | goaway | unmodified |
 | 152 | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.) | goaway | dropped |
 
 ## Outliers for Caddy
 
 | Test ID | Description | Outlier Behavior | Common Behavior |
 |---------|-------------|------------------|----------------|
-| 4 | Client preface must include a SETTINGS frame | 500 | goaway |
-| 8 | Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE | 500 | goaway |
-| 87 | A SETTINGS frame MUST be sent by both endpoints at the start of a connection and MAY be sent at any other time by either endpoint over the lifetime of the connection. (Tested from the client side.) | 500 | goaway |
+| 113 | When set, the ACK flag indicates that this frame acknowledges receipt and application of the peer's SETTINGS frame. When this bit is set, the frame payload of the SETTINGS frame MUST be empty. (server side) | 500 | goaway |
+| 114 | A RST_STREAM frame with a length other than 4 octets MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR. (server side) | 500 | goaway |
 | 142 | The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'. | modified | 500 |
 
 ## Outliers for Cloudflare
@@ -25,17 +26,6 @@ Total outliers found: 144
 | Test ID | Description | Outlier Behavior | Common Behavior |
 |---------|-------------|------------------|----------------|
 | 2 | Client must send connection preface after TLS establishment | dropped | 500 |
-| 123 | An endpoint MUST treat a change to SETTINGS_INITIAL_WINDOW_SIZE that causes any flow-control window to exceed the maximum size as a connection error (Section 5.4.1) of type FLOW_CONTROL_ERROR. | 500 | goaway |
-| 156 | The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver. | reset | dropped |
-
-## Outliers for H2O
-
-| Test ID | Description | Outlier Behavior | Common Behavior |
-|---------|-------------|------------------|----------------|
-| 110 | A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving. (server side) | dropped | unmodified |
-| 135 | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). | dropped | unmodified |
-| 136 | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). | dropped | unmodified |
-| 151 | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.) | dropped | unmodified |
 
 ## Outliers for Mitmproxy
 
@@ -43,9 +33,11 @@ Total outliers found: 144
 |---------|-------------|------------------|----------------|
 | 1 | Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR. | unmodified | goaway |
 | 3 | the connection preface starts with the string: PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n | unmodified | dropped |
+| 4 | Client preface must include a SETTINGS frame | modified | goaway |
 | 5 | If this stream (initially in the idle state) is initiated by the server, as described in Section 5.1.1, then receiving a HEADERS frame MUST also be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR. | unmodified | goaway |
 | 6 | An endpoint MUST NOT send any type of frame other than HEADERS, RST_STREAM, or PRIORITY in the reserved (local) state. | unmodified | 500 |
 | 7 | If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. | unmodified | goaway |
+| 8 | Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE | unmodified | goaway |
 | 10 | A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving. | unmodified | dropped |
 | 11 | Streams initiated by a client MUST use odd-numbered stream identifiers. | unmodified | goaway |
 | 12 | Streams initiated by a server MUST use even-numbered stream identifiers. | unmodified | goaway |
@@ -112,6 +104,7 @@ Total outliers found: 144
 | 83 | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.) | unmodified | goaway |
 | 85 | A HEADERS frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream. | unmodified | goaway |
 | 86 | If a HEADERS frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR. | unmodified | goaway |
+| 87 | A SETTINGS frame MUST be sent by both endpoints at the start of a connection and MAY be sent at any other time by either endpoint over the lifetime of the connection. (Tested from the client side.) | modified | goaway |
 | 88 | Unsupported settings MUST be ignored. | unmodified | dropped |
 | 89 | The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Already Used Stream ID) | unmodified | 500 |
 | 90 | The promised stream identifier MUST be a valid choice for the next stream sent by the sender (see 'new stream identifier' in Section 5.1.1). (Using Lower Stream ID) | unmodified | 500 |
@@ -132,14 +125,13 @@ Total outliers found: 144
 | 106 | Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR. (server side) | unmodified | goaway |
 | 107 | If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (server side) | unmodified | goaway |
 | 108 | Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE. (server side) | unmodified | goaway |
-| 111 | If a PRIORITY frame is received with a stream identifier of 0x00, the recipient MUST respond with a connection error of type PROTOCOL_ERROR. (server side) | unmodified | goaway |
+| 111 | If a PRIORITY frame is received with a stream identifier of 0x00, the recipient MUST respond with a connection error of type PROTOCOL_ERROR. (server side) | unmodified | dropped |
 | 112 | If a RST_STREAM frame is received with a stream identifier of 0x00, the recipient MUST treat this as a connection error (Section 5.4.1) of type PROTOCOL_ERROR. (server side) | reset | goaway |
 | 115 | The stream identifier for a SETTINGS frame MUST be zero (0x00). | unmodified | goaway |
 | 116 | A SETTINGS frame with a length other than a multiple of 6 octets MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR. | unmodified | goaway |
 | 118 | The value advertised by an endpoint MUST be between initial value (2^14 = 16,384) and maximum allowed frame size (2^24-1 = 16,777,215 octets), inclusive. | unmodified | goaway |
 | 119 | An endpoint that receives a SETTINGS frame with any unknown or unsupported identifier MUST ignore that setting. | unmodified | 500 |
 | 120 | If a PING frame is received with a Stream Identifier field value other than 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR. | unmodified | goaway |
-| 121 | A receiver MUST treat the receipt of a WINDOW_UPDATE frame with a flow-control window increment of 0 as a stream error (Section 5.4.2) of type PROTOCOL_ERROR. | dropped | goaway |
 | 124 | If a CONTINUATION frame is received with a Stream Identifier field of 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR. | unmodified | goaway |
 | 125 | A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using HEADERS frame with END_HEADERS flag set) | unmodified | goaway |
 | 127 | Field names MUST be converted to lowercase when constructing an HTTP/2 message. | unmodified | 500 |
@@ -172,4 +164,11 @@ Total outliers found: 144
 | 162 | A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value) | unmodified | 500 |
 | 163 | A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value) | unmodified | 500 |
 | 164 | A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value) | unmodified | 500 |
+
+## Outliers for Node
+
+| Test ID | Description | Outlier Behavior | Common Behavior |
+|---------|-------------|------------------|----------------|
+| 135 | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). | modified | unmodified |
+| 136 | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). | modified | unmodified |
 

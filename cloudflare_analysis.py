@@ -227,7 +227,6 @@ def load_cloudflare_results(results_dir='results'):
             _, _, _, _, _, _, _, test_results, _ = analyze_cloudflare_result(file_path)
             
             all_test_results[variant_name] = test_results
-            print(f"Loaded {len(test_results)} test results for {variant_name}")
                 
         except Exception as e:
             print(f"Error processing {file_name}: {e}")
@@ -268,7 +267,6 @@ def compare_cloudflare_variants(all_test_results, summaries_dir):
     
     # Get the list of all variants
     all_variants = list(all_test_results.keys())
-    print(f"Found {len(all_variants)} Cloudflare variants to compare: {', '.join(all_variants)}")
     
     # Get the common test IDs across all variants
     common_test_ids = set()
@@ -277,9 +275,7 @@ def compare_cloudflare_variants(all_test_results, summaries_dir):
             common_test_ids &= set(all_test_results[variant].keys())
         else:
             common_test_ids = set(all_test_results[variant].keys())
-    
-    print(f"Found {len(common_test_ids)} common test IDs across all variants")
-    
+        
     # Find tests with different outcomes
     different_outcomes = {}
     for test_id in common_test_ids:
@@ -289,9 +285,7 @@ def compare_cloudflare_variants(all_test_results, summaries_dir):
         # Check if there are differences
         if len(set(test_results.values())) > 1:
             different_outcomes[test_id] = test_results
-    
-    print(f"Found {len(different_outcomes)} tests with different outcomes")
-    
+        
     # Load test descriptions
     try:
         with open('test_cases.json', 'r') as f:
@@ -472,144 +466,6 @@ def create_cloudflare_correlation_matrix(all_test_results, output_directory):
         "valid_correlations": np.sum(~np.isnan(correlation_matrix)),
         "nan_correlations": np.sum(np.isnan(correlation_matrix)),
         "identical_variants": np.sum(text_matrix == "SAME") 
-    }
-
-
-def create_cloudflare_test_variance_chart(all_test_results, output_directory):
-    """
-    Create a visualization showing which tests vary between different Cloudflare variants.
-    
-    Args:
-        all_test_results: Dictionary mapping variant names to their test results
-        output_directory: Directory to save the visualization
-    """
-    os.makedirs(output_directory, exist_ok=True)
-    
-    # Get the list of all variants
-    all_variants = list(all_test_results.keys())
-    
-    if len(all_variants) < 2:
-        print("Not enough Cloudflare variants to create test variance chart")
-        return
-    
-    # Get all test IDs across all variants
-    all_test_ids = set()
-    for results in all_test_results.values():
-        all_test_ids.update(results.keys())
-    
-    # Sort test IDs numerically
-    sorted_test_ids = sorted(all_test_ids, key=lambda x: int(x) if x.isdigit() else float('inf'))
-    
-    # Create a matrix of test results
-    # 0 = not applicable/missing, 1 = dropped, 2 = 500, 3 = goaway, 4 = reset, 5 = unmodified, 6 = modified
-    result_map = {
-        "dropped": 1, 
-        "500": 2, 
-        "goaway": 3, 
-        "reset": 4, 
-        "unmodified": 5, 
-        "modified": 6,
-        "received": 7
-    }
-    
-    # Create a matrix of test results
-    result_matrix = np.zeros((len(all_variants), len(sorted_test_ids)))
-    
-    for i, variant in enumerate(all_variants):
-        for j, test_id in enumerate(sorted_test_ids):
-            if test_id in all_test_results[variant]:
-                result = all_test_results[variant][test_id]
-                result_matrix[i, j] = result_map.get(result, 0)
-    
-    # Calculate variance for each test
-    test_variance = np.zeros(len(sorted_test_ids))
-    for j in range(len(sorted_test_ids)):
-        # Get non-zero values for this test
-        test_values = result_matrix[:, j]
-        non_zero = test_values[test_values > 0]
-        if len(non_zero) > 1:
-            # Check if there's more than one unique value
-            unique_values = np.unique(non_zero)
-            if len(unique_values) > 1:
-                test_variance[j] = 1  # Mark as having variance
-    
-    # Filter to only include tests with variance
-    variant_indices = np.where(test_variance > 0)[0]
-    if len(variant_indices) == 0:
-        print("No tests with variance found")
-        return
-    
-    variant_test_ids = [sorted_test_ids[i] for i in variant_indices]
-    variant_matrix = result_matrix[:, variant_indices]
-    
-    # Create a colormap for different result types
-    colors = ['#f0f0f0', '#ff6b6b', '#ffd93d', '#ff9f43', '#6c5ce7', '#4ecdc4', '#2ecc71', '#6bceff']
-    cmap = plt.matplotlib.colors.ListedColormap(colors)
-    bounds = np.arange(0, 9) - 0.5
-    norm = plt.matplotlib.colors.BoundaryNorm(bounds, cmap.N)
-    
-    # Create the figure
-    fig_width = max(12, len(variant_test_ids) * 0.4)
-    fig_height = max(8, len(all_variants) + 2)
-    plt.figure(figsize=(fig_width, fig_height))
-    
-    # Create the heatmap
-    im = plt.imshow(variant_matrix, cmap=cmap, norm=norm, aspect='auto')
-    
-    # Add colorbar
-    cbar = plt.colorbar(im, ticks=range(8))
-    cbar.set_ticklabels(['N/A', 'dropped', '500', 'goaway', 'reset', 'unmodified', 'modified', 'received'])
-    
-    # Configure ticks and labels
-    plt.xticks(np.arange(len(variant_test_ids)), variant_test_ids, rotation=90, fontsize=8)
-    plt.yticks(np.arange(len(all_variants)), all_variants, fontsize=9)
-    
-    plt.title('Cloudflare Test Result Variance', fontsize=14, fontweight='bold')
-    plt.xlabel('Test ID', fontsize=12)
-    plt.ylabel('Cloudflare Variant', fontsize=12)
-    
-    plt.tight_layout()
-    
-    # Save the plot
-    filename = 'cloudflare_test_variance.png'
-    plt.savefig(os.path.join(output_directory, filename), 
-                dpi=300, bbox_inches='tight')
-    plt.close()
-    
-    # Create a summary file listing the tests with variance
-    try:
-        with open('test_cases.json', 'r') as f:
-            test_cases = json.load(f)
-        test_descriptions = {str(case['id']): case['description'] for case in test_cases}
-    except Exception as e:
-        print(f"Warning: Could not load test descriptions from test_cases.json: {e}")
-        test_descriptions = {}
-    
-    # Create the output file
-    output_file = os.path.join(output_directory, "cloudflare_variant_test_differences.txt")
-    
-    with open(output_file, 'w') as f:
-        f.write("# Tests with Result Variance Between Cloudflare Variants\n\n")
-        f.write(f"Total tests with variance: {len(variant_test_ids)}\n\n")
-        
-        for test_id in variant_test_ids:
-            description = test_descriptions.get(test_id, "No description available")
-            f.write(f"## Test {test_id}: {description}\n\n")
-            
-            # Create a table for this test
-            f.write("| Variant | Outcome |\n")
-            f.write("|---------|--------|\n")
-            
-            for variant in all_variants:
-                result = all_test_results[variant].get(test_id, "N/A")
-                f.write(f"| {variant} | {result} |\n")
-            
-            f.write("\n")
-    
-    return {
-        "total_tests": len(sorted_test_ids),
-        "tests_with_variance": len(variant_test_ids),
-        "variance_percentage": (len(variant_test_ids) / len(sorted_test_ids)) * 100
     }
 
 
@@ -1001,75 +857,6 @@ def create_cross_location_correlation_matrix(all_test_results, output_directory)
                 dpi=300, bbox_inches='tight')
     plt.close()
     
-    # Calculate average correlations between location pairs
-    location_avg_correlations = {}
-    for loc1 in sorted_location_pairs:
-        location_avg_correlations[loc1] = {}
-        vars1 = variants_by_location[loc1]
-        
-        for loc2 in sorted_location_pairs:
-            if loc1 == loc2:
-                location_avg_correlations[loc1][loc2] = 1.0
-                continue
-                
-            vars2 = variants_by_location[loc2]
-            
-            # Calculate average correlation between locations
-            valid_corrs = []
-            for var1 in vars1:
-                for var2 in vars2:
-                    corr = correlation_values[var1][var2]
-                    if not np.isnan(corr):
-                        valid_corrs.append(corr)
-            
-            if valid_corrs:
-                location_avg_correlations[loc1][loc2] = np.mean(valid_corrs)
-            else:
-                location_avg_correlations[loc1][loc2] = np.nan
-    
-    # Create a summary heatmap of average correlations between locations
-    fig, ax = plt.subplots(figsize=(10, 8))
-    avg_corr_matrix = np.zeros((n_locations, n_locations))
-    
-    for i, loc1 in enumerate(sorted_location_pairs):
-        for j, loc2 in enumerate(sorted_location_pairs):
-            avg_corr_matrix[i, j] = location_avg_correlations[loc1][loc2]
-    
-    masked_avg_matrix = np.ma.masked_invalid(avg_corr_matrix)
-    im = ax.imshow(masked_avg_matrix, cmap='coolwarm', aspect='equal', vmin=-1, vmax=1)
-    
-    # Add labels
-    ax.set_xticks(np.arange(n_locations))
-    ax.set_yticks(np.arange(n_locations))
-    ax.set_xticklabels(sorted_location_pairs, rotation=45, ha='right')
-    ax.set_yticklabels(sorted_location_pairs)
-    
-    # Add title
-    ax.set_title('Average Correlation Between Location Pairs', fontsize=14)
-    
-    # Add text annotations
-    for i in range(n_locations):
-        for j in range(n_locations):
-            value = avg_corr_matrix[i, j]
-            if np.isnan(value):
-                text = "---"
-            else:
-                text = f"{value:.2f}"
-            
-            # Adjust text color based on background
-            text_color = 'white' if not np.isnan(value) and value > 0.5 else 'black'
-            
-            ax.text(j, i, text, ha='center', va='center', color=text_color)
-    
-    plt.colorbar(im)
-    plt.tight_layout()
-    
-    # Save the summary plot
-    filename = 'cloudflare_location_avg_correlation.png'
-    plt.savefig(os.path.join(output_directory, filename), 
-                dpi=300, bbox_inches='tight')
-    plt.close()
-    
     return {
         "total_location_pairs": n_locations,
         "total_variants": len(all_variants)
@@ -1086,28 +873,17 @@ if __name__ == "__main__":
     parser.add_argument('--summaries-dir', default='summaries', help='Directory to save text summaries')
     args = parser.parse_args()
     
-    # Create output directories if they don't exist
-    os.makedirs(args.output_dir, exist_ok=True)
-    os.makedirs(args.summaries_dir, exist_ok=True)
-    
     # Load all Cloudflare variant results using the new method
     all_test_results = load_cloudflare_results(args.results_dir)
     
     if all_test_results:
         # Run the Cloudflare analysis
-        compare_cloudflare_variants(all_test_results, args.summaries_dir)
-        corr_stats = create_cloudflare_correlation_matrix(all_test_results, args.output_dir)
-        test_stats = create_cloudflare_test_variance_chart(all_test_results, args.output_dir)
+        cloudflare_analysis_dir = os.path.join('analysis', 'cloudflare')
+        compare_cloudflare_variants(all_test_results, cloudflare_analysis_dir)
+        corr_stats = create_cloudflare_correlation_matrix(all_test_results, cloudflare_analysis_dir)
         
         # Add the new grouped correlation matrices
-        grouping_stats = create_grouped_correlation_matrix(all_test_results, args.output_dir)
-        cross_loc_stats = create_cross_location_correlation_matrix(all_test_results, args.output_dir)
-        
-        print("Cloudflare variant analysis complete.")
-        print(f"Correlation stats: {corr_stats}")
-        if test_stats:
-            print(f"Test variance stats: {test_stats}")
-        print(f"Grouping stats: {grouping_stats}")
-        print(f"Cross-location stats: {cross_loc_stats}")
+        grouping_stats = create_grouped_correlation_matrix(all_test_results, cloudflare_analysis_dir)
+        cross_loc_stats = create_cross_location_correlation_matrix(all_test_results, cloudflare_analysis_dir)
     else:
         print("No Cloudflare results found. Analysis skipped.") 
