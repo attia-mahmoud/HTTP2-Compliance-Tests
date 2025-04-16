@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from collections import defaultdict
+import matplotlib.ticker as mticker
 
 def get_latest_file(directory):
     """Get the most recent file in the directory."""
@@ -1208,6 +1209,86 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
                 dpi=300, bbox_inches='tight')
     plt.close()
 
+def create_test_timeline_graphs(test_results, proxy_configs, client_side_tests, server_side_tests, output_directory):
+    """Create line graphs showing test results per test ID for each proxy,
+       optionally filtering tests for client-only scope."""
+    os.makedirs(output_directory, exist_ok=True)
+
+    # Define categories and their numerical mapping for the Y-axis (excluding 'other')
+    categories = ['dropped', '500', 'goaway', 'reset', 'unmodified', 'modified']
+    category_map = {cat: i for i, cat in enumerate(categories)}
+    
+    # Get all unique test IDs sorted numerically (used for full scope)
+    all_test_ids_full = sorted(
+        list(set().union(*(results.keys() for results in test_results.values()))),
+        key=lambda x: int(x) if x.isdigit() else float('inf')
+    )
+
+    # Filter test IDs for client-side only tests
+    all_test_ids_client_only = sorted(
+        [tid for tid in all_test_ids_full if tid in client_side_tests],
+        key=lambda x: int(x) if x.isdigit() else float('inf')
+    )
+
+    # Split proxies by scope
+    full_scope_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'full' and proxy in test_results]
+    client_only_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'client-only' and proxy in test_results]
+
+    # Create graphs for each scope
+    for scope, proxies in [('full', full_scope_proxies), ('client-only', client_only_proxies)]:
+        if not proxies:
+            continue
+
+        # Select the appropriate test IDs for the current scope
+        current_test_ids = all_test_ids_full if scope == 'full' else all_test_ids_client_only
+        if not current_test_ids: # Skip if no relevant tests for this scope
+            print(f"Skipping timeline graph for {scope} scope: No relevant test IDs found.")
+            continue
+            
+        x_values = range(len(current_test_ids)) # Numerical x-axis positions
+            
+        plt.figure(figsize=(18, 10)) # Wider figure for better test ID visibility
+        
+        # Define a colormap
+        colors = plt.cm.tab20(np.linspace(0, 1, len(proxies))) # Using tab20 for more distinct colors
+
+        # Prepare plot data for this scope
+        for i, proxy in enumerate(proxies):
+            proxy_results = test_results[proxy]
+            y_values = []
+            for test_id in current_test_ids:
+                result = proxy_results.get(test_id, 'other') # Get result, default to 'other'
+                # Map result to numerical value, skip if it's 'other' or not in map
+                y_value = category_map.get(result)
+                y_values.append(y_value if y_value is not None else np.nan) # Use NaN for excluded/missing categories
+            
+            # Plot the line for this proxy, connecting non-NaN points
+            plt.plot(x_values, y_values, marker='.', linestyle='-', markersize=4, 
+                     linewidth=1.5, color=colors[i], label=proxy)
+
+        # Configure the plot
+        plt.xticks(x_values, current_test_ids, rotation=90, fontsize=8) # Rotate test IDs for readability
+        plt.yticks(list(category_map.values()), list(category_map.keys())) # Use category names for Y-axis labels
+
+        plt.xlim(-0.5, len(current_test_ids) - 0.5)
+        plt.ylim(-0.5, len(categories) - 0.5) # Adjust ylim based on new categories
+        plt.grid(True, axis='both', linestyle='--', alpha=0.5) # Grid on both axes
+
+        scope_title = 'Full Test Suite Proxies' if scope == 'full' else 'Client-side Only Proxies (Client Tests Only)'
+        plt.title(f'Test Result Timeline - {scope_title}', fontsize=16, fontweight='bold')
+        plt.xlabel('Test ID', fontsize=12)
+        plt.ylabel('Result Category', fontsize=12)
+        
+        # Add legend
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=10) # Place legend outside plot area
+        
+        plt.tight_layout(rect=[0, 0, 0.85, 1]) # Adjust layout to make space for legend
+
+        # Save the figure
+        filename = f'test_timeline_{scope}.png'
+        plt.savefig(os.path.join(output_directory, filename), dpi=300, bbox_inches='tight')
+        plt.close()
+
 def main():
     # Create base directories if they don't exist
     base_dirs = {
@@ -1229,6 +1310,7 @@ def main():
         'H2O': {'scope': 'full'},
         'Cloudflare': {'scope': 'full'},
         'Mitmproxy': {'scope': 'full'},
+        'Traefik': {'scope': 'full'},
         'Azure-AG': {'scope': 'client-only'},
         'Nginx': {'scope': 'client-only'},
         'Lighttpd': {'scope': 'client-only'}
@@ -1289,6 +1371,7 @@ def main():
     distribution_dir = os.path.join('analysis', 'behavior')
     create_proxy_result_pies(all_test_results, proxy_configs, distribution_dir)
     create_proxy_line_graphs(all_test_results, proxy_configs, distribution_dir)
+    # Removed call to create_test_timeline_graphs here, moved after loading client/server tests
 
     # run cloudflare_analysis.py
     os.system('python cloudflare_analysis.py')
@@ -1298,6 +1381,7 @@ def main():
         client_server_dir = os.path.join('analysis', 'behavior')
         client_side_tests, server_side_tests = load_client_server_classification('docs/clientside_vs_serverside.json')
         create_client_server_proxy_line_graphs(all_test_results, proxy_configs, client_side_tests, server_side_tests, client_server_dir)
+        create_test_timeline_graphs(all_test_results, proxy_configs, client_side_tests, server_side_tests, client_server_dir)
         
         conformance_dir = os.path.join('analysis', 'conformance')
         # Generate conformance graphs for all, full, and client-only scopes
