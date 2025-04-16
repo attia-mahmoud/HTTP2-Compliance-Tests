@@ -281,46 +281,29 @@ def create_proxy_correlation_matrix(test_results, proxy_configs, output_director
         plt.close()
 
 def create_proxy_result_pies(test_results, proxy_configs, output_directory):
-    """Create pie charts showing dropped vs error vs reset vs goaway vs received vs other proportions for each proxy."""
-    os.makedirs(output_directory, exist_ok=True)
+    """Create individual pie charts showing result proportions for each proxy.
+    Saves each chart to analysis/behavior/proxies/<proxy_name>_result_pie.png.
+    """
+    proxies_output_dir = os.path.join(output_directory, 'proxies')
+    os.makedirs(proxies_output_dir, exist_ok=True)
     
-    # Split proxies by scope
-    full_scope_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'full' and proxy in test_results]
-    client_only_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'client-only' and proxy in test_results]
+    colors = ['#ff6b6b', '#ffd93d', '#ff9f43', '#6c5ce7', '#6bceff', '#4ecdc4', '#2ecc71', '#95a5a6']
     
-    # Create separate figures for full scope and client-only proxies
-    for scope, proxies in [('full', full_scope_proxies), ('client-only', client_only_proxies)]:
-        if not proxies:  # Skip if no proxies in this category
+    for proxy, config in proxy_configs.items():
+        if proxy not in test_results:
+            print(f"Skipping pie chart for {proxy}: No results found.")
             continue
             
-        n_charts = len(proxies)
-        n_cols = min(3, n_charts)
-        n_rows = (n_charts + n_cols - 1) // n_cols
+        fig, ax = plt.subplots(figsize=(8, 8)) # Create a new figure for each proxy
         
-        fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 5*n_rows))
-        scope_title = 'Full Test Suite' if scope == 'full' else 'Client-side Tests Only'
-        fig.suptitle(f'Result Distribution by Proxy ({scope_title})', fontsize=16, y=0.95)
+        proxy_title = f"{proxy} Result Distribution"
+        create_single_pie(ax, test_results[proxy], colors, proxy_title)
         
-        # Convert axes to a flat list for easier iteration
-        if n_rows == 1 and n_cols == 1:
-            axes = np.array([axes])
-        elif n_rows == 1:
-            axes = np.array([axes])
-        axes_flat = axes.flatten()
-        
-        colors = ['#ff6b6b', '#ffd93d', '#ff9f43', '#6c5ce7', '#6bceff', '#4ecdc4', '#2ecc71', '#95a5a6']
-        
-        for i, proxy in enumerate(proxies):
-            create_single_pie(axes_flat[i], test_results[proxy], colors, f"{proxy}")
-        
-        # Hide any unused subplots
-        for j in range(n_charts, len(axes_flat)):
-            axes_flat[j].set_visible(False)
-        
-        plt.tight_layout()
-        filename = 'result_pies_full.png' if scope == 'full' else 'result_pies_client_only.png'
-        plt.savefig(os.path.join(output_directory, filename), dpi=300, bbox_inches='tight')
-        plt.close()
+        # Save the individual pie chart
+        filename = f"{proxy}_result_pie.png"
+        output_path = os.path.join(proxies_output_dir, filename)
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        plt.close(fig) # Close the figure to free memory
 
 def create_proxy_line_graphs(test_results, proxy_configs, output_directory):
     """Create line graphs showing test result categories with different proxies as lines in CDF style."""
