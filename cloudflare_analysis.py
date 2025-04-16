@@ -188,7 +188,7 @@ def load_cloudflare_results(results_dir='results'):
     Returns:
         A dictionary mapping variant names to their test results.
     """
-    cloudflare_dir = os.path.join(results_dir, 'Cloudflare')
+    cloudflare_dir = os.path.join(results_dir, 'CloudflareGeo')
     if not os.path.exists(cloudflare_dir):
         print(f"Cloudflare results directory not found at {cloudflare_dir}")
         return {}

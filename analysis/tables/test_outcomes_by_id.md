@@ -1,25 +1,31 @@
 Test Outcomes by Test ID
 
 4 Client preface must include a SETTINGS frame
-Received modified: Azure-AG, Lighttpd, Nginx
+Received modified: Azure-AG, Cloudflare, Lighttpd, Nginx
 
 7 If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED.
 Received unmodified: Lighttpd
 
 8 Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE
-Received unmodified: Azure-AG, Nginx
+Received unmodified: Azure-AG, Cloudflare, Nginx
+
+58 Pseudo-header fields defined for requests MUST NOT appear in responses.
+Received modified: Cloudflare
+
+71 For HTTP/2 responses, a single ":status" pseudo-header field is defined that carries the HTTP status code field. This pseudo-header field MUST be included in all responses, including interim responses; otherwise, the response is malformed.
+Received unmodified: Cloudflare
 
 83 If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)
 Received unmodified: Lighttpd
 
 87 A SETTINGS frame MUST be sent by both endpoints at the start of a connection and MAY be sent at any other time by either endpoint over the lifetime of the connection. (Tested from the client side.)
-Received modified: Azure-AG, Lighttpd, Nginx
+Received modified: Azure-AG, Cloudflare, Lighttpd, Nginx
 
 110 A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving. (server side)
-Received unmodified: Caddy, Envoy, HAproxy, Nghttpx, Node
+Received unmodified: Caddy, Cloudflare, Envoy, HAproxy, Nghttpx, Node
 
 126 Trailers MUST NOT include pseudo-header fields (Section 8.3).
-Received modified: HAproxy
+Received modified: Cloudflare, HAproxy
 
 128 Field names MUST NOT contain control characters (0x00-0x1F)
 Received modified: Node
@@ -40,11 +46,11 @@ Received modified: Node
 Received modified: Node
 
 135 A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).
-Received modified: Node
+Received modified: Cloudflare, Node
 Received unmodified: Caddy, Envoy, HAproxy
 
 136 A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).
-Received modified: Node
+Received modified: Cloudflare, Node
 Received unmodified: Caddy, Envoy, HAproxy
 
 137 An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2)
@@ -60,15 +66,15 @@ Received modified: Caddy
 Received modified: Caddy
 
 141 An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2)
-Received modified: Caddy
+Received modified: Caddy, Cloudflare
 
 142 The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'.
 Received modified: Caddy
 Received unmodified: HAproxy
 
 151 If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)
-Received unmodified: Caddy, Envoy, HAproxy, Nghttpx, Node
+Received unmodified: Caddy, Cloudflare, Envoy, HAproxy, Nghttpx, Node
 
 165 Pseudo-header fields MUST NOT appear in a trailer section.
-Received modified: HAproxy
+Received modified: Cloudflare, HAproxy
 

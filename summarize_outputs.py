@@ -784,12 +784,37 @@ def load_client_server_classification(json_path):
     
     return client_side_tests, server_side_tests
 
-def create_client_server_conformance_visualization(test_results, client_side_tests, server_side_tests, proxy_configs, output_directory):
+def create_client_server_conformance_visualization(test_results, client_side_tests, server_side_tests, proxy_configs, output_directory, scope_filter='all'):
     """
     Create visualizations showing how well each proxy conforms to client-side and server-side tests separately.
+    Optionally filters proxies based on scope.
+    
+    Args:
+        test_results: Dictionary mapping proxy names to their test results.
+        client_side_tests: Set of test IDs classified as client-side.
+        server_side_tests: Set of test IDs classified as server-side.
+        proxy_configs: Dictionary mapping proxy names to their configurations.
+        output_directory: Directory to save the output plots.
+        scope_filter: 'all', 'full', or 'client-only'. Filters proxies based on scope.
     """
     os.makedirs(output_directory, exist_ok=True)
     
+    # Filter proxies based on scope_filter
+    filtered_proxies = {}
+    if scope_filter == 'all':
+        filtered_proxies = list(test_results.keys())
+    elif scope_filter == 'full':
+        filtered_proxies = [p for p, cfg in proxy_configs.items() if cfg['scope'] == 'full' and p in test_results]
+    elif scope_filter == 'client-only':
+        filtered_proxies = [p for p, cfg in proxy_configs.items() if cfg['scope'] == 'client-only' and p in test_results]
+    else:
+        print(f"Invalid scope_filter: {scope_filter}. Defaulting to 'all'.")
+        filtered_proxies = list(test_results.keys())
+        
+    if not filtered_proxies:
+        print(f"No proxies found for scope filter '{scope_filter}'. Skipping visualization.")
+        return
+
     # First, load the test cases to get expected results
     with open('test_cases.json', 'r') as f:
         test_cases = json.load(f)
@@ -805,6 +830,8 @@ def create_client_server_conformance_visualization(test_results, client_side_tes
     
     # Analyze each proxy's results
     for proxy, results in test_results.items():
+        if proxy not in filtered_proxies: # Skip proxies not in the filtered list
+            continue
         for test_id, result in results.items():
             if test_id not in expected_results:
                 continue
@@ -841,7 +868,7 @@ def create_client_server_conformance_visualization(test_results, client_side_tes
     plt.figure(figsize=(15, 8))
     
     # Prepare data
-    proxies = list(test_results.keys())
+    proxies = filtered_proxies # Use filtered list
     x = np.arange(len(proxies))
     width = 0.35  # Width of the bars
     
@@ -873,7 +900,19 @@ def create_client_server_conformance_visualization(test_results, client_side_tes
     # Customize the plot
     plt.xlabel('Proxy')
     plt.ylabel('Percentage of Non-Conformant Tests')
-    plt.title('HTTP/2 Client-Side vs Server-Side Non-Conformance by Proxy', pad=20)
+    
+    # Adjust title based on scope filter
+    if scope_filter == 'full':
+        title_suffix = ' (Full Scope Proxies)'
+        filename_suffix = '_full'
+    elif scope_filter == 'client-only':
+        title_suffix = ' (Client-Only Scope Proxies)'
+        filename_suffix = '_client_only'
+    else:
+        title_suffix = ' (All Proxies)'
+        filename_suffix = '_all'
+        
+    plt.title(f'HTTP/2 Client-Side vs Server-Side Non-Conformance by Proxy{title_suffix}', pad=20)
     plt.xticks(x, proxies, rotation=45, ha='right')
     plt.legend()
     
@@ -893,8 +932,8 @@ def create_client_server_conformance_visualization(test_results, client_side_tes
     plt.grid(True, axis='y', alpha=0.3)
     plt.tight_layout()
     
-    # Save the plot
-    plt.savefig(os.path.join(output_directory, 'client_server_non_conformance.png'), 
+    # Save the plot with scope-specific filename
+    plt.savefig(os.path.join(output_directory, f'client_server_non_conformance{filename_suffix}.png'), 
                 dpi=300, bbox_inches='tight')
     plt.close()
 
@@ -1278,7 +1317,10 @@ def main():
         create_client_server_proxy_line_graphs(all_test_results, proxy_configs, client_side_tests, server_side_tests, client_server_dir)
         
         conformance_dir = os.path.join('analysis', 'conformance')
-        create_client_server_conformance_visualization(all_test_results, client_side_tests, server_side_tests, proxy_configs, conformance_dir)
+        # Generate conformance graphs for all, full, and client-only scopes
+        create_client_server_conformance_visualization(all_test_results, client_side_tests, server_side_tests, proxy_configs, conformance_dir, scope_filter='all')
+        create_client_server_conformance_visualization(all_test_results, client_side_tests, server_side_tests, proxy_configs, conformance_dir, scope_filter='full')
+        create_client_server_conformance_visualization(all_test_results, client_side_tests, server_side_tests, proxy_configs, conformance_dir, scope_filter='client-only')
     except Exception as e:
         print(f"Error creating client-server visualizations: {e}")
     
