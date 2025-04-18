@@ -1,14 +1,15 @@
-proxy | version | Release Date | Protocol | with TLS
+proxy      | version | Release Date | Protocol | with TLS | GitHub Stars | old version | old version release date
 
-apache | 2.4.62 | Jul 17, 2024 | H2EE | 
-caddy | 2.9.1 | Jan 08, 2025 | H2EE | 
-envoy | 1.32.2 | Dec 08, 2024 | H2EE | 
-h2o | 2.3.0  | Aug 13, 2019 | H2EE | True
-haproxy | 2.9.10 | Sep 03, 2024 | H2EE | 
-mitmproxy | 11.1.0 | Jan 12, 2025 | H2EE | True
-nghttpx | 1.62.1 | May 19, 2024 | H2EE | 
-node | 20.16.0 | Mar 13, 2025 | H2EE | 
-Cloudflare | N/A | N/A | H2EE | True
-lighttpd | 1.4.76 | Apr 12, 2024 | H2H1 | True
-nginx | 1.26.0 | Apr 23, 2024 | H2H1 | True
-Azure AG | N/A | N/A | H2H1 | True
+node       | 20.16.0 | Mar 13, 2025 | H2EE     |          | 111k         |             |
+caddy      | 2.9.1   | Jan 08, 2025 | H2EE     |          | 63.6k        |             |
+Traefik    | 3.5     | Mar 31, 2025 | H2EE     |          | 54.2k        | 2.6.2       | Mar 24, 2022
+mitmproxy  | 11.1.0  | Jan 12, 2025 | H2EE     | True     | 38.7k        |             |
+nginx      | 1.26.0  | Apr 23, 2024 | H2H1     | True     | 26.6k        |             |
+envoy      | 1.32.2  | Dec 08, 2024 | H2EE     |          | 25.8k        |             |
+h2o        | 2.3.0   | Aug 13, 2019 | H2EE     | True     | 11.1k        |             |
+haproxy    | 2.9.10  | Sep 03, 2024 | H2EE     |          | 5.5k         |             |
+nghttpx    | 1.62.1  | May 19, 2024 | H2EE     |          | 4.8k         |             |
+apache     | 2.4.62  | Jul 17, 2024 | H2EE     |          | 3.7k         |             |
+lighttpd   | 1.4.76  | Apr 12, 2024 | H2H1     | True     | 645          |             |
+Cloudflare | N/A     | N/A          | H2EE     | True     | N/A          |             |
+Azure AG   | N/A     | N/A          | H2H1     | True     | N/A          |             |
