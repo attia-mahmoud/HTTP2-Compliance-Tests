@@ -8,6 +8,7 @@ import pandas as pd
 import seaborn as sns
 from collections import defaultdict
 import matplotlib.ticker as mticker
+import matplotlib.patches as mpatches
 
 def get_latest_file(directory):
     """Get the most recent file in the directory."""
@@ -1289,6 +1290,163 @@ def create_test_timeline_graphs(test_results, proxy_configs, client_side_tests, 
         plt.savefig(os.path.join(output_directory, filename), dpi=300, bbox_inches='tight')
         plt.close()
 
+def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output_directory):
+    """Creates a matrix visualization of test outcomes filtered by proxy scope."""
+    charts_directory = os.path.join(output_directory, 'matrix_graphs')
+    os.makedirs(charts_directory, exist_ok=True)
+
+    # Define distinct colors and map for each relevant category
+    # 1: Modified (Red)
+    # 2: Unmodified (Yellow)
+    # 3: Reset (Light Blue)
+    # 4: Goaway (Orange)
+    # 5: 500 Error (Purple)
+    # 0: Dropped or Other (Gray)
+    colors = {
+        1: '#ff6b6b',  # Modified (M)
+        2: '#ffd93d',  # Unmodified (U)
+        3: '#6bccee',  # Reset (R) - Light Blue
+        4: '#ff9f43',  # Goaway (G) - Orange
+        5: '#a26bcd',  # 500 Error (E) - Purple
+        0: '#cccccc'   # Dropped/Other (D) - Gray
+    }
+    outcome_map = {
+        "modified": 1,
+        "unmodified": 2,
+        "reset": 3,
+        "goaway": 4,
+        "500": 5,
+        "dropped": 0,
+        "received": 0, # Map received to other/gray
+        "other": 0
+    }
+
+    # --- Filtering and Data Preparation (largely unchanged) ---
+    filtered_proxies = sorted([
+        proxy for proxy, config in proxy_configs.items() 
+        if proxy in outcomes_dict and config['scope'] == scope_filter
+    ])
+
+    if not filtered_proxies:
+        print(f"No proxies found for scope '{scope_filter}'. Skipping matrix graph.")
+        return
+
+    all_test_ids = sorted(
+        list(set().union(*(outcomes_dict[proxy].keys() for proxy in filtered_proxies))),
+        key=lambda x: int(x) if x.isdigit() else float('inf')
+    )
+    num_tests = len(all_test_ids)
+
+    matrix_data_numeric = []
+    proxy_labels = []
+    
+    for proxy in filtered_proxies:
+        outcomes = outcomes_dict[proxy]
+        numerical_outcomes = []
+        for test_id in all_test_ids:
+            result_str = outcomes.get(test_id, "other")
+            numerical_outcomes.append(outcome_map.get(result_str, 0))
+
+        matrix_data_numeric.append(numerical_outcomes)
+        proxy_labels.append(proxy) # Use original proxy name
+
+    matrix_data = np.array(matrix_data_numeric)
+    num_proxies_display = len(proxy_labels)
+
+    # --- Figure and Axes Creation (largely unchanged) ---
+    fig_height = num_proxies_display * 0.4 # Reduced base height further
+    fig = plt.figure(figsize=(14, fig_height))
+    
+    # Adjust subplot grid to potentially accommodate more rows for totals if needed
+    ax_matrix = plt.subplot2grid((num_proxies_display + 6, num_tests + 6), # Increased rows for totals
+                               (0, 0), 
+                               rowspan=num_proxies_display, 
+                               colspan=num_tests)
+
+    # --- Plot Matrix Rectangles (unchanged) ---
+    rect_height = 1.0
+    for i in range(num_proxies_display):
+        for j in range(num_tests):
+            outcome = matrix_data[i][j]
+            color = colors.get(outcome, colors[0])
+            y_pos = (num_proxies_display - 1 - i) * rect_height
+            rect = plt.Rectangle((j, y_pos), 1, rect_height, facecolor=color, edgecolor='white', linewidth=0.5)
+            ax_matrix.add_patch(rect)
+
+    # --- Axis and Grid Configuration (unchanged) ---
+    ax_matrix.set_xlim(0, num_tests)
+    ax_matrix.set_ylim(0, num_proxies_display * rect_height)
+    ax_matrix.set_xticks(np.arange(num_tests + 1))
+    ax_matrix.set_yticks(np.arange(num_proxies_display + 1) * rect_height)
+    
+    # Set label positions for Y axis (proxies)
+    ax_matrix.set_yticks(np.arange(num_proxies_display) * rect_height + rect_height / 2, minor=True)
+    
+    # Set label positions and labels for X axis (Tests), showing every 5th test ID
+    x_tick_positions = []
+    x_tick_labels = []
+    for i, test_id in enumerate(all_test_ids):
+        try:
+            test_num = int(test_id)
+            if test_num % 5 == 0:
+                x_tick_positions.append(i + 0.5) # Position centered in the column
+                x_tick_labels.append(test_id)    # Label is the test ID string
+        except ValueError: # Handle non-integer test IDs if they exist
+            pass
+            
+    ax_matrix.set_xticks(x_tick_positions, minor=True)
+    ax_matrix.set_xticklabels(x_tick_labels, minor=True)
+
+    # Configure label appearance
+    ax_matrix.tick_params(axis='x', which='minor', labelsize=9)
+    ax_matrix.tick_params(axis='y', which='minor', labelsize=10)
+    ax_matrix.set_yticklabels(proxy_labels[::-1], minor=True)
+    
+    # Hide major tick labels and configure grid
+    ax_matrix.set_xticklabels([], minor=False)
+    ax_matrix.set_yticklabels([], minor=False)
+
+    # Adjust layout and save
+    # Increase right margin slightly to accommodate potentially wider totals
+    # plt.subplots_adjust(left=0.15, right=0.82, top=0.95, bottom=0.18) # Adjusted right/bottom
+    plt.tight_layout(pad=0.5) 
+    
+    # scope_title = 'Full Scope Proxies' if scope_filter == 'full' else 'Client-Only Scope Proxies'
+    filename = f'proxy_outcome_matrix_{scope_filter}.png'
+    # plt.suptitle(f'HTTP/2 Test Outcome Matrix - {scope_title}', fontsize=14, fontweight='bold')
+
+    # --- Add Legend ---
+    # Create reverse mapping from outcome number to name
+    reverse_outcome_map = {v: k for k, v in outcome_map.items()}
+    # Map numerical value back to a display name (e.g., 5 -> '500 Error')
+    outcome_display_names = {
+        1: "Modified",
+        2: "Unmodified",
+        3: "Reset",
+        4: "Goaway",
+        5: "500 Error",
+        0: "Dropped" # Use a combined name for 0
+    }
+    
+    # Create legend patches, ordered for clarity (M, U, R, G, E, D)
+    legend_patches = []
+    ordered_keys = [1, 2, 3, 4, 5, 0] # Order: M, U, R, G, E, D
+    for key in ordered_keys:
+        if key in colors:
+            display_name = outcome_display_names.get(key, f"Unknown ({key})")
+            legend_patches.append(mpatches.Patch(color=colors[key], label=display_name))
+
+    # Add legend outside the plot area (bottom center)
+    fig.legend(handles=legend_patches, loc='lower center', ncol=len(legend_patches), 
+               bbox_to_anchor=(0.5, -0.02), frameon=False, fontsize=10) # Adjusted y anchor to be slightly negative
+    # Adjust bottom margin to make space for the legend, reducing the gap
+    plt.subplots_adjust(bottom=0.05) # Keep bottom margin relatively small
+    # -----------------
+
+    plt.savefig(os.path.join(charts_directory, filename), 
+                dpi=300, bbox_inches='tight')
+    plt.close(fig)
+
 def main():
     # Create base directories if they don't exist
     base_dirs = {
@@ -1313,7 +1471,8 @@ def main():
         'Traefik': {'scope': 'full'},
         'Azure-AG': {'scope': 'client-only'},
         'Nginx': {'scope': 'client-only'},
-        'Lighttpd': {'scope': 'client-only'}
+        'Lighttpd': {'scope': 'client-only'},
+        'Fastly': {'scope': 'client-only'}
     }
     
     results_dir = 'results'
@@ -1399,6 +1558,14 @@ def main():
         create_client_server_discrepancy_visualization(full_scope_results, test_pairs, client_server_dir)
     except Exception as e:
         print(f"Error creating client-server discrepancy visualization: {e}")
+
+    # Create proxy matrix visualization (using behavior directory)
+    behavior_dir = os.path.join('analysis', 'behavior')
+    if all_test_results:
+        create_proxy_matrix_graph(all_test_results, proxy_configs, 'full', behavior_dir)
+        create_proxy_matrix_graph(all_test_results, proxy_configs, 'client-only', behavior_dir)
+    else:
+        print("Skipping proxy matrix graph: No test results loaded.")
 
 if __name__ == "__main__":
     main()
