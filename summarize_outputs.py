@@ -1354,6 +1354,7 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
     matrix_data_numeric = []
     proxy_labels = []
     
+    # Process data (rows = proxies, columns = tests)
     for proxy in filtered_proxies:
         outcomes = outcomes_dict[proxy]
         numerical_outcomes = []
@@ -1371,62 +1372,69 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
         matrix_data_numeric.append(numerical_outcomes)
         proxy_labels.append(proxy) # Use original proxy name
 
-    matrix_data = np.array(matrix_data_numeric)
-    matrix_data = matrix_data.T # Transpose the matrix
-    num_tests_display, num_proxies_display = matrix_data.shape # Get new dimensions
+    matrix_data = np.array(matrix_data_numeric) # No transpose
+    # num_tests_display, num_proxies_display = matrix_data.shape # Original order
+    num_proxies_display = len(proxy_labels)
+    num_tests_display = num_tests # Use num_tests determined earlier
 
     # --- Figure and Axes Creation ---
-    # Adjust figsize: width ~ num_proxies, height ~ num_tests
-    fig_width = num_proxies_display * 0.5 + 1 # Adjust multiplier as needed
-    fig_height = num_tests_display * 0.1 + 1.5 # Adjust multiplier and base as needed
+    # Revert figsize: height ~ proxies, width ~ tests
+    fig_height = num_proxies_display * 0.4 + 1.5 # Adjust multiplier and base as needed
+    fig_width = num_tests_display * 0.15 + 1 # Adjust multiplier and base as needed
     fig = plt.figure(figsize=(fig_width, fig_height))
     
-    ax_matrix = plt.subplot2grid((num_tests_display + 2, num_proxies_display), 
+    # Revert subplot grid: rows ~ proxies, cols ~ tests
+    ax_matrix = plt.subplot2grid((num_proxies_display + 2, num_tests_display + 1), 
                                (0, 0), 
-                               rowspan=num_tests_display, 
-                               colspan=num_proxies_display)
+                               rowspan=num_proxies_display, 
+                               colspan=num_tests_display)
                                
     # --- Plot Matrix Rectangles ---
-    rect_height = 1.0 # Represents height for one test
-    rect_width = 1.0  # Represents width for one proxy
-    for i in range(num_tests_display):      # Iterate over tests (rows)
-        for j in range(num_proxies_display):  # Iterate over proxies (columns)
+    rect_height = 1.0 # Represents height for one proxy
+    rect_width = 1.0  # Represents width for one test
+    for i in range(num_proxies_display):  # Iterate over proxies (rows)
+        for j in range(num_tests_display):  # Iterate over tests (columns)
             outcome = matrix_data[i][j]
             color = colors.get(outcome, colors[0])
-            y_pos = (num_tests_display - 1 - i) * rect_height 
+            # Y position based on proxy index `i`
+            y_pos = (num_proxies_display - 1 - i) * rect_height 
+            # X position based on test index `j`
             x_pos = j * rect_width
             rect = plt.Rectangle((x_pos, y_pos), rect_width, rect_height, facecolor=color, edgecolor='white', linewidth=0.5)
             ax_matrix.add_patch(rect)
             
     # --- Axis and Grid Configuration ---
-    ax_matrix.set_xlim(0, num_proxies_display * rect_width)
-    ax_matrix.set_ylim(0, num_tests_display * rect_height)
-    ax_matrix.set_xticks(np.arange(num_proxies_display + 1) * rect_width)
-    ax_matrix.set_yticks(np.arange(num_tests_display + 1) * rect_height)
+    # Revert limits
+    ax_matrix.set_xlim(0, num_tests_display * rect_width)
+    ax_matrix.set_ylim(0, num_proxies_display * rect_height)
     
-    # Set minor ticks and labels for X axis (Proxies)
-    ax_matrix.set_xticks(np.arange(num_proxies_display) * rect_width + rect_width / 2, minor=True)
-    ax_matrix.set_xticklabels(proxy_labels, minor=True, rotation=45, ha='right', fontsize=10) # Rotate 45 deg, align right, increase size
-
-    # Set minor ticks and labels for Y axis (Tests - every 5th)
-    y_tick_positions = []
-    y_tick_labels = []
+    # Set major ticks for grid lines
+    ax_matrix.set_xticks(np.arange(num_tests_display + 1) * rect_width)
+    ax_matrix.set_yticks(np.arange(num_proxies_display + 1) * rect_height)
+    
+    # Set minor ticks and labels for X axis (Tests - every 5th)
+    x_tick_positions = []
+    x_tick_labels = []
     # Iterate using the correct test ID list for ticks
     for i, test_id in enumerate(test_ids_for_graph): 
         try:
             test_num = int(test_id)
-            if test_num % 5 == 0:
-                # Position centered vertically in the test's row
-                y_tick_positions.append((num_tests_display - 1 - i) * rect_height + rect_height / 2)
-                y_tick_labels.append(test_id)
+            if test_num % 10 == 0:
+                # Position centered horizontally in the test's column
+                x_tick_positions.append(i * rect_width + rect_width / 2)
+                x_tick_labels.append(test_id)
         except ValueError:
             pass
-    ax_matrix.set_yticks(y_tick_positions, minor=True)
-    ax_matrix.set_yticklabels(y_tick_labels, minor=True, fontsize=10) # Increased size
+    ax_matrix.set_xticks(x_tick_positions, minor=True)
+    ax_matrix.set_xticklabels(x_tick_labels, minor=True, rotation=0, ha='center', fontsize=10) # No rotation
+
+    # Set minor ticks and labels for Y axis (Proxies)
+    ax_matrix.set_yticks(np.arange(num_proxies_display) * rect_height + rect_height / 2, minor=True)
+    ax_matrix.set_yticklabels(proxy_labels[::-1], minor=True, fontsize=10) # Increased size
 
     # Configure label appearance and grid
-    ax_matrix.tick_params(axis='x', which='minor', labelsize=12, bottom=False, top=False, labelbottom=True) # Increased size
-    ax_matrix.tick_params(axis='y', which='minor', labelsize=12, left=True, labelleft=True) # Increased size
+    ax_matrix.tick_params(axis='x', which='minor', labelsize=16, bottom=True, top=False, labelbottom=True) # Adjusted size
+    ax_matrix.tick_params(axis='y', which='minor', labelsize=16, left=True, right=False, labelleft=True) # Adjusted size
     ax_matrix.set_xticklabels([], minor=False)
     ax_matrix.set_yticklabels([], minor=False)
     ax_matrix.tick_params(which='major', length=0)
@@ -1434,8 +1442,10 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
     ax_matrix.tick_params(which='minor', length=0)
 
     # Adjust layout and save
-    plt.tight_layout(pad=1.0, rect=[0, 0.05, 1, 0.95]) # Adjusted pad and rect for larger labels
-    filename = f'proxy_outcome_matrix_vertical_{scope_filter}.png'
+    plt.tight_layout(pad=1.0, rect=[0, 0.05, 1, 0.95]) # Adjusted pad and rect
+    
+    # Revert filename
+    filename = f'proxy_outcome_matrix_{scope_filter}.png' 
 
     # --- Add Legend ---
     # Create reverse mapping from outcome number to name (optional, used for debugging)
@@ -1448,21 +1458,20 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
         3: "Reset",
         4: "Goaway",
         5: "500 Error",
-        6: "Not Considered", # Added display name
-        0: "Dropped/Other" # Updated to include Received/Other
+        6: "Not Considered",
+        0: "Dropped/Other"
     }
     legend_patches = []
-    ordered_keys = [1, 2, 3, 4, 5, 0, 6] # M, U, R, G, E, D/O, N
+    ordered_keys = [1, 2, 3, 4, 5, 0, 6]
     for key in ordered_keys:
         if key in colors:
             display_name = outcome_display_names.get(key, f"Unknown ({key})")
             legend_patches.append(mpatches.Patch(color=colors[key], label=display_name))
     fig.legend(handles=legend_patches, loc='lower center', ncol=len(legend_patches), 
-               bbox_to_anchor=(0.5, 0), frameon=False, fontsize=11)
+               bbox_to_anchor=(0.5, 0), frameon=False, fontsize=16)
 
     plt.savefig(os.path.join(charts_directory, filename), 
                 dpi=300, bbox_inches='tight')
-    plt.close(fig)
 
 def main():
     # Create base directories if they don't exist
