@@ -1,15 +1,17 @@
 [
-{
+  {
     "id": 0,
     "description": "A normal GET request from the client, followed by small DATA. The server responds with a 200 HEADERS, some DATA, and a final set of trailers. Checks a typical request/response flow in HTTP/2.",
     "client_frames": [
       {
-        "type": "HEADERS",
-        "flags": {
-          "END_STREAM": true
-        }
+        "type": "HEADERS"
+      }
+    ],
+    "server_frames": [
+      {
+        "type": "HEADERS"
       }
     ]
   }
-]  
+]
   

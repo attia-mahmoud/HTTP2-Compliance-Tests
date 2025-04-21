@@ -1,0 +1,25 @@
+{
+  "0": {
+    "description": "A normal GET request from the client, followed by small DATA. The server responds with a 200 HEADERS, some DATA, and a final set of trailers. Checks a typical request/response flow in HTTP/2.",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "ERROR",
+        "Variables": {
+          "msg": "Timeout occurred after 5.0s while trying to connect to server at fastly.nopasaran.co:8080: timed out"
+        }
+      }
+    }
+  }
+}

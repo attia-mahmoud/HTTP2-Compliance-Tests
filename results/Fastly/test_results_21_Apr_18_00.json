@@ -1,0 +1,27 @@
+{
+  "0": {
+    "description": "A normal GET request from the client, followed by small DATA. The server responds with a 200 HEADERS, some DATA, and a final set of trailers. Checks a typical request/response flow in HTTP/2.",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  }
+}

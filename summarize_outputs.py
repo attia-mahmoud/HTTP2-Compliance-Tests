@@ -1290,7 +1290,7 @@ def create_test_timeline_graphs(test_results, proxy_configs, client_side_tests, 
         plt.savefig(os.path.join(output_directory, filename), dpi=300, bbox_inches='tight')
         plt.close()
 
-def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output_directory):
+def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output_directory, client_side_tests_set=None, global_test_ids=None):
     """Creates a matrix visualization of test outcomes filtered by proxy scope."""
     charts_directory = os.path.join(output_directory, 'matrix_graphs')
     os.makedirs(charts_directory, exist_ok=True)
@@ -1301,14 +1301,16 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
     # 3: Reset (Light Blue)
     # 4: Goaway (Orange)
     # 5: 500 Error (Purple)
-    # 0: Dropped or Other (Gray)
+    # 6: Not Considered (Black) - Added for client-only scope
+    # 0: Dropped (Gray)
     colors = {
         1: '#ff6b6b',  # Modified (M)
         2: '#ffd93d',  # Unmodified (U)
         3: '#6bccee',  # Reset (R) - Light Blue
         4: '#ff9f43',  # Goaway (G) - Orange
         5: '#a26bcd',  # 500 Error (E) - Purple
-        0: '#cccccc'   # Dropped/Other (D) - Gray
+        6: '#000000',  # Not Considered (N) - Black
+        0: '#cccccc'   # Dropped/Received/Other (D) - Gray
     }
     outcome_map = {
         "modified": 1,
@@ -1316,12 +1318,13 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
         "reset": 3,
         "goaway": 4,
         "500": 5,
+        "not_considered": 6, # Added mapping
         "dropped": 0,
-        "received": 0, # Map received to other/gray
-        "other": 0
+        "received": 0, # Re-add mapping to Dropped/Gray
+        "other": 0     # Re-add mapping to Dropped/Gray
     }
 
-    # --- Filtering and Data Preparation (largely unchanged) ---
+    # --- Filtering and Data Preparation ---
     filtered_proxies = sorted([
         proxy for proxy, config in proxy_configs.items() 
         if proxy in outcomes_dict and config['scope'] == scope_filter
@@ -1331,11 +1334,22 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
         print(f"No proxies found for scope '{scope_filter}'. Skipping matrix graph.")
         return
 
-    all_test_ids = sorted(
-        list(set().union(*(outcomes_dict[proxy].keys() for proxy in filtered_proxies))),
-        key=lambda x: int(x) if x.isdigit() else float('inf')
-    )
-    num_tests = len(all_test_ids)
+    # Determine the list of test IDs to use for this graph
+    if scope_filter == 'client-only' and global_test_ids is not None:
+        # For client-only graph, use the globally provided list
+        test_ids_for_graph = global_test_ids 
+    else:
+        # For full scope, derive IDs only from the filtered proxies' results
+        test_ids_for_graph = sorted(
+            list(set().union(*(outcomes_dict[proxy].keys() for proxy in filtered_proxies))),
+            key=lambda x: int(x) if x.isdigit() else float('inf')
+        )
+        
+    if not test_ids_for_graph:
+        print(f"No test IDs found for scope '{scope_filter}'. Skipping matrix graph.")
+        return
+        
+    num_tests = len(test_ids_for_graph)
 
     matrix_data_numeric = []
     proxy_labels = []
@@ -1343,105 +1357,108 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
     for proxy in filtered_proxies:
         outcomes = outcomes_dict[proxy]
         numerical_outcomes = []
-        for test_id in all_test_ids:
-            result_str = outcomes.get(test_id, "other")
-            numerical_outcomes.append(outcome_map.get(result_str, 0))
+        # Iterate using the determined test ID list for this graph
+        for test_id in test_ids_for_graph: 
+            # Check if this test should be marked as "Not Considered" for client-only scope
+            if scope_filter == 'client-only' and client_side_tests_set is not None and test_id not in client_side_tests_set:
+                numerical_outcomes.append(outcome_map["not_considered"]) # Assign 6 (Black)
+            else:
+                # Otherwise, use the normal result mapping
+                result_str = outcomes.get(test_id, "other") # Default to "other" if test missing for this proxy
+                # Ensure default is 0 if result_str isn't explicitly mapped anymore
+                numerical_outcomes.append(outcome_map.get(result_str, 0)) 
 
         matrix_data_numeric.append(numerical_outcomes)
         proxy_labels.append(proxy) # Use original proxy name
 
     matrix_data = np.array(matrix_data_numeric)
-    num_proxies_display = len(proxy_labels)
+    matrix_data = matrix_data.T # Transpose the matrix
+    num_tests_display, num_proxies_display = matrix_data.shape # Get new dimensions
 
-    # --- Figure and Axes Creation (largely unchanged) ---
-    fig_height = num_proxies_display * 0.4 # Reduced base height further
-    fig = plt.figure(figsize=(14, fig_height))
+    # --- Figure and Axes Creation ---
+    # Adjust figsize: width ~ num_proxies, height ~ num_tests
+    fig_width = num_proxies_display * 0.5 + 1 # Adjust multiplier as needed
+    fig_height = num_tests_display * 0.1 + 1.5 # Adjust multiplier and base as needed
+    fig = plt.figure(figsize=(fig_width, fig_height))
     
-    # Adjust subplot grid to potentially accommodate more rows for totals if needed
-    ax_matrix = plt.subplot2grid((num_proxies_display + 6, num_tests + 6), # Increased rows for totals
+    ax_matrix = plt.subplot2grid((num_tests_display + 2, num_proxies_display), 
                                (0, 0), 
-                               rowspan=num_proxies_display, 
-                               colspan=num_tests)
-
-    # --- Plot Matrix Rectangles (unchanged) ---
-    rect_height = 1.0
-    for i in range(num_proxies_display):
-        for j in range(num_tests):
+                               rowspan=num_tests_display, 
+                               colspan=num_proxies_display)
+                               
+    # --- Plot Matrix Rectangles ---
+    rect_height = 1.0 # Represents height for one test
+    rect_width = 1.0  # Represents width for one proxy
+    for i in range(num_tests_display):      # Iterate over tests (rows)
+        for j in range(num_proxies_display):  # Iterate over proxies (columns)
             outcome = matrix_data[i][j]
             color = colors.get(outcome, colors[0])
-            y_pos = (num_proxies_display - 1 - i) * rect_height
-            rect = plt.Rectangle((j, y_pos), 1, rect_height, facecolor=color, edgecolor='white', linewidth=0.5)
+            y_pos = (num_tests_display - 1 - i) * rect_height 
+            x_pos = j * rect_width
+            rect = plt.Rectangle((x_pos, y_pos), rect_width, rect_height, facecolor=color, edgecolor='white', linewidth=0.5)
             ax_matrix.add_patch(rect)
+            
+    # --- Axis and Grid Configuration ---
+    ax_matrix.set_xlim(0, num_proxies_display * rect_width)
+    ax_matrix.set_ylim(0, num_tests_display * rect_height)
+    ax_matrix.set_xticks(np.arange(num_proxies_display + 1) * rect_width)
+    ax_matrix.set_yticks(np.arange(num_tests_display + 1) * rect_height)
+    
+    # Set minor ticks and labels for X axis (Proxies)
+    ax_matrix.set_xticks(np.arange(num_proxies_display) * rect_width + rect_width / 2, minor=True)
+    ax_matrix.set_xticklabels(proxy_labels, minor=True, rotation=45, ha='right', fontsize=10) # Rotate 45 deg, align right, increase size
 
-    # --- Axis and Grid Configuration (unchanged) ---
-    ax_matrix.set_xlim(0, num_tests)
-    ax_matrix.set_ylim(0, num_proxies_display * rect_height)
-    ax_matrix.set_xticks(np.arange(num_tests + 1))
-    ax_matrix.set_yticks(np.arange(num_proxies_display + 1) * rect_height)
-    
-    # Set label positions for Y axis (proxies)
-    ax_matrix.set_yticks(np.arange(num_proxies_display) * rect_height + rect_height / 2, minor=True)
-    
-    # Set label positions and labels for X axis (Tests), showing every 5th test ID
-    x_tick_positions = []
-    x_tick_labels = []
-    for i, test_id in enumerate(all_test_ids):
+    # Set minor ticks and labels for Y axis (Tests - every 5th)
+    y_tick_positions = []
+    y_tick_labels = []
+    # Iterate using the correct test ID list for ticks
+    for i, test_id in enumerate(test_ids_for_graph): 
         try:
             test_num = int(test_id)
             if test_num % 5 == 0:
-                x_tick_positions.append(i + 0.5) # Position centered in the column
-                x_tick_labels.append(test_id)    # Label is the test ID string
-        except ValueError: # Handle non-integer test IDs if they exist
+                # Position centered vertically in the test's row
+                y_tick_positions.append((num_tests_display - 1 - i) * rect_height + rect_height / 2)
+                y_tick_labels.append(test_id)
+        except ValueError:
             pass
-            
-    ax_matrix.set_xticks(x_tick_positions, minor=True)
-    ax_matrix.set_xticklabels(x_tick_labels, minor=True)
+    ax_matrix.set_yticks(y_tick_positions, minor=True)
+    ax_matrix.set_yticklabels(y_tick_labels, minor=True, fontsize=10) # Increased size
 
-    # Configure label appearance
-    ax_matrix.tick_params(axis='x', which='minor', labelsize=9)
-    ax_matrix.tick_params(axis='y', which='minor', labelsize=10)
-    ax_matrix.set_yticklabels(proxy_labels[::-1], minor=True)
-    
-    # Hide major tick labels and configure grid
+    # Configure label appearance and grid
+    ax_matrix.tick_params(axis='x', which='minor', labelsize=12, bottom=False, top=False, labelbottom=True) # Increased size
+    ax_matrix.tick_params(axis='y', which='minor', labelsize=12, left=True, labelleft=True) # Increased size
     ax_matrix.set_xticklabels([], minor=False)
     ax_matrix.set_yticklabels([], minor=False)
+    ax_matrix.tick_params(which='major', length=0)
+    ax_matrix.grid(True, which='major', color='white', linewidth=1)
+    ax_matrix.tick_params(which='minor', length=0)
 
     # Adjust layout and save
-    # Increase right margin slightly to accommodate potentially wider totals
-    # plt.subplots_adjust(left=0.15, right=0.82, top=0.95, bottom=0.18) # Adjusted right/bottom
-    plt.tight_layout(pad=0.5) 
-    
-    # scope_title = 'Full Scope Proxies' if scope_filter == 'full' else 'Client-Only Scope Proxies'
-    filename = f'proxy_outcome_matrix_{scope_filter}.png'
-    # plt.suptitle(f'HTTP/2 Test Outcome Matrix - {scope_title}', fontsize=14, fontweight='bold')
+    plt.tight_layout(pad=1.0, rect=[0, 0.05, 1, 0.95]) # Adjusted pad and rect for larger labels
+    filename = f'proxy_outcome_matrix_vertical_{scope_filter}.png'
 
     # --- Add Legend ---
-    # Create reverse mapping from outcome number to name
-    reverse_outcome_map = {v: k for k, v in outcome_map.items()}
-    # Map numerical value back to a display name (e.g., 5 -> '500 Error')
+    # Create reverse mapping from outcome number to name (optional, used for debugging)
+    # reverse_outcome_map = {v: k for k, v in outcome_map.items()}
+    
+    # Map numerical value back to a display name
     outcome_display_names = {
         1: "Modified",
         2: "Unmodified",
         3: "Reset",
         4: "Goaway",
         5: "500 Error",
-        0: "Dropped" # Use a combined name for 0
+        6: "Not Considered", # Added display name
+        0: "Dropped/Other" # Updated to include Received/Other
     }
-    
-    # Create legend patches, ordered for clarity (M, U, R, G, E, D)
     legend_patches = []
-    ordered_keys = [1, 2, 3, 4, 5, 0] # Order: M, U, R, G, E, D
+    ordered_keys = [1, 2, 3, 4, 5, 0, 6] # M, U, R, G, E, D/O, N
     for key in ordered_keys:
         if key in colors:
             display_name = outcome_display_names.get(key, f"Unknown ({key})")
             legend_patches.append(mpatches.Patch(color=colors[key], label=display_name))
-
-    # Add legend outside the plot area (bottom center)
     fig.legend(handles=legend_patches, loc='lower center', ncol=len(legend_patches), 
-               bbox_to_anchor=(0.5, -0.02), frameon=False, fontsize=10) # Adjusted y anchor to be slightly negative
-    # Adjust bottom margin to make space for the legend, reducing the gap
-    plt.subplots_adjust(bottom=0.05) # Keep bottom margin relatively small
-    # -----------------
+               bbox_to_anchor=(0.5, 0), frameon=False, fontsize=11)
 
     plt.savefig(os.path.join(charts_directory, filename), 
                 dpi=300, bbox_inches='tight')
@@ -1468,7 +1485,7 @@ def main():
         'H2O': {'scope': 'full'},
         'Cloudflare': {'scope': 'full'},
         'Mitmproxy': {'scope': 'full'},
-        'Traefik': {'scope': 'full'},
+        'Traefik': {'scope': 'client-only'},
         'Azure-AG': {'scope': 'client-only'},
         'Nginx': {'scope': 'client-only'},
         'Lighttpd': {'scope': 'client-only'},
@@ -1561,9 +1578,29 @@ def main():
 
     # Create proxy matrix visualization (using behavior directory)
     behavior_dir = os.path.join('analysis', 'behavior')
+    client_side_tests_set = None # Default to None
+    try:
+        # Load client-side test IDs needed for the matrix graph
+        _, server_side_tests = load_client_server_classification('docs/clientside_vs_serverside.json')
+        # Assuming load_client_server_classification returns (client_set, server_set)
+        # We actually need the client set for this specific feature
+        client_side_tests_set, _ = load_client_server_classification('docs/clientside_vs_serverside.json') 
+    except Exception as e:
+        print(f"Warning: Could not load client/server classification for matrix graph: {e}")
+        
     if all_test_results:
-        create_proxy_matrix_graph(all_test_results, proxy_configs, 'full', behavior_dir)
-        create_proxy_matrix_graph(all_test_results, proxy_configs, 'client-only', behavior_dir)
+        # Determine the global set of all test IDs encountered across all results
+        global_all_test_ids = sorted(
+            list(set().union(*(results.keys() for results in all_test_results.values()))),
+            key=lambda x: int(x) if x.isdigit() else float('inf')
+        )
+
+        # Full scope graph (uses its own derived test IDs, pass None for global)
+        create_proxy_matrix_graph(all_test_results, proxy_configs, 'full', behavior_dir, 
+                                client_side_tests_set=None, global_test_ids=None)
+        # Client-only scope graph (pass the client-side test set and the global ID list)
+        create_proxy_matrix_graph(all_test_results, proxy_configs, 'client-only', behavior_dir, 
+                                client_side_tests_set=client_side_tests_set, global_test_ids=global_all_test_ids)
     else:
         print("Skipping proxy matrix graph: No test results loaded.")
 

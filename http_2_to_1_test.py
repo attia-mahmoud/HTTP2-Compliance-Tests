@@ -61,13 +61,13 @@ tests_tree = "http_2_to_1_conformance.png"
 
 ################ VARIABLES #################
 
-# tests = []
+tests = []
 
 
 # Load client-side test cases from clientside_vs_serverside.json
-with open('docs/clientside_vs_serverside.json', 'r') as f:
-    test_filters = json.load(f)
-    tests = test_filters['client_side_non_conformant_frames']
+# with open('docs/clientside_vs_serverside.json', 'r') as f:
+#     test_filters = json.load(f)
+#     tests = test_filters['client_side_non_conformant_frames']
 
 list_of_proxies = [
     # {"PROXY": "Direct", "PROXY_PORT": "8080"}
@@ -75,30 +75,30 @@ list_of_proxies = [
     # {"PROXY": "Caddy", "PROXY_PORT": "7701"},
     # {"PROXY": "Envoy", "PROXY_PORT": "7702"}
     # {"PROXY": "HAproxy", "PROXY_PORT": "7704"},
-    # {"PROXY": "Nginx", "PROXY_PORT": "7705", "tls_enabled": "true"}
+    # {"PROXY": "Nginx", "PROXY_PORT": "7770", "tls_enabled": "true"},
+    # {"PROXY": "Lighttpd", "PROXY_PORT": "7771", "tls_enabled": "true"}
     # {"PROXY": "Nghttpx", "PROXY_PORT": "7706"}
     # {"PROXY": "Node", "PROXY_PORT": "7707"}
     # {"PROXY": "Mitmproxy", "PROXY_PORT": "7708", "tls_enabled": "true"}
     # {"PROXY": "H2O", "PROXY_PORT": "7709", "tls_enabled": "true"}
     # {"PROXY": "Cloudflare", "PROXY_PORT": "443", "tls_enabled": "true", "cloudflare_origin": "true"},
-    {"PROXY": "Azure-AG", "PROXY_PORT": "443", "tls_enabled": "true"}
+    # {"PROXY": "Azure-AG", "PROXY_PORT": "443", "tls_enabled": "true"}
     # {"PROXY": "Fastly", "PROXY_PORT": "80"}
+    {"PROXY": "Muraena", "PROXY_PORT": "80"},
 ]
 
-CLIENT_WORKER = "linodegermany.admin.worker.nopasaran.org"
-SERVER_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
-SERVER_PORT = "8080"
-PROXY_IP = "azure.nopasaran.co"
-
-
-# CLIENT_WORKER = "labworker3.admin.worker.nopasaran.org"
-# SERVER_WORKER = "labworker4.admin.worker.nopasaran.org"
-# PROXY_IP = "192.168.122.6"
+# CLIENT_WORKER = "linodegermany.admin.worker.nopasaran.org"
+# SERVER_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
 # SERVER_PORT = "8080"
 
-MASTER = "labmaster.admin.master.nopasaran.org"
+CLIENT_WORKER = "labworker1.admin.worker.nopasaran.org"
+SERVER_WORKER = "worker1.admin.worker.nopasaran.org"
+PROXY_IP = "192.168.122.6"
+SERVER_PORT = "80"
 
-file = "test_cases.json"
+# file = "test_cases_debug.json"
+file = "test_cases_debug.json"
+MASTER = "mahmoudmaster.admin.master.nopasaran.org"
 
 ################ VARIABLES #################
 
