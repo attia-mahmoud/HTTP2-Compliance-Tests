@@ -1296,13 +1296,14 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
     os.makedirs(charts_directory, exist_ok=True)
 
     # Define distinct colors and map for each relevant category
-    # 1: Modified (Red)
-    # 2: Unmodified (Yellow)
+    # 1: Modified (Red) - Full scope only
+    # 2: Unmodified (Yellow) - Full scope only
     # 3: Reset (Light Blue)
     # 4: Goaway (Orange)
     # 5: 500 Error (Purple)
-    # 6: Not Considered (Black) - Added for client-only scope
-    # 0: Dropped (Gray)
+    # 6: Not Considered (Black) - Client-only scope only
+    # 7: Received (Green) - Includes Modified/Unmodified for client-only
+    # 0: Dropped/Other (Gray)
     colors = {
         1: '#ff6b6b',  # Modified (M)
         2: '#ffd93d',  # Unmodified (U)
@@ -1310,23 +1311,32 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
         4: '#ff9f43',  # Goaway (G) - Orange
         5: '#a26bcd',  # 500 Error (E) - Purple
         6: '#000000',  # Not Considered (N) - Black
-        0: '#cccccc'   # Dropped/Received/Other (D) - Gray
+        7: '#2ecc71',  # Received (Rec) - Green
+        0: '#cccccc'   # Dropped/Other (D) - Gray
     }
+    # Base mapping
     outcome_map = {
-        "modified": 1,
-        "unmodified": 2,
         "reset": 3,
         "goaway": 4,
         "500": 5,
-        "not_considered": 6, # Added mapping
+        "not_considered": 6, # Used for client-only filtering
+        "received": 7,
         "dropped": 0,
-        "received": 0, # Re-add mapping to Dropped/Gray
-        "other": 0     # Re-add mapping to Dropped/Gray
+        "other": 0 # Fallback
     }
+    # Add scope-specific mappings
+    if scope_filter == 'full':
+        outcome_map["modified"] = 1
+        outcome_map["unmodified"] = 2
+    else: # client-only
+        # Map modified/unmodified to Received for client-only
+        outcome_map["modified"] = 7
+        outcome_map["unmodified"] = 7
+
 
     # --- Filtering and Data Preparation ---
     filtered_proxies = sorted([
-        proxy for proxy, config in proxy_configs.items() 
+        proxy for proxy, config in proxy_configs.items()
         if proxy in outcomes_dict and config['scope'] == scope_filter
     ])
 
@@ -1337,104 +1347,97 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
     # Determine the list of test IDs to use for this graph
     if scope_filter == 'client-only' and global_test_ids is not None:
         # For client-only graph, use the globally provided list
-        test_ids_for_graph = global_test_ids 
+        test_ids_for_graph = global_test_ids
     else:
         # For full scope, derive IDs only from the filtered proxies' results
         test_ids_for_graph = sorted(
             list(set().union(*(outcomes_dict[proxy].keys() for proxy in filtered_proxies))),
             key=lambda x: int(x) if x.isdigit() else float('inf')
         )
-        
+
     if not test_ids_for_graph:
         print(f"No test IDs found for scope '{scope_filter}'. Skipping matrix graph.")
         return
-        
+
     num_tests = len(test_ids_for_graph)
 
     matrix_data_numeric = []
     proxy_labels = []
-    
+
     # Process data (rows = proxies, columns = tests)
     for proxy in filtered_proxies:
         outcomes = outcomes_dict[proxy]
         numerical_outcomes = []
         # Iterate using the determined test ID list for this graph
-        for test_id in test_ids_for_graph: 
+        for test_id in test_ids_for_graph:
             # Check if this test should be marked as "Not Considered" for client-only scope
             if scope_filter == 'client-only' and client_side_tests_set is not None and test_id not in client_side_tests_set:
                 numerical_outcomes.append(outcome_map["not_considered"]) # Assign 6 (Black)
             else:
                 # Otherwise, use the normal result mapping
                 result_str = outcomes.get(test_id, "other") # Default to "other" if test missing for this proxy
-                # Ensure default is 0 if result_str isn't explicitly mapped anymore
-                numerical_outcomes.append(outcome_map.get(result_str, 0)) 
+                # Map the result string using the finalized outcome_map
+                numerical_outcomes.append(outcome_map.get(result_str, 0)) # Default to 0 (Dropped/Other)
 
         matrix_data_numeric.append(numerical_outcomes)
         proxy_labels.append(proxy) # Use original proxy name
 
     matrix_data = np.array(matrix_data_numeric) # No transpose
-    # num_tests_display, num_proxies_display = matrix_data.shape # Original order
     num_proxies_display = len(proxy_labels)
     num_tests_display = num_tests # Use num_tests determined earlier
 
     # --- Figure and Axes Creation ---
-    # Revert figsize: height ~ proxies, width ~ tests
     fig_height = num_proxies_display * 0.4 + 1.5 # Adjust multiplier and base as needed
     fig_width = num_tests_display * 0.15 + 1 # Adjust multiplier and base as needed
     fig = plt.figure(figsize=(fig_width, fig_height))
-    
-    # Revert subplot grid: rows ~ proxies, cols ~ tests
-    ax_matrix = plt.subplot2grid((num_proxies_display + 2, num_tests_display + 1), 
-                               (0, 0), 
-                               rowspan=num_proxies_display, 
+
+    ax_matrix = plt.subplot2grid((num_proxies_display + 2, num_tests_display + 1),
+                               (0, 0),
+                               rowspan=num_proxies_display,
                                colspan=num_tests_display)
-                               
+
     # --- Plot Matrix Rectangles ---
     rect_height = 1.0 # Represents height for one proxy
     rect_width = 1.0  # Represents width for one test
     for i in range(num_proxies_display):  # Iterate over proxies (rows)
         for j in range(num_tests_display):  # Iterate over tests (columns)
-            outcome = matrix_data[i][j]
-            color = colors.get(outcome, colors[0])
-            # Y position based on proxy index `i`
-            y_pos = (num_proxies_display - 1 - i) * rect_height 
-            # X position based on test index `j`
-            x_pos = j * rect_width
-            rect = plt.Rectangle((x_pos, y_pos), rect_width, rect_height, facecolor=color, edgecolor='white', linewidth=0.5)
-            ax_matrix.add_patch(rect)
-            
+            # Check if matrix_data[i][j] exists before accessing
+            if i < matrix_data.shape[0] and j < matrix_data.shape[1]:
+                outcome = matrix_data[i][j]
+                color = colors.get(outcome, colors[0]) # Default to color for 0 if outcome not found
+                y_pos = (num_proxies_display - 1 - i) * rect_height
+                x_pos = j * rect_width
+                rect = plt.Rectangle((x_pos, y_pos), rect_width, rect_height, facecolor=color, edgecolor='white', linewidth=0.5)
+                ax_matrix.add_patch(rect)
+
     # --- Axis and Grid Configuration ---
-    # Revert limits
     ax_matrix.set_xlim(0, num_tests_display * rect_width)
     ax_matrix.set_ylim(0, num_proxies_display * rect_height)
-    
-    # Set major ticks for grid lines
+
     ax_matrix.set_xticks(np.arange(num_tests_display + 1) * rect_width)
     ax_matrix.set_yticks(np.arange(num_proxies_display + 1) * rect_height)
-    
-    # Set minor ticks and labels for X axis (Tests - every 5th)
+
+    # Set minor ticks and labels for X axis (Tests - every 10th)
     x_tick_positions = []
     x_tick_labels = []
-    # Iterate using the correct test ID list for ticks
-    for i, test_id in enumerate(test_ids_for_graph): 
+    for i, test_id in enumerate(test_ids_for_graph):
         try:
             test_num = int(test_id)
             if test_num % 10 == 0:
-                # Position centered horizontally in the test's column
                 x_tick_positions.append(i * rect_width + rect_width / 2)
                 x_tick_labels.append(test_id)
         except ValueError:
             pass
     ax_matrix.set_xticks(x_tick_positions, minor=True)
-    ax_matrix.set_xticklabels(x_tick_labels, minor=True, rotation=0, ha='center', fontsize=10) # No rotation
+    ax_matrix.set_xticklabels(x_tick_labels, minor=True, rotation=0, ha='center', fontsize=10)
 
     # Set minor ticks and labels for Y axis (Proxies)
     ax_matrix.set_yticks(np.arange(num_proxies_display) * rect_height + rect_height / 2, minor=True)
-    ax_matrix.set_yticklabels(proxy_labels[::-1], minor=True, fontsize=10) # Increased size
+    ax_matrix.set_yticklabels(proxy_labels[::-1], minor=True, fontsize=10)
 
     # Configure label appearance and grid
-    ax_matrix.tick_params(axis='x', which='minor', labelsize=16, bottom=True, top=False, labelbottom=True) # Adjusted size
-    ax_matrix.tick_params(axis='y', which='minor', labelsize=16, left=True, right=False, labelleft=True) # Adjusted size
+    ax_matrix.tick_params(axis='x', which='minor', labelsize=16, bottom=True, top=False, labelbottom=True)
+    ax_matrix.tick_params(axis='y', which='minor', labelsize=16, left=True, right=False, labelleft=True)
     ax_matrix.set_xticklabels([], minor=False)
     ax_matrix.set_yticklabels([], minor=False)
     ax_matrix.tick_params(which='major', length=0)
@@ -1442,15 +1445,11 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
     ax_matrix.tick_params(which='minor', length=0)
 
     # Adjust layout and save
-    plt.tight_layout(pad=1.0, rect=[0, 0.05, 1, 0.95]) # Adjusted pad and rect
-    
-    # Revert filename
-    filename = f'proxy_outcome_matrix_{scope_filter}.png' 
+    plt.tight_layout(pad=1.0, rect=[0, 0.05, 1, 0.95])
+
+    filename = f'proxy_outcome_matrix_{scope_filter}.png'
 
     # --- Add Legend ---
-    # Create reverse mapping from outcome number to name (optional, used for debugging)
-    # reverse_outcome_map = {v: k for k, v in outcome_map.items()}
-    
     # Map numerical value back to a display name
     outcome_display_names = {
         1: "Modified",
@@ -1459,19 +1458,33 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
         4: "Goaway",
         5: "500 Error",
         6: "Not Considered",
-        0: "Dropped/Other"
+        7: "Received",
+        0: "Dropped" # Changed label for 0
     }
+
     legend_patches = []
-    ordered_keys = [1, 2, 3, 4, 5, 0, 6]
-    for key in ordered_keys:
+    keys_for_this_legend = []
+
+    if scope_filter == 'client-only':
+        # Order: Reset(3), Goaway(4), 500(5), Received(7), Dropped(0), Not Considered(6)
+        keys_for_this_legend = [3, 4, 5, 7, 0, 6]
+        # Note: Modified(1)/Unmodified(2) are mapped to Received(7) in outcome_map for this scope
+    else: # scope_filter == 'full'
+        # Order: Modified(1), Unmodified(2), Reset(3), Goaway(4), 500(5), Received(7), Dropped(0)
+        keys_for_this_legend = [1, 2, 3, 4, 5, 0]
+        # Not Considered(6) is omitted
+
+    for key in keys_for_this_legend:
         if key in colors:
             display_name = outcome_display_names.get(key, f"Unknown ({key})")
             legend_patches.append(mpatches.Patch(color=colors[key], label=display_name))
-    fig.legend(handles=legend_patches, loc='lower center', ncol=len(legend_patches), 
+
+    fig.legend(handles=legend_patches, loc='lower center', ncol=len(legend_patches),
                bbox_to_anchor=(0.5, 0), frameon=False, fontsize=16)
 
-    plt.savefig(os.path.join(charts_directory, filename), 
+    plt.savefig(os.path.join(charts_directory, filename),
                 dpi=300, bbox_inches='tight')
+    plt.close(fig) # Close the figure explicitly
 
 def main():
     # Create base directories if they don't exist
