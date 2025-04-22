@@ -89,16 +89,6 @@ list_of_workers = [
     {"WORKER": "linodegermany.admin.worker.nopasaran.org", "PORT": "443", "PROXY_IP": "germanycloudflare.nopasaran.co"},
 ]
 
-CLIENT_WORKER = "linodeparis.admin.worker.nopasaran.org"
-SERVER_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
-SERVER_PORT = "443"
-PROXY_IP = "cloudflare.nopasaran.co"
-
-# CLIENT_WORKER = "worker2.admin.worker.nopasaran.org"
-# SERVER_WORKER = "worker1.admin.worker.nopasaran.org"
-# PROXY_IP = "192.168.122.6"
-# SERVER_PORT = "8080"
-
 MASTER = "mahmoudmaster.admin.master.nopasaran.org"
 
 file = "test_cases.json"
@@ -135,12 +125,12 @@ def run_test_case(test_case, proxy, server_config, max_retries=3):
                     "client": "client",
                     "server": "server",
                     "host": server_config["PROXY_IP"],  # Use the server's PROXY_IP
-                    "port": proxy["PROXY_PORT"],
-                    "tls_enabled": proxy.get("tls_enabled", "false"),
+                    "port": "443",
+                    "tls_enabled": "true",
                     "protocol": "h2",
                     "connection_settings_client": test_case.get("connection_settings_client", {}),
                     "controller_conf_filename": "controller_configuration.json",
-                    "cloudflare_origin": proxy.get("cloudflare_origin", "false"),
+                    "cloudflare_origin": "true",
                     "client_frames": test_case.get("client_frames", [{"type": "HEADERS", "flags": {"END_STREAM": "true"}}]),
                     "server_frames": test_case.get("server_frames", [{"type": "HEADERS", "flags": {"END_STREAM": "true"}}]),
                 },
@@ -149,12 +139,12 @@ def run_test_case(test_case, proxy, server_config, max_retries=3):
                     "client": "client",
                     "server": "server",
                     "host": "0.0.0.0",
-                    "port": server_config["PORT"],
-                    "tls_enabled": proxy.get("tls_enabled", "false"),
+                    "port": "443",
+                    "tls_enabled": "true",
                     "protocol": "h2",
                     "connection_settings_server": test_case.get("connection_settings_server", {}),
                     "controller_conf_filename": "controller_configuration.json",
-                    "cloudflare_origin": proxy.get("cloudflare_origin", "false"),
+                    "cloudflare_origin": "true",
                     "client_frames": test_case.get("client_frames", [{"type": "HEADERS", "flags": {"END_STREAM": "true"}}]),
                     "server_frames": test_case.get("server_frames", [{"type": "HEADERS", "flags": {"END_STREAM": "true"}}]),
                 }
@@ -294,14 +284,15 @@ if list_of_workers:
             print(f"Worker {worker_host} is not operational, skipping.")
 else:
     # Use default workers if they're operational
-    if is_worker_operational(CLIENT_WORKER, operational_workers) and is_worker_operational(SERVER_WORKER, operational_workers):
-        active_workers = [
-            {"WORKER": CLIENT_WORKER, "PORT": SERVER_PORT},
-            {"WORKER": SERVER_WORKER, "PORT": SERVER_PORT}
-        ]
-    else:
-        print("Default workers are not operational. Exiting.")
-        exit(1)
+    # if is_worker_operational(CLIENT_WORKER, operational_workers) and is_worker_operational(SERVER_WORKER, operational_workers):
+    #     active_workers = [
+    #         {"WORKER": CLIENT_WORKER, "PORT": SERVER_PORT},
+    #         {"WORKER": SERVER_WORKER, "PORT": SERVER_PORT}
+    #     ]
+    # else:
+    #     print("Default workers are not operational. Exiting.")
+    #     exit(1)
+    pass
 
 if len(active_workers) < 2:
     print("Not enough operational workers to run tests. Exiting.")
