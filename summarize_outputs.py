@@ -17,7 +17,7 @@ def get_latest_file(directory):
         return None
     return max(files, key=os.path.getctime)
 
-def analyze_results(filename):
+def analyze_results(filename, scope):
     """Analyze a single result file and categorize results as dropped, error, or other."""
     with open(filename, 'r') as f:
         data = json.load(f)
@@ -66,25 +66,46 @@ def analyze_results(filename):
 
         if vars2.get('result', '').startswith('Received'):
             if test_id in ['4', '87', '126', '165']:
-                is_modified = True
+                if scope == 'full':
+                    is_modified = True
+                else:
+                    is_received = True
             elif test_id in ['8', '110', '151', '7', '83']:
-                is_unmodified = True
+                if scope == 'full':
+                    is_unmodified = True
+                else:
+                    is_received = True
             else:
-                is_unmodified = True
+                if scope == 'full':
+                    is_unmodified = True
+                else:
+                    is_received = True
             message = vars2['result']
         
         elif vars1.get('client_result', '') == 'Test result: MODIFIED' or vars1.get('result', '') == 'Test result: MODIFIED':
-            is_modified = True
+            if scope == 'full':
+                is_modified = True
+            else:
+                is_received = True
             message = vars1.get('client_result', vars1.get('result', ''))
         elif vars1.get('client_result', '') == 'Test result: UNMODIFIED' or vars1.get('result', '') == 'Test result: UNMODIFIED':
-            is_unmodified = True
+            if scope == 'full':
+                is_unmodified = True
+            else:
+                is_received = True
             message = vars1.get('client_result', vars1.get('result', ''))
 
         elif vars2.get('server_result', '') == 'Test result: MODIFIED':
-            is_modified = True
+            if scope == 'full':
+                is_modified = True
+            else:
+                is_received = True
             message = vars2['server_result']
         elif vars2.get('server_result', '') == 'Test result: UNMODIFIED':
-            is_unmodified = True
+            if scope == 'full':
+                is_unmodified = True
+            else:
+                is_received = True
             message = vars2['server_result']
             
         elif worker1 and worker1.get('State', '') == 'GOAWAY_RECEIVED':
@@ -115,19 +136,37 @@ def analyze_results(filename):
                 message = vars2['server_result']
         elif vars1 and vars1.get('client_result', '').startswith('Successfully received all') and vars1.get('server_result', '').startswith('Successfully received all'):
             if test_id in ['4', '87', '126', '165']:
-                is_modified = True
+                if scope == 'full':
+                    is_modified = True
+                else:
+                    is_received = True
             elif test_id in ['8', '110', '151', '7', '83']:
-                is_unmodified = True
+                if scope == 'full':
+                    is_unmodified = True
+                else:
+                    is_received = True
             else:
-                is_unmodified = True
+                if scope == 'full':
+                    is_unmodified = True
+                else:
+                    is_received = True
             message = vars1['client_result']
         elif vars2 and vars2.get('client_result', '').startswith('Successfully received all')and vars2.get('server_result', '').startswith('Successfully received all'):
             if test_id in ['4', '87', '126', '165']:
-                is_modified = True
+                if scope == 'full':
+                    is_modified = True
+                else:
+                    is_received = True
             elif test_id in ['8', '110', '151', '7', '83']:
-                is_unmodified = True
+                if scope == 'full':
+                    is_unmodified = True
+                else:
+                    is_received = True
             else:
-                is_unmodified = True
+                if scope == 'full':
+                    is_unmodified = True
+                else:
+                    is_received = True
             message = vars2['server_result']
         elif vars2.get('msg', '').startswith("Timeout occurred after 5.0s while waiting for client connection"):
             is_dropped = True
@@ -1511,7 +1550,9 @@ def main():
         'Azure-AG': {'scope': 'client-only'},
         'Nginx': {'scope': 'client-only'},
         'Lighttpd': {'scope': 'client-only'},
-        'Fastly': {'scope': 'client-only'}
+        'Fastly': {'scope': 'client-only'},
+        'Varnish': {'scope': 'client-only'},
+        # 'Varnish-7.1.0': {'scope': 'client-only'}
     }
     
     results_dir = 'results'
@@ -1536,7 +1577,7 @@ def main():
         if not latest_file:
             continue
 
-        dropped_count, error_500_count, goaway_count, reset_count, received_count, modified_count, unmodified_count, test_results, test_messages = analyze_results(latest_file)
+        dropped_count, error_500_count, goaway_count, reset_count, received_count, modified_count, unmodified_count, test_results, test_messages = analyze_results(latest_file, proxy_configs[proxy]['scope'])
         dropped_counts[proxy] = dropped_count
         error_500_counts[proxy] = error_500_count
         goaway_counts[proxy] = goaway_count

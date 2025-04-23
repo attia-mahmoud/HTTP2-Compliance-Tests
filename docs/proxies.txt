@@ -1,8 +1,8 @@
 id | proxy      | version | Release Date | Protocol | with TLS | GitHub Stars | old version | old version release date
 
-1  | node       | 20.16.0 | Mar 13, 2025 | H2EE     |          | 111k         |             |
+1  | node       | 20.16.0 | Mar 13, 2025 | H2EE     |          | 111k         | 14.19.3     |
 2  | caddy      | 2.9.1   | Jan 08, 2025 | H2EE     |          | 63.6k        |             |
-3  | Traefik    | 3.5     | Mar 31, 2025 | H2EE     |          | 54.2k        |             |
+3  | Traefik    | 3.5     | Mar 31, 2025 | H2EE     |          | 54.2k        | 3.3.5       |
 4  | mitmproxy  | 11.1.0  | Jan 12, 2025 | H2EE     | True     | 38.7k        |             |
 5  | nginx      | 1.26.0  | Apr 23, 2024 | H2H1     | True     | 26.6k        |             |
 6  | envoy      | 1.32.2  | Dec 08, 2024 | H2EE     |          | 25.8k        |             |
@@ -14,3 +14,4 @@ id | proxy      | version | Release Date | Protocol | with TLS | GitHub Stars | 
 12 | Cloudflare | N/A     | N/A          | H2EE     | True     | N/A          |             |
 13 | Azure AG   | N/A     | N/A          | H2H1     | True     | N/A          |             |
 14 | Fastly     | N/A     | N/A          | H2EE     | True     | N/A          |             |
+15 | Varnish    | 7.5.0   | Mar 18, 2024 | H2H1     |          | 3.8k         | 7.1.0       |

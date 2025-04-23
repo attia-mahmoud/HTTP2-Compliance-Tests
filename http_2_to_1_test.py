@@ -65,9 +65,9 @@ tests = []
 
 
 # Load client-side test cases from clientside_vs_serverside.json
-# with open('docs/clientside_vs_serverside.json', 'r') as f:
-#     test_filters = json.load(f)
-#     tests = test_filters['client_side_non_conformant_frames']
+with open('docs/clientside_vs_serverside.json', 'r') as f:
+    test_filters = json.load(f)
+    tests = test_filters['client_side_non_conformant_frames']
 
 list_of_proxies = [
     # {"PROXY": "Direct", "PROXY_PORT": "8080"}
@@ -84,20 +84,21 @@ list_of_proxies = [
     # {"PROXY": "Cloudflare", "PROXY_PORT": "443", "tls_enabled": "true", "cloudflare_origin": "true"},
     # {"PROXY": "Azure-AG", "PROXY_PORT": "443", "tls_enabled": "true"}
     # {"PROXY": "Fastly", "PROXY_PORT": "80"}
-    {"PROXY": "Muraena", "PROXY_PORT": "80"},
+    # {"PROXY": "Muraena", "PROXY_PORT": "80"},
+    {"PROXY": "Varnish-7.1.0", "PROXY_PORT": "9080"},
 ]
 
 # CLIENT_WORKER = "linodegermany.admin.worker.nopasaran.org"
 # SERVER_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
 # SERVER_PORT = "8080"
 
-CLIENT_WORKER = "labworker1.admin.worker.nopasaran.org"
+CLIENT_WORKER = "labworker3.admin.worker.nopasaran.org"
 SERVER_WORKER = "worker1.admin.worker.nopasaran.org"
-PROXY_IP = "192.168.122.6"
-SERVER_PORT = "80"
+PROXY_IP = "192.168.122.7"
+SERVER_PORT = "9081"
 
 # file = "test_cases_debug.json"
-file = "test_cases_debug.json"
+file = "test_cases.json"
 MASTER = "mahmoudmaster.admin.master.nopasaran.org"
 
 ################ VARIABLES #################

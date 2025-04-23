@@ -69,26 +69,26 @@ list_of_proxies = [
     # {"PROXY": "HAproxy", "PROXY_PORT": "7704"},
     # {"PROXY": "Nginx", "PROXY_PORT": "7705", "tls_enabled": "true"}
     # {"PROXY": "Nghttpx", "PROXY_PORT": "7706"}
-    # {"PROXY": "Node", "PROXY_PORT": "7707"}
+    {"PROXY": "Node-14.19.3", "PROXY_PORT": "7707"}
     # {"PROXY": "Mitmproxy", "PROXY_PORT": "7708", "tls_enabled": "true"}
     # {"PROXY": "H2O", "PROXY_PORT": "7709", "tls_enabled": "true"}
     # {"PROXY": "Cloudflare", "PROXY_PORT": "443", "tls_enabled": "true", "cloudflare_origin": "true"},
-    {"PROXY": "Fastly", "PROXY_PORT": "443", "tls_enabled": "true"}
+    # {"PROXY": "Fastly", "PROXY_PORT": "443", "tls_enabled": "true"}
     # {"PROXY": "Traefik_old", "PROXY_PORT": "7715"},
     # {"PROXY": "Caddy_old", "PROXY_PORT": "7716"},
     # {"PROXY": "BunnyCDN", "PROXY_PORT": "443", "tls_enabled": "true"},
     # {"PROXY": "Muraena", "PROXY_PORT": "80"},
 ]
 
-CLIENT_WORKER = "linodesweden.admin.worker.nopasaran.org"
-SERVER_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
-SERVER_PORT = "443"
-PROXY_IP = "fastly.nopasaran.co"
+# CLIENT_WORKER = "linodegermany.admin.worker.nopasaran.org"
+# SERVER_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
+# SERVER_PORT = "443"
+# PROXY_IP = "fastly.nopasaran.co"
 
-# CLIENT_WORKER = "labworker1.admin.worker.nopasaran.org"
-# SERVER_WORKER = "worker1.admin.worker.nopasaran.org"
-# PROXY_IP = "192.168.122.6"
-# SERVER_PORT = "80"
+CLIENT_WORKER = "labworker3.admin.worker.nopasaran.org"
+SERVER_WORKER = "worker1.admin.worker.nopasaran.org"
+PROXY_IP = "192.168.122.7"
+SERVER_PORT = "8080"
 
 MASTER = "mahmoudmaster.admin.master.nopasaran.org"
 
