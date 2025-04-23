@@ -14,4 +14,4 @@ id | proxy      | version | Release Date | Protocol | with TLS | GitHub Stars | 
 12 | Cloudflare | N/A     | N/A          | H2EE     | True     | N/A          |             |
 13 | Azure AG   | N/A     | N/A          | H2H1     | True     | N/A          |             |
 14 | Fastly     | N/A     | N/A          | H2EE     | True     | N/A          |             |
-15 | Varnish    | 7.5.0   | Mar 18, 2024 | H2H1     |          | 3.8k         | 7.1.0       |
+15 | Varnish    | 7.7.0   | Mar 18, 2024 | H2H1     |          | 3.8k         | 7.1.0       |
