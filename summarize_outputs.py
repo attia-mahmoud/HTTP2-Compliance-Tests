@@ -9,6 +9,7 @@ import seaborn as sns
 from collections import defaultdict
 import matplotlib.ticker as mticker
 import matplotlib.patches as mpatches
+import math # Add math import for pi
 
 def get_latest_file(directory):
     """Get the most recent file in the directory."""
@@ -1525,6 +1526,92 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
                 dpi=300, bbox_inches='tight')
     plt.close(fig) # Close the figure explicitly
 
+def create_proxy_radar_chart(test_results, proxy_configs, output_directory):
+    """Create radar charts comparing result distributions for proxies."""
+    proxies_output_dir = os.path.join(output_directory, 'radar_charts')
+    os.makedirs(proxies_output_dir, exist_ok=True)
+
+    # Define categories based on scope (full scope includes modified/unmodified)
+    categories_full = ['Dropped', '500 Error', 'GOAWAY', 'RESET', 'Unmodified', 'Modified']
+    categories_client = ['Dropped', '500 Error', 'GOAWAY', 'RESET', 'Received'] # Client-only maps modified/unmodified to received
+
+    category_keys_full = ['dropped', '500', 'goaway', 'reset', 'unmodified', 'modified']
+    category_keys_client = ['dropped', '500', 'goaway', 'reset', 'received']
+
+    # Split proxies by scope
+    proxies_by_scope = {'full': [], 'client-only': []}
+    for proxy, config in proxy_configs.items():
+        if proxy in test_results:
+            proxies_by_scope[config['scope']].append(proxy)
+
+    for scope, proxies in proxies_by_scope.items():
+        if not proxies:
+            continue
+
+        current_categories = categories_full if scope == 'full' else categories_client
+        current_category_keys = category_keys_full if scope == 'full' else category_keys_client
+        num_categories = len(current_categories)
+
+        # Calculate angles for the radar chart axes
+        angles = [n / float(num_categories) * 2 * math.pi for n in range(num_categories)]
+        angles += angles[:1] # Close the plot
+
+        fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
+
+        # Define a colormap for the lines/fills
+        colors = plt.cm.viridis(np.linspace(0, 1, len(proxies)))
+
+        # Plot data for each proxy
+        for i, proxy in enumerate(proxies):
+            proxy_results_dict = test_results[proxy]
+            total_tests = len(proxy_results_dict)
+
+            if total_tests == 0:
+                values = [0] * num_categories
+            else:
+                category_counts = {cat_key: 0 for cat_key in current_category_keys}
+                # Special handling for client-only 'received'
+                if scope == 'client-only':
+                    for result in proxy_results_dict.values():
+                        if result in ['modified', 'unmodified']:
+                            category_counts['received'] += 1
+                        elif result in category_counts:
+                            category_counts[result] += 1
+                else: # Full scope
+                    for result in proxy_results_dict.values():
+                        if result in category_counts:
+                            category_counts[result] += 1
+
+                # Calculate percentages
+                values = [(category_counts[cat_key] / total_tests * 100) for cat_key in current_category_keys]
+
+            values += values[:1] # Close the plot
+
+            # Plot the line
+            ax.plot(angles, values, color=colors[i], linewidth=2, linestyle='solid', label=proxy)
+            # Fill the area
+            ax.fill(angles, values, color=colors[i], alpha=0.25)
+
+        # Configure the plot
+        ax.set_xticks(angles[:-1])
+        ax.set_xticklabels(current_categories)
+        ax.set_yticks(np.arange(0, 101, 20)) # Percentage ticks
+        ax.set_yticklabels([f"{i}%" for i in np.arange(0, 101, 20)])
+        ax.set_ylim(0, 100)
+
+        scope_title = 'Full Scope Proxies' if scope == 'full' else 'Client-Only Scope Proxies'
+        plt.title(f'Proxy Result Distribution Comparison - {scope_title}', size=16, y=1.1)
+
+        # Add legend
+        ax.legend(loc='upper right', bbox_to_anchor=(0.1, 0.1))
+
+        plt.tight_layout()
+
+        # Save the figure
+        filename = f'radar_chart_{scope}.png'
+        plt.savefig(os.path.join(proxies_output_dir, filename), dpi=300, bbox_inches='tight')
+        plt.close(fig)
+
 def main():
     # Create base directories if they don't exist
     base_dirs = {
@@ -1538,15 +1625,19 @@ def main():
     # List of proxy folders with their test scope
     proxy_configs = {
         'Nghttpx': {'scope': 'full'},
+        # 'Nghttpx-1.47.0': {'scope': 'full'},
         'HAproxy': {'scope': 'full'},
+        # 'HAproxy-2.6.0': {'scope': 'full'},
         'Apache': {'scope': 'full'},
         'Caddy': {'scope': 'full'},
         'Node': {'scope': 'full'},
+        # 'Node-14.19.3': {'scope': 'full'},
         'Envoy': {'scope': 'full'},
         'H2O': {'scope': 'full'},
         'Cloudflare': {'scope': 'full'},
         'Mitmproxy': {'scope': 'full'},
         'Traefik': {'scope': 'client-only'},
+        # 'Traefik-3.3.5': {'scope': 'client-only'},
         'Azure-AG': {'scope': 'client-only'},
         'Nginx': {'scope': 'client-only'},
         'Lighttpd': {'scope': 'client-only'},
@@ -1610,6 +1701,7 @@ def main():
     distribution_dir = os.path.join('analysis', 'behavior')
     create_proxy_result_pies(all_test_results, proxy_configs, distribution_dir)
     create_proxy_line_graphs(all_test_results, proxy_configs, distribution_dir)
+    create_proxy_radar_chart(all_test_results, proxy_configs, distribution_dir) # Call the new function
     # Removed call to create_test_timeline_graphs here, moved after loading client/server tests
 
     # run cloudflare_analysis.py
