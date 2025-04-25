@@ -63,21 +63,21 @@ tests_tree = "http_2_conformance.png"
 
 list_of_proxies = [
     # {"PROXY": "Direct", "PROXY_PORT": "8080"}
-    # {"PROXY": "Apache", "PROXY_PORT": "7700"},
-    # {"PROXY": "Caddy", "PROXY_PORT": "7701"},
-    # {"PROXY": "Envoy", "PROXY_PORT": "7702"}
-    # {"PROXY": "HAproxy", "PROXY_PORT": "7704"},
-    # {"PROXY": "Nginx", "PROXY_PORT": "7705", "tls_enabled": "true"}
-    # {"PROXY": "Nghttpx", "PROXY_PORT": "7706"}
-    {"PROXY": "Node-14.19.3", "PROXY_PORT": "7707"}
+    # {"PROXY": "Apache-2.4.62", "PROXY_PORT": "7700"},
+    # {"PROXY": "Caddy-2.9.1", "PROXY_PORT": "7701"},
+    # {"PROXY": "Envoy-1.32.2", "PROXY_PORT": "7702"}
+    # {"PROXY": "HAproxy-2.9.10", "PROXY_PORT": "7704"},
+    # {"PROXY": "Nginx-1.22.0", "PROXY_PORT": "7770", "tls_enabled": "true"}
+    # {"PROXY": "Nghttpx-1.62.1", "PROXY_PORT": "7706"}
+    # {"PROXY": "Node-20.16.0", "PROXY_PORT": "7707"}
     # {"PROXY": "Mitmproxy", "PROXY_PORT": "7708", "tls_enabled": "true"}
-    # {"PROXY": "H2O", "PROXY_PORT": "7709", "tls_enabled": "true"}
+    {"PROXY": "H2O-cf59e67c3", "PROXY_PORT": "7703", "tls_enabled": "false"}
     # {"PROXY": "Cloudflare", "PROXY_PORT": "443", "tls_enabled": "true", "cloudflare_origin": "true"},
     # {"PROXY": "Fastly", "PROXY_PORT": "443", "tls_enabled": "true"}
     # {"PROXY": "Traefik_old", "PROXY_PORT": "7715"},
     # {"PROXY": "Caddy_old", "PROXY_PORT": "7716"},
     # {"PROXY": "BunnyCDN", "PROXY_PORT": "443", "tls_enabled": "true"},
-    # {"PROXY": "Muraena", "PROXY_PORT": "80"},
+    # {"PROXY": "lighttpd-1.4.64", "PROXY_PORT": "7771"},
 ]
 
 # CLIENT_WORKER = "linodegermany.admin.worker.nopasaran.org"
@@ -87,7 +87,7 @@ list_of_proxies = [
 
 CLIENT_WORKER = "labworker3.admin.worker.nopasaran.org"
 SERVER_WORKER = "worker1.admin.worker.nopasaran.org"
-PROXY_IP = "192.168.122.7"
+PROXY_IP = "192.168.122.8"
 SERVER_PORT = "8080"
 
 MASTER = "mahmoudmaster.admin.master.nopasaran.org"

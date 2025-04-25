@@ -3771,5 +3771,26 @@
         }
       }
     }
+  },
+  "166": {
+    "description": "HTTP/2 does not support the 101 (Switching Protocols) informational status code (Section 15.2.2 of [HTTP]).",
+    "result": {
+      "Worker_2": {
+        "State": "RESET_RECEIVED",
+        "Variables": {
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':status': '101'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', '192.168.122.6'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
+        }
+      },
+      "Worker_1": {
+        "State": "REJECTED",
+        "Variables": {
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
+        }
+      }
+    }
   }
 }

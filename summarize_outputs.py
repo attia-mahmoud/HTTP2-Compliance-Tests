@@ -1599,8 +1599,8 @@ def create_proxy_radar_chart(test_results, proxy_configs, output_directory):
         ax.set_yticklabels([f"{i}%" for i in np.arange(0, 101, 20)])
         ax.set_ylim(0, 100)
 
-        scope_title = 'Full Scope Proxies' if scope == 'full' else 'Client-Only Scope Proxies'
-        plt.title(f'Proxy Result Distribution Comparison - {scope_title}', size=16, y=1.1)
+        # scope_title = 'Full Scope Proxies' if scope == 'full' else 'Client-Only Scope Proxies'
+        # plt.title(f'Proxy Result Distribution Comparison - {scope_title}', size=16, y=1.1)
 
         # Add legend
         ax.legend(loc='upper right', bbox_to_anchor=(0.1, 0.1))
@@ -1624,26 +1624,27 @@ def main():
     
     # List of proxy folders with their test scope
     proxy_configs = {
-        'Nghttpx': {'scope': 'full'},
-        # 'Nghttpx-1.47.0': {'scope': 'full'},
-        'HAproxy': {'scope': 'full'},
-        # 'HAproxy-2.6.0': {'scope': 'full'},
-        'Apache': {'scope': 'full'},
-        'Caddy': {'scope': 'full'},
-        'Node': {'scope': 'full'},
-        # 'Node-14.19.3': {'scope': 'full'},
-        'Envoy': {'scope': 'full'},
-        'H2O': {'scope': 'full'},
+        'Nghttpx-1.62.1': {'scope': 'full'},
+        'Nghttpx-1.47.0': {'scope': 'full'},
+        'HAproxy-2.9.10': {'scope': 'full'},
+        'HAproxy-2.6.0': {'scope': 'full'},
+        'Apache-2.4.62': {'scope': 'full'},
+        'Apache-2.4.53': {'scope': 'full'},
+        'Caddy-2.9.1': {'scope': 'full'},
+        'Node-20.16.0': {'scope': 'full'},
+        'Node-14.19.3': {'scope': 'full'},
+        'Envoy-1.32.2': {'scope': 'full'},
+        'H2O-2.3.0': {'scope': 'full'},
         'Cloudflare': {'scope': 'full'},
-        'Mitmproxy': {'scope': 'full'},
-        'Traefik': {'scope': 'client-only'},
-        # 'Traefik-3.3.5': {'scope': 'client-only'},
+        'Mitmproxy-11.1.0': {'scope': 'full'},
+        'Traefik-3.5.0': {'scope': 'client-only'},
+        'Traefik-3.3.5': {'scope': 'client-only'},
         'Azure-AG': {'scope': 'client-only'},
-        'Nginx': {'scope': 'client-only'},
-        'Lighttpd': {'scope': 'client-only'},
+        'Nginx-1.26.0': {'scope': 'client-only'},
+        'Lighttpd-1.4.76': {'scope': 'client-only'},
         'Fastly': {'scope': 'client-only'},
-        'Varnish': {'scope': 'client-only'},
-        # 'Varnish-7.1.0': {'scope': 'client-only'}
+        'Varnish-7.7.0': {'scope': 'client-only'},
+        'Varnish-7.1.0': {'scope': 'client-only'}
     }
     
     results_dir = 'results'

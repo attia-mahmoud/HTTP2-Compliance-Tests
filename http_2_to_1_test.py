@@ -75,7 +75,7 @@ list_of_proxies = [
     # {"PROXY": "Caddy", "PROXY_PORT": "7701"},
     # {"PROXY": "Envoy", "PROXY_PORT": "7702"}
     # {"PROXY": "HAproxy", "PROXY_PORT": "7704"},
-    # {"PROXY": "Nginx", "PROXY_PORT": "7770", "tls_enabled": "true"},
+    {"PROXY": "Nginx-1.22.0", "PROXY_PORT": "7770", "tls_enabled": "true"}
     # {"PROXY": "Lighttpd", "PROXY_PORT": "7771", "tls_enabled": "true"}
     # {"PROXY": "Nghttpx", "PROXY_PORT": "7706"}
     # {"PROXY": "Node", "PROXY_PORT": "7707"}
@@ -85,7 +85,7 @@ list_of_proxies = [
     # {"PROXY": "Azure-AG", "PROXY_PORT": "443", "tls_enabled": "true"}
     # {"PROXY": "Fastly", "PROXY_PORT": "80"}
     # {"PROXY": "Muraena", "PROXY_PORT": "80"},
-    {"PROXY": "Varnish-7.1.0", "PROXY_PORT": "9080"},
+    # {"PROXY": "Varnish-7.1.0", "PROXY_PORT": "9080"},
 ]
 
 # CLIENT_WORKER = "linodegermany.admin.worker.nopasaran.org"
@@ -94,8 +94,8 @@ list_of_proxies = [
 
 CLIENT_WORKER = "labworker3.admin.worker.nopasaran.org"
 SERVER_WORKER = "worker1.admin.worker.nopasaran.org"
-PROXY_IP = "192.168.122.7"
-SERVER_PORT = "9081"
+PROXY_IP = "192.168.122.9"
+SERVER_PORT = "8080"
 
 # file = "test_cases_debug.json"
 file = "test_cases.json"
