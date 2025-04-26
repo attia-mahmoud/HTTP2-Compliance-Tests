@@ -2,7 +2,7 @@
 
 This document lists tests where exactly one proxy behaved differently than all others.
 
-Total outliers found: 29
+Total outliers found: 28
 
 ## Outliers for Azure-AG
 
@@ -30,18 +30,15 @@ Total outliers found: 29
 | 60 | All pseudo-header fields sent from a client MUST appear in a field block before all regular field lines. Any request or response that contains a pseudo-header field that appears in a field block after a regular field line MUST be treated as malformed (Section 8.1.1). | goaway | dropped |
 | 62 | The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with the same value. | goaway | dropped |
 | 63 | The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with different values. | goaway | dropped |
+| 68 | The ":path" pseudo-header field MUST NOT be empty for "http" or "https" URIs; "http" or "https" URIs that do not contain a path component MUST include a value of '/'. | goaway | dropped |
 | 69 | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :method missing) | reset | dropped |
+| 70 | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :scheme missing) | reset | dropped |
 | 74 | With the CONNECT method, the ":scheme" and ":path" pseudo-header fields MUST be omitted. (Tested with both present) | reset | dropped |
 | 83 | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.) | reset | dropped |
+| 84 | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.) | reset | dropped |
 | 103 | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing) | reset | dropped |
 
-## Outliers for Lighttpd-1.4.76
-
-| Test ID | Description | Outlier Behavior | Common Behavior |
-|---------|-------------|------------------|----------------|
-| 76 | An endpoint MUST NOT send frames other than PRIORITY on a closed stream. | dropped | goaway |
-
-## Outliers for Traefik-3.5.0
+## Outliers for Traefik-3.3.5
 
 | Test ID | Description | Outlier Behavior | Common Behavior |
 |---------|-------------|------------------|----------------|
@@ -53,8 +50,5 @@ Total outliers found: 29
 |---------|-------------|------------------|----------------|
 | 49 | A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). | received | dropped |
 | 50 | A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09). | received | dropped |
-| 68 | The ":path" pseudo-header field MUST NOT be empty for "http" or "https" URIs; "http" or "https" URIs that do not contain a path component MUST include a value of '/'. | received | dropped |
-| 70 | All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :scheme missing) | received | dropped |
-| 84 | If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.) | received | dropped |
 | 102 | Pseudo-header fields MUST NOT appear in a trailer section. | received | dropped |
 

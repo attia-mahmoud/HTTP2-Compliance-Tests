@@ -1634,17 +1634,20 @@ def main():
         'Node-20.16.0': {'scope': 'full'},
         'Node-14.19.3': {'scope': 'full'},
         'Envoy-1.32.2': {'scope': 'full'},
-        'H2O-2.3.0': {'scope': 'full'},
-        'Cloudflare': {'scope': 'full'},
+        'H2O-26b116e95': {'scope': 'full'},
+        'H2O-cf59e67c3': {'scope': 'full'},
         'Mitmproxy-11.1.0': {'scope': 'full'},
-        'Traefik-3.5.0': {'scope': 'client-only'},
         'Traefik-3.3.5': {'scope': 'client-only'},
-        'Azure-AG': {'scope': 'client-only'},
+        'Traefik-2.6.2': {'scope': 'client-only'},
         'Nginx-1.26.0': {'scope': 'client-only'},
+        'Nginx-1.22.0': {'scope': 'client-only'},
         'Lighttpd-1.4.76': {'scope': 'client-only'},
-        'Fastly': {'scope': 'client-only'},
+        'Lighttpd-1.4.64': {'scope': 'client-only'},
         'Varnish-7.7.0': {'scope': 'client-only'},
-        'Varnish-7.1.0': {'scope': 'client-only'}
+        'Varnish-7.1.0': {'scope': 'client-only'},
+        'Azure-AG': {'scope': 'client-only'},
+        'Cloudflare': {'scope': 'full'},
+        'Fastly': {'scope': 'client-only'},
     }
     
     results_dir = 'results'

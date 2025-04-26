@@ -7,7 +7,7 @@ Received unmodified: Mitmproxy-11.1.0
 Received unmodified: Mitmproxy-11.1.0
 
 4 Client preface must include a SETTINGS frame
-Received: Azure-AG, Lighttpd-1.4.76, Nginx-1.26.0, Varnish-7.1.0, Varnish-7.7.0
+Received: Azure-AG, Lighttpd-1.4.76, Nginx-1.22.0, Nginx-1.26.0, Varnish-7.1.0, Varnish-7.7.0
 Received modified: Cloudflare, Mitmproxy-11.1.0
 
 5 If this stream (initially in the idle state) is initiated by the server, as described in Section 5.1.1, then receiving a HEADERS frame MUST also be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
@@ -21,7 +21,7 @@ Received: Lighttpd-1.4.76, Varnish-7.1.0
 Received unmodified: Mitmproxy-11.1.0
 
 8 Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE
-Received: Azure-AG, Nginx-1.26.0, Varnish-7.1.0
+Received: Azure-AG, Nginx-1.22.0, Nginx-1.26.0, Varnish-7.1.0
 Received unmodified: Cloudflare, Mitmproxy-11.1.0
 
 10 A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving.
@@ -239,7 +239,7 @@ Received unmodified: Mitmproxy-11.1.0
 Received unmodified: Mitmproxy-11.1.0
 
 87 A SETTINGS frame MUST be sent by both endpoints at the start of a connection and MAY be sent at any other time by either endpoint over the lifetime of the connection. (Tested from the client side.)
-Received: Azure-AG, Lighttpd-1.4.76, Nginx-1.26.0, Varnish-7.1.0, Varnish-7.7.0
+Received: Azure-AG, Lighttpd-1.4.76, Nginx-1.22.0, Nginx-1.26.0, Varnish-7.1.0, Varnish-7.7.0
 Received modified: Cloudflare, Mitmproxy-11.1.0
 
 88 Unsupported settings MUST be ignored.
