@@ -919,12 +919,12 @@ def create_client_server_conformance_visualization(test_results, client_side_tes
             server_non_conformant.append(0)
     
     # Create bars
-    plt.bar(x - width/2, client_non_conformant, width, label='Client Non-Conformant', color='#2ecc71')
-    plt.bar(x + width/2, server_non_conformant, width, label='Server Non-Conformant', color='#3498db')
+    plt.bar(x - width/2, client_non_conformant, width, label='Client Non-Compliant', color='#2ecc71')
+    plt.bar(x + width/2, server_non_conformant, width, label='Server Non-Compliant', color='#3498db')
     
     # Customize the plot
-    plt.xlabel('Proxy')
-    plt.ylabel('Percentage of Non-Conformant Tests')
+    plt.xlabel('Proxy', fontsize=18)
+    plt.ylabel('Percentage of Non-Compliant Tests', fontsize=18)
     
     # Adjust title based on scope filter
     if scope_filter == 'full':
@@ -937,9 +937,9 @@ def create_client_server_conformance_visualization(test_results, client_side_tes
         title_suffix = ' (All Proxies)'
         filename_suffix = '_all'
         
-    plt.title(f'HTTP/2 Client-Side vs Server-Side Non-Conformance by Proxy{title_suffix}', pad=20)
-    plt.xticks(x, proxies, rotation=45, ha='right')
-    plt.legend()
+    plt.xticks(x, proxies, rotation=45, ha='right', fontsize=18)
+    plt.yticks(fontsize=18)
+    plt.legend(fontsize=18)
     
     # Add percentage labels on the bars
     def add_labels(x_pos, heights):
@@ -947,7 +947,7 @@ def create_client_server_conformance_visualization(test_results, client_side_tes
             if height > 0:  # Only add label if there's a non-zero value
                 plt.text(x_pos[i], height + 1,
                         f'{height:.1f}%',
-                        ha='center', va='bottom')
+                        ha='center', va='bottom', fontsize=12) # Added fontsize for bar labels
     
     # Add labels for client and server bars
     add_labels(x - width/2, client_non_conformant)
@@ -1336,33 +1336,32 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
     os.makedirs(charts_directory, exist_ok=True)
 
     # Define distinct colors and map for each relevant category
-    # 1: Modified (Red) - Full scope only
-    # 2: Unmodified (Yellow) - Full scope only
+    # 1: Modified (Yellow) - Full scope only
+    # 2: Unmodified (Red) - Full scope only
     # 3: Reset (Light Blue)
     # 4: Goaway (Orange)
     # 5: 500 Error (Purple)
-    # 6: Not Considered (Black) - Client-only scope only
-    # 7: Received (Green) - Includes Modified/Unmodified for client-only
+    # 6: Not Applicable (Black) - Client-only scope only
+    # 7: Received (Red) - Includes Modified/Unmodified for client-only
     # 0: Dropped/Other (Gray)
     colors = {
-        1: '#ff6b6b',  # Modified (M)
-        2: '#ffd93d',  # Unmodified (U)
+        1: '#ffd93d',  # Modified (M)
+        2: '#ff6b6b',  # Unmodified (U)
         3: '#6bccee',  # Reset (R) - Light Blue
         4: '#ff9f43',  # Goaway (G) - Orange
         5: '#a26bcd',  # 500 Error (E) - Purple
-        6: '#000000',  # Not Considered (N) - Black
-        7: '#2ecc71',  # Received (Rec) - Green
+        6: '#000000',  # Not Applicable (N) - Black
+        7: '#ff6b6b',  # Received (Rec) - Red
         0: '#cccccc'   # Dropped/Other (D) - Gray
     }
     # Base mapping
     outcome_map = {
-        "reset": 3,
-        "goaway": 4,
-        "500": 5,
-        "not_considered": 6, # Used for client-only filtering
-        "received": 7,
+        "not_applicable": 6, # Used for client-only filtering
         "dropped": 0,
-        "other": 0 # Fallback
+        "500": 5,
+        "goaway": 4,
+        "reset": 3,
+        "received": 7
     }
     # Add scope-specific mappings
     if scope_filter == 'full':
@@ -1388,12 +1387,19 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
     if scope_filter == 'client-only' and global_test_ids is not None:
         # For client-only graph, use the globally provided list
         test_ids_for_graph = global_test_ids
+        # Filter out tests >= 106
+        test_ids_for_graph = [tid for tid in test_ids_for_graph if int(tid) < 106]
     else:
         # For full scope, derive IDs only from the filtered proxies' results
         test_ids_for_graph = sorted(
             list(set().union(*(outcomes_dict[proxy].keys() for proxy in filtered_proxies))),
             key=lambda x: int(x) if x.isdigit() else float('inf')
         )
+        # Ensure full scope also respects global_test_ids if provided, although less typical
+        if global_test_ids is not None:
+             global_test_ids_set = set(global_test_ids)
+             test_ids_for_graph = [tid for tid in test_ids_for_graph if tid in global_test_ids_set]
+
 
     if not test_ids_for_graph:
         print(f"No test IDs found for scope '{scope_filter}'. Skipping matrix graph.")
@@ -1410,9 +1416,11 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
         numerical_outcomes = []
         # Iterate using the determined test ID list for this graph
         for test_id in test_ids_for_graph:
-            # Check if this test should be marked as "Not Considered" for client-only scope
+            # Removed redundant check: if scope_filter == 'client-only' and int(test_id) >= 106: continue
+
+            # Check if this test should be marked as "Not Applicable" for client-only scope
             if scope_filter == 'client-only' and client_side_tests_set is not None and test_id not in client_side_tests_set:
-                numerical_outcomes.append(outcome_map["not_considered"]) # Assign 6 (Black)
+                numerical_outcomes.append(outcome_map["not_applicable"]) # Assign 6 (Black)
             else:
                 # Otherwise, use the normal result mapping
                 result_str = outcomes.get(test_id, "other") # Default to "other" if test missing for this proxy
@@ -1496,23 +1504,23 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
         2: "Unmodified",
         3: "Reset",
         4: "Goaway",
-        5: "500 Error",
-        6: "Not Considered",
-        7: "Received",
-        0: "Dropped" # Changed label for 0
+        5: "Error 500",
+        6: "Not Applicable",
+        7: "Accepted",
+        0: "Dropped", # Changed label for 0
     }
 
     legend_patches = []
     keys_for_this_legend = []
 
     if scope_filter == 'client-only':
-        # Order: Reset(3), Goaway(4), 500(5), Received(7), Dropped(0), Not Considered(6)
-        keys_for_this_legend = [3, 4, 5, 7, 0, 6]
+        # Order: Reset(3), Goaway(4), 500(5), Received(7), Dropped(0), Not Applicable(6)
+        keys_for_this_legend = [0, 5, 4, 3, 7, 6]
         # Note: Modified(1)/Unmodified(2) are mapped to Received(7) in outcome_map for this scope
     else: # scope_filter == 'full'
         # Order: Modified(1), Unmodified(2), Reset(3), Goaway(4), 500(5), Received(7), Dropped(0)
-        keys_for_this_legend = [1, 2, 3, 4, 5, 0]
-        # Not Considered(6) is omitted
+        keys_for_this_legend = [0, 5, 4, 3, 2, 1]
+        # Not Applicable(6) is omitted
 
     for key in keys_for_this_legend:
         if key in colors:
@@ -1624,30 +1632,30 @@ def main():
     
     # List of proxy folders with their test scope
     proxy_configs = {
-        'Nghttpx-1.62.1': {'scope': 'full'},
-        'Nghttpx-1.47.0': {'scope': 'full'},
-        'HAproxy-2.9.10': {'scope': 'full'},
-        'HAproxy-2.6.0': {'scope': 'full'},
-        'Apache-2.4.62': {'scope': 'full'},
-        'Apache-2.4.53': {'scope': 'full'},
-        'Caddy-2.9.1': {'scope': 'full'},
-        'Node-20.16.0': {'scope': 'full'},
-        'Node-14.19.3': {'scope': 'full'},
-        'Envoy-1.32.2': {'scope': 'full'},
-        'H2O-26b116e95': {'scope': 'full'},
-        'H2O-cf59e67c3': {'scope': 'full'},
-        'Mitmproxy-11.1.0': {'scope': 'full'},
-        'Traefik-3.3.5': {'scope': 'client-only'},
-        'Traefik-2.6.2': {'scope': 'client-only'},
-        'Nginx-1.26.0': {'scope': 'client-only'},
-        'Nginx-1.22.0': {'scope': 'client-only'},
-        'Lighttpd-1.4.76': {'scope': 'client-only'},
-        'Lighttpd-1.4.64': {'scope': 'client-only'},
-        'Varnish-7.7.0': {'scope': 'client-only'},
-        'Varnish-7.1.0': {'scope': 'client-only'},
-        'Azure-AG': {'scope': 'client-only'},
-        'Cloudflare': {'scope': 'full'},
-        'Fastly': {'scope': 'client-only'},
+        'Nghttpx-1.62.1': {'scope': 'full', 'version': 'new'},
+        # 'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
+        'HAproxy-2.9.10': {'scope': 'full', 'version': 'new'},
+        # 'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
+        'Apache-2.4.62': {'scope': 'full', 'version': 'new'},
+        # 'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
+        'Caddy-2.9.1': {'scope': 'full', 'version': 'new'},
+        'Node-20.16.0': {'scope': 'full', 'version': 'new'},
+        # 'Node-14.19.3': {'scope': 'full', 'version': 'old'},
+        'Envoy-1.32.2': {'scope': 'full', 'version': 'new'},
+        'H2O-cf59e67c3': {'scope': 'full', 'version': 'new'},
+        # 'H2O-26b116e95': {'scope': 'full', 'version': 'old'},
+        'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
+        'Traefik-3.3.5': {'scope': 'client-only', 'version': 'new'},
+        # 'Traefik-2.6.2': {'scope': 'client-only', 'version': 'old'},
+        'Nginx-1.26.0': {'scope': 'client-only', 'version': 'new'},
+        # 'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
+        'Lighttpd-1.4.76': {'scope': 'client-only', 'version': 'new'},
+        # 'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
+        'Varnish-7.7.0': {'scope': 'client-only', 'version': 'new'},
+        # 'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
+        'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
+        'Cloudflare': {'scope': 'full', 'version': 'N/A'},
+        'Fastly': {'scope': 'client-only', 'version': 'N/A'},
     }
     
     results_dir = 'results'
