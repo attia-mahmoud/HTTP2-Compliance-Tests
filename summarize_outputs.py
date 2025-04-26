@@ -1,15 +1,19 @@
 import json
 import os
-from datetime import datetime
-import glob
+import math
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-import seaborn as sns
-from collections import defaultdict
-import matplotlib.ticker as mticker
 import matplotlib.patches as mpatches
-import math # Add math import for pi
+from collections import defaultdict, Counter
+from scipy.stats import pearsonr
+import seaborn as sns
+import pandas as pd
+import random
+import glob
+from datetime import datetime
+import matplotlib.ticker as mticker
+
+# Constants
 
 def get_latest_file(directory):
     """Get the most recent file in the directory."""
@@ -1534,91 +1538,313 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
                 dpi=300, bbox_inches='tight')
     plt.close(fig) # Close the figure explicitly
 
-def create_proxy_radar_chart(test_results, proxy_configs, output_directory):
-    """Create radar charts comparing result distributions for proxies."""
-    proxies_output_dir = os.path.join(output_directory, 'radar_charts')
-    os.makedirs(proxies_output_dir, exist_ok=True)
+# // === Start Refactor for Combined Plots ===
 
-    # Define categories based on scope (full scope includes modified/unmodified)
-    categories_full = ['Dropped', '500 Error', 'GOAWAY', 'RESET', 'Unmodified', 'Modified']
-    categories_client = ['Dropped', '500 Error', 'GOAWAY', 'RESET', 'Received'] # Client-only maps modified/unmodified to received
+# Define the new helper function that plots on a given Axes object
+def _plot_radar_on_ax(ax, proxies_to_plot, scope, test_results, proxy_configs, 
+                      global_tick_values_log, global_tick_labels, global_max_log_display, 
+                      title_prefix="Radar Chart"):
+    """Plots a single radar chart onto a given Matplotlib Axes object (ax)."""
+    
+    # --- This function assumes ax is already a polar subplot ---
+    # It does NOT create a figure or save it.
 
-    category_keys_full = ['dropped', '500', 'goaway', 'reset', 'unmodified', 'modified']
-    category_keys_client = ['dropped', '500', 'goaway', 'reset', 'received']
+    # Define categories and outcome map based on scope
+    if scope == 'full':
+        categories = ['Dropped', '500 Error', 'GOAWAY', 'RESET', 'Unmodified', 'Modified']
+        category_keys = ['dropped', '500', 'goaway', 'reset', 'unmodified', 'modified']
+    else: # client-only
+        categories = ['Dropped', '500 Error', 'GOAWAY', 'RESET', 'Accepted']
+        category_keys = ['dropped', '500', 'goaway', 'reset', 'accepted']
 
-    # Split proxies by scope
-    proxies_by_scope = {'full': [], 'client-only': []}
-    for proxy, config in proxy_configs.items():
-        if proxy in test_results:
-            proxies_by_scope[config['scope']].append(proxy)
+    inverse_outcome_map = {
+        "dropped": "dropped", "500": "500", "goaway": "goaway", "reset": "reset",
+        "modified": "modified" if scope == 'full' else "accepted",
+        "unmodified": "unmodified" if scope == 'full' else "accepted",
+        "received": "accepted" if scope == 'client-only' else None,
+        "other": None
+    }
+    N = len(categories)
+    if N == 0: return # Should not happen if scope is valid
 
-    for scope, proxies in proxies_by_scope.items():
-        if not proxies:
+    # Calculate counts per proxy
+    counts_per_proxy = {}
+    valid_proxies_in_plot = []
+    for proxy in proxies_to_plot:
+        if proxy not in test_results:
             continue
+        valid_proxies_in_plot.append(proxy)
+        counts = {key: 0 for key in category_keys}
+        for test_id, result_str in test_results[proxy].items():
+            category = inverse_outcome_map.get(result_str)
+            if category in counts: counts[category] += 1
+        counts_per_proxy[proxy] = counts
 
-        current_categories = categories_full if scope == 'full' else categories_client
-        current_category_keys = category_keys_full if scope == 'full' else category_keys_client
-        num_categories = len(current_categories)
+    if not valid_proxies_in_plot:
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.text(0.5, 0.5, "No data", horizontalalignment='center', verticalalignment='center', transform=ax.transAxes, fontsize=9)
+        ax.set_title(title_prefix + ": No Data", size=10, y=1.15)
+        return
 
-        # Calculate angles for the radar chart axes
-        angles = [n / float(num_categories) * 2 * math.pi for n in range(num_categories)]
-        angles += angles[:1] # Close the plot
+    angles = [n / float(N) * 2 * np.pi for n in range(N)]
+    angles += angles[:1] # Close the loop
 
-        fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
+    # Configure ticks and labels on the passed ax
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(categories, size=9) # Smaller font for subplots
+    ax.set_yticks(global_tick_values_log)
+    ax.set_yticklabels(global_tick_labels, size=7) # Smaller font for subplots
+    ax.set_ylim(0, global_max_log_display * 1.1 if global_max_log_display > 0 else 0.1)
 
-        # Define a colormap for the lines/fills
-        colors = plt.cm.viridis(np.linspace(0, 1, len(proxies)))
+    # Get display names and colors
+    proxy_label_map = {}
+    proxy_color_map = {}
+    default_color_idx = 0
+    # Ensure plt.colormaps is available or fallback
+    try:
+         fallback_colors = plt.colormaps.get('tab10')
+    except AttributeError:
+         fallback_colors = plt.cm.get_cmap('tab10', 10)
 
-        # Plot data for each proxy
-        for i, proxy in enumerate(proxies):
-            proxy_results_dict = test_results[proxy]
-            total_tests = len(proxy_results_dict)
+    for proxy in valid_proxies_in_plot:
+         config = proxy_configs.get(proxy, {})
+         proxy_label_map[proxy] = config.get('label', proxy)
+         proxy_color_map[proxy] = config.get('color')
+         if not proxy_color_map[proxy]:
+             proxy_color_map[proxy] = fallback_colors(default_color_idx % 10)
+             default_color_idx += 1
 
-            if total_tests == 0:
-                values = [0] * num_categories
+    # Plot lines and annotations on the passed ax
+    for proxy_index, proxy in enumerate(valid_proxies_in_plot):
+        proxy_counts = counts_per_proxy[proxy]
+        ordered_counts = [proxy_counts.get(key, 0) for key in category_keys]
+        log_data = np.log10(np.array(ordered_counts) + 1)
+        log_data_closed = np.concatenate((log_data, [log_data[0]]))
+
+        label = proxy_label_map[proxy]
+        color = proxy_color_map[proxy]
+
+        ax.plot(angles, log_data_closed, linewidth=1.5, linestyle='solid', label=label, color=color) # Thinner lines
+
+        proxy_radial_offset = proxy_index * (global_max_log_display * 0.015)
+        for i in range(N):
+            count = ordered_counts[i]
+            log_val = log_data[i]
+            angle = angles[i]
+            if count > 0:
+                base_text_radius = log_val + (global_max_log_display * 0.05) + proxy_radial_offset
+                radial_jitter = (random.random() - 0.5) * (global_max_log_display * 0.03)
+                angular_jitter = (random.random() - 0.5) * 0.04
+                final_radius = max(0, base_text_radius + radial_jitter)
+                final_angle = angle + angular_jitter
+                ha = 'center'
+                va = 'center'
+                if np.pi/4 < angle < 3*np.pi/4 : va = 'bottom'
+                elif 5*np.pi/4 < angle < 7*np.pi/4: va = 'top'
+                if angle > np.pi: ha = 'right'
+                elif angle > 0 and angle < np.pi: ha = 'left'
+                ax.text(final_angle, final_radius, str(count), color=color, ha=ha, va=va, fontsize=7) # Very small font
+
+    # Set title and legend on the passed ax
+    plotted_labels = [proxy_label_map[p] for p in valid_proxies_in_plot]
+    if len(plotted_labels) <= 2:
+        # For pairs, just use the labels
+        title_detail = ' vs '.join(plotted_labels)
+    else:
+        # For combined, use count
+        title_detail = f"{len(plotted_labels)} Proxies"
+    
+    effective_title_prefix = title_prefix
+    # Special handling for combined remaining charts to add scope
+    if len(valid_proxies_in_plot) > 2 and 'Remaining' in title_prefix:
+         effective_title_prefix = f"{title_prefix} (Scope: {scope})"
+
+    title_str = f"{effective_title_prefix}: {title_detail}"
+    # ax.set_title(title_str, size=9, y=1.18) # REMOVED subplot titles
+    # Use a smaller legend, placed slightly differently for subplots
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=min(len(plotted_labels), 4), fontsize=6)
+
+# Renamed original function - this now ONLY saves single charts (for remaining)
+# It calls the helper function above.
+def _save_single_radar_chart_figure(proxies_to_plot, scope, test_results, proxy_configs, output_path, 
+                                    global_tick_values_log, global_tick_labels, global_max_log_display,
+                                    title_prefix="Radar Chart"):
+    """Creates and saves a single radar chart figure. Used for 'remaining' proxies."""
+    
+    fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(polar=True)) # Slightly smaller figure
+    
+    # Call the core plotting function to draw on the axes
+    _plot_radar_on_ax(ax, proxies_to_plot, scope, test_results, proxy_configs, 
+                      global_tick_values_log, global_tick_labels, global_max_log_display, 
+                      title_prefix=title_prefix)
+    
+    # Save and close the individual figure
+    try:
+        plt.tight_layout(pad=2.0) # Adjust padding
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        print(f"Saved single radar chart: {output_path}")
+    except Exception as e:
+        print(f"Error saving single radar chart {output_path}: {e}")
+    finally:
+        plt.close(fig) 
+
+# // === End Refactor ===
+
+# // ... function _calculate_global_radar_scale should be defined before this ...
+
+# // ... function create_proxy_radar_chart needs modification in the next step ...
+
+def _calculate_global_radar_scale(test_results, proxy_configs):
+    """Calculate global max count and corresponding log ticks across all proxies."""
+    # --- Use fixed ticks based on user request --- 
+    target_counts = [0, 1, 10, 100]
+    tick_labels = [str(c) for c in target_counts]
+    tick_values_log = [np.log10(c + 1) for c in target_counts]
+    max_log_display = tick_values_log[-1] # The log value corresponding to 166
+
+    print(f"Using Fixed Radar Scale: Counts={target_counts}, Ticks={tick_labels}")
+    return tick_values_log, tick_labels, max_log_display
+
+def create_proxy_radar_chart(test_results, proxy_configs, output_directory):
+    """Create radar charts: combined for pairs, separate for remaining."""
+    charts_directory = os.path.join(output_directory, 'radar_charts')
+    os.makedirs(charts_directory, exist_ok=True)
+
+    # Identify old/new pairs
+    print("Searching for old/new proxy pairs based on config...")
+    old_new_pairs = [] # List of tuples: (old_proxy_name, new_proxy_name, scope)
+    paired_proxies_set = set()
+    proxies_by_base_name = defaultdict(list)
+
+    for proxy_name, config in proxy_configs.items():
+        parts = proxy_name.rsplit('-', 1)
+        if len(parts) > 1:
+            base_name = parts[0]
+            proxies_by_base_name[base_name].append(proxy_name)
+        else:
+            proxies_by_base_name[proxy_name].append(proxy_name)
+
+    for base_name, proxy_list in proxies_by_base_name.items():
+        old_proxy, new_proxy = None, None
+        for proxy_name in proxy_list:
+            config = proxy_configs.get(proxy_name, {})
+            version_tag = config.get('version')
+            if version_tag == 'old': old_proxy = proxy_name
+            elif version_tag == 'new': new_proxy = proxy_name
+
+        if old_proxy and new_proxy:
+            if old_proxy in test_results and new_proxy in test_results:
+                scope_old = proxy_configs[old_proxy].get('scope')
+                scope_new = proxy_configs[new_proxy].get('scope')
+                if scope_old and scope_old == scope_new:
+                    old_new_pairs.append((old_proxy, new_proxy, scope_old))
+                    paired_proxies_set.add(old_proxy)
+                    paired_proxies_set.add(new_proxy)
+                    print(f"  Found valid pair for '{base_name}': ({old_proxy}, {new_proxy}) in scope {scope_old}")
+                else:
+                    print(f"  Skipping pair for '{base_name}': Scopes mismatch ('{scope_old}' vs '{scope_new}')")
             else:
-                category_counts = {cat_key: 0 for cat_key in current_category_keys}
-                # Special handling for client-only 'received'
-                if scope == 'client-only':
-                    for result in proxy_results_dict.values():
-                        if result in ['modified', 'unmodified']:
-                            category_counts['received'] += 1
-                        elif result in category_counts:
-                            category_counts[result] += 1
-                else: # Full scope
-                    for result in proxy_results_dict.values():
-                        if result in category_counts:
-                            category_counts[result] += 1
+                print(f"  Skipping pair for '{base_name}': One or both not in test_results.")
 
-                # Calculate percentages
-                values = [(category_counts[cat_key] / total_tests * 100) for cat_key in current_category_keys]
+    # Identify remaining proxies
+    print("Identifying remaining proxies...")
+    remaining_proxies = {proxy: config for proxy, config in proxy_configs.items() 
+                         if proxy in test_results and proxy not in paired_proxies_set}
+    print(f"Found {len(remaining_proxies)} remaining proxies.")
 
-            values += values[:1] # Close the plot
+    # Calculate global scale (based on all results)
+    print("Calculating global radar scale...")
+    global_tick_values_log, global_tick_labels, global_max_log_display = _calculate_global_radar_scale(test_results, proxy_configs)
 
-            # Plot the line
-            ax.plot(angles, values, color=colors[i], linewidth=2, linestyle='solid', label=proxy)
-            # Fill the area
-            ax.fill(angles, values, color=colors[i], alpha=0.25)
+    # --- Generate COMBINED chart for old/new pairs --- 
+    num_pairs = len(old_new_pairs)
+    if num_pairs > 0:
+        print(f"Generating comparison radar charts for {num_pairs} pairs...")
+        
+        # Determine grid size (FIXED to 2x5)
+        ncols = 5 # Fixed at 5 columns
+        nrows = 2 # Fixed at 2 rows
+        # Check if enough pairs exist for a 2x5 grid
+        if num_pairs > nrows * ncols:
+             print(f"Warning: More than {nrows*ncols} pairs found ({num_pairs}), but grid is fixed to {nrows}x{ncols}. Only the first {nrows*ncols} will be plotted.")
+             num_pairs_to_plot = nrows * ncols
+        else:
+             num_pairs_to_plot = num_pairs # Plot all pairs if they fit
 
-        # Configure the plot
-        ax.set_xticks(angles[:-1])
-        ax.set_xticklabels(current_categories)
-        ax.set_yticks(np.arange(0, 101, 20)) # Percentage ticks
-        ax.set_yticklabels([f"{i}%" for i in np.arange(0, 101, 20)])
-        ax.set_ylim(0, 100)
+        figsize_width = ncols * 4.5 # Adjust size based on more columns
+        figsize_height = nrows * 5  # Adjust size based on fewer rows
 
-        # scope_title = 'Full Scope Proxies' if scope == 'full' else 'Client-Only Scope Proxies'
-        # plt.title(f'Proxy Result Distribution Comparison - {scope_title}', size=16, y=1.1)
+        fig, axes = plt.subplots(nrows, ncols, figsize=(figsize_width, figsize_height), 
+                                 subplot_kw=dict(polar=True))
+        
+        # ... (rest of the function: flatten axes, loop through pairs up to num_pairs_to_plot, hide unused) ...
+        if isinstance(axes, np.ndarray):
+             axes_flat = axes.flatten()
+        elif isinstance(axes, plt.Axes): # Single subplot case
+             axes_flat = [axes]
+        else: 
+             axes_flat = []
 
-        # Add legend
-        ax.legend(loc='upper right', bbox_to_anchor=(0.1, 0.1))
+        # Loop only up to the number of pairs we decided to plot
+        plotted_count = 0
+        for i, (old_proxy, new_proxy, scope) in enumerate(old_new_pairs):
+            if plotted_count >= num_pairs_to_plot:
+                 break # Stop if we filled the grid
+            
+            if i < len(axes_flat):
+                ax = axes_flat[i]
+                old_label = proxy_configs.get(old_proxy, {}).get('label', old_proxy)
+                new_label = proxy_configs.get(new_proxy, {}).get('label', new_proxy)
+                # Title prefix is still needed for _plot_radar_on_ax internal logic if needed, but won't be displayed
+                title_for_helper = f"{old_label} vs {new_label}" 
+                
+                _plot_radar_on_ax(ax, [old_proxy, new_proxy], scope, test_results, proxy_configs, 
+                                  global_tick_values_log, global_tick_labels, global_max_log_display, 
+                                  title_prefix=title_for_helper)
+                plotted_count += 1
+            else:
+                 # This shouldn't be reached if num_pairs_to_plot logic is correct
+                 print("Warning: Indexing error during subplotting.")
+                 break 
 
-        plt.tight_layout()
+        # Hide unused subplots (all axes beyond the plotted count)
+        for j in range(plotted_count, len(axes_flat)):
+            axes_flat[j].axis('off')
 
-        # Save the figure
-        filename = f'radar_chart_{scope}.png'
-        plt.savefig(os.path.join(proxies_output_dir, filename), dpi=300, bbox_inches='tight')
-        plt.close(fig)
+        # Adjust layout and save the combined figure
+        try:
+            # Add a main title? Optional.
+            # fig.suptitle("Old vs New Proxy Comparisons", fontsize=16)
+            plt.tight_layout(rect=[0, 0.03, 1, 0.97]) # Adjust rect to make space for suptitle if used
+            combined_output_path = os.path.join(charts_directory, "radar_comparison_all_pairs.png")
+            plt.savefig(combined_output_path, dpi=300)
+            print(f"Saved combined comparison radar chart: {combined_output_path}")
+        except Exception as e:
+            print(f"Error saving combined radar chart: {e}")
+        finally:
+            plt.close(fig)
+    else:
+        print("No old/new pairs found to generate combined chart.")
+
+    # --- Generate SEPARATE charts for remaining proxies --- 
+    print(f"Generating separate radar charts for {len(remaining_proxies)} remaining proxies...")
+    remaining_by_scope = defaultdict(list)
+    for proxy, config in remaining_proxies.items():
+         scope = config.get('scope')
+         if scope:
+             remaining_by_scope[scope].append(proxy)
+
+    for scope, proxies_in_scope in remaining_by_scope.items():
+        if proxies_in_scope:
+            print(f"  Generating chart for {len(proxies_in_scope)} remaining proxies in scope '{scope}'...")
+            output_file = os.path.join(charts_directory, f"radar_remaining_{scope}.png")
+            # Use the function that saves individual files
+            _save_single_radar_chart_figure(proxies_in_scope, scope, test_results, proxy_configs, output_file, 
+                                          global_tick_values_log, global_tick_labels, global_max_log_display,
+                                          title_prefix="Remaining Proxies") # Pass specific title prefix
+
+    print("Finished creating proxy radar charts.")
 
 def main():
     # Create base directories if they don't exist
@@ -1633,26 +1859,26 @@ def main():
     # List of proxy folders with their test scope
     proxy_configs = {
         'Nghttpx-1.62.1': {'scope': 'full', 'version': 'new'},
-        # 'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
+        'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
         'HAproxy-2.9.10': {'scope': 'full', 'version': 'new'},
-        # 'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
+        'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
         'Apache-2.4.62': {'scope': 'full', 'version': 'new'},
-        # 'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
+        'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
         'Caddy-2.9.1': {'scope': 'full', 'version': 'new'},
         'Node-20.16.0': {'scope': 'full', 'version': 'new'},
-        # 'Node-14.19.3': {'scope': 'full', 'version': 'old'},
+        'Node-14.19.3': {'scope': 'full', 'version': 'old'},
         'Envoy-1.32.2': {'scope': 'full', 'version': 'new'},
         'H2O-cf59e67c3': {'scope': 'full', 'version': 'new'},
-        # 'H2O-26b116e95': {'scope': 'full', 'version': 'old'},
+        'H2O-26b116e95': {'scope': 'full', 'version': 'old'},
         'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
         'Traefik-3.3.5': {'scope': 'client-only', 'version': 'new'},
-        # 'Traefik-2.6.2': {'scope': 'client-only', 'version': 'old'},
+        'Traefik-2.6.2': {'scope': 'client-only', 'version': 'old'},
         'Nginx-1.26.0': {'scope': 'client-only', 'version': 'new'},
-        # 'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
+        'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
         'Lighttpd-1.4.76': {'scope': 'client-only', 'version': 'new'},
-        # 'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
+        'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
         'Varnish-7.7.0': {'scope': 'client-only', 'version': 'new'},
-        # 'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
+        'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
         'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
         'Cloudflare': {'scope': 'full', 'version': 'N/A'},
         'Fastly': {'scope': 'client-only', 'version': 'N/A'},
