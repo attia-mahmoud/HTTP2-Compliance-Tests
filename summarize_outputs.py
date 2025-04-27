@@ -44,9 +44,11 @@ def analyze_results(filename, scope):
     
     for test_id, test_data in data.items():
         if not test_data or not test_data.get('result'):
-            test_results[test_id] = "other"
-            test_messages[test_id] = "No result data"
-            continue
+            # Handle missing/empty result data as 'dropped' and count it
+            test_results[test_id] = "dropped"
+            test_messages[test_id] = "No result data, categorized as dropped"
+            dropped_count += 1 # Increment dropped count
+            continue # Continue to next test_id
         
         result = test_data['result']
         is_goaway = False
@@ -59,8 +61,11 @@ def analyze_results(filename, scope):
         message = ""
         
         if isinstance(result, str):
-            # skip this test
-            continue
+            # Treat string results as 'dropped'
+            test_results[test_id] = "dropped"
+            test_messages[test_id] = f"Result is string, categorized as dropped: {result}"
+            dropped_count += 1  # Increment dropped count
+            continue  # Continue to next test_id
         
         # Use safer access methods for worker data
         worker1 = result.get('Worker_1', {}) or {}
@@ -209,10 +214,15 @@ def analyze_results(filename, scope):
             test_results[test_id] = "received"
             received_count += 1
         else:
-            test_results[test_id] = "other"
-            print(result)
-        
-        test_messages[test_id] = message
+            test_results[test_id] = "dropped" # Default to dropped
+            dropped_count += 1
+            message = f"Unknown dictionary state/result, categorized as dropped: {result}" # Provide context
+            # Optional: print a warning for debugging unhandled cases
+            # print(f"Warning: Unhandled dictionary structure for test {test_id}, categorized as dropped.")
+
+        # Assign message if not already set by specific conditions
+        if test_id not in test_messages:
+            test_messages[test_id] = message if message else "Category assigned"
     
     return dropped_count, error_500_count, goaway_count, reset_count, received_count, modified_count, unmodified_count, test_results, test_messages
 
@@ -1601,18 +1611,26 @@ def _plot_radar_on_ax(ax, proxies_to_plot, scope, test_results, proxy_configs,
     proxy_label_map = {}
     proxy_color_map = {}
     default_color_idx = 0
-    # Ensure plt.colormaps is available or fallback
-    try:
-         fallback_colors = plt.colormaps.get('tab10')
-    except AttributeError:
-         fallback_colors = plt.cm.get_cmap('tab10', 10)
-
+    # Custom fallback colors (replace orange with red)
+    custom_fallback_colors = [
+        '#1f77b4',  # tab:blue
+        '#d62728',  # tab:red (instead of orange)
+        '#2ca02c',  # tab:green
+        '#ff7f0e',  # tab:orange (moved here, was red)
+        '#9467bd',  # tab:purple
+        '#8c564b',  # tab:brown
+        '#e377c2',  # tab:pink
+        '#7f7f7f',  # tab:gray
+        '#bcbd22',  # tab:olive
+        '#17becf'   # tab:cyan
+    ]
+ 
     for proxy in valid_proxies_in_plot:
          config = proxy_configs.get(proxy, {})
          proxy_label_map[proxy] = config.get('label', proxy)
          proxy_color_map[proxy] = config.get('color')
          if not proxy_color_map[proxy]:
-             proxy_color_map[proxy] = fallback_colors(default_color_idx % 10)
+             proxy_color_map[proxy] = custom_fallback_colors[default_color_idx % len(custom_fallback_colors)]
              default_color_idx += 1
 
     # Plot lines and annotations on the passed ax
@@ -1625,26 +1643,14 @@ def _plot_radar_on_ax(ax, proxies_to_plot, scope, test_results, proxy_configs,
         label = proxy_label_map[proxy]
         color = proxy_color_map[proxy]
 
-        ax.plot(angles, log_data_closed, linewidth=1.5, linestyle='solid', label=label, color=color) # Thinner lines
+        ax.plot(angles, log_data_closed, linewidth=2.5, linestyle='solid', label=label, color=color) # Increased linewidth
 
         proxy_radial_offset = proxy_index * (global_max_log_display * 0.015)
         for i in range(N):
             count = ordered_counts[i]
             log_val = log_data[i]
             angle = angles[i]
-            if count > 0:
-                base_text_radius = log_val + (global_max_log_display * 0.05) + proxy_radial_offset
-                radial_jitter = (random.random() - 0.5) * (global_max_log_display * 0.03)
-                angular_jitter = (random.random() - 0.5) * 0.04
-                final_radius = max(0, base_text_radius + radial_jitter)
-                final_angle = angle + angular_jitter
-                ha = 'center'
-                va = 'center'
-                if np.pi/4 < angle < 3*np.pi/4 : va = 'bottom'
-                elif 5*np.pi/4 < angle < 7*np.pi/4: va = 'top'
-                if angle > np.pi: ha = 'right'
-                elif angle > 0 and angle < np.pi: ha = 'left'
-                ax.text(final_angle, final_radius, str(count), color=color, ha=ha, va=va, fontsize=7) # Very small font
+            # Removed count annotation logic
 
     # Set title and legend on the passed ax
     plotted_labels = [proxy_label_map[p] for p in valid_proxies_in_plot]
@@ -1663,7 +1669,7 @@ def _plot_radar_on_ax(ax, proxies_to_plot, scope, test_results, proxy_configs,
     title_str = f"{effective_title_prefix}: {title_detail}"
     # ax.set_title(title_str, size=9, y=1.18) # REMOVED subplot titles
     # Use a smaller legend, placed slightly differently for subplots
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=min(len(plotted_labels), 4), fontsize=6)
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=min(len(plotted_labels), 4), fontsize=10) # Increased legend fontsize
 
 # Renamed original function - this now ONLY saves single charts (for remaining)
 # It calls the helper function above.
@@ -1846,17 +1852,229 @@ def create_proxy_radar_chart(test_results, proxy_configs, output_directory):
 
     print("Finished creating proxy radar charts.")
 
+def _find_old_new_pairs(proxy_configs, test_results):
+    """Identifies pairs of (old_proxy, new_proxy) based on config and availability in results."""
+    old_new_pairs = []
+    proxies_by_base_name = defaultdict(list)
+
+    # Group proxies by base name (e.g., 'Nghttpx')
+    for proxy_name, config in proxy_configs.items():
+        parts = proxy_name.rsplit('-', 1)
+        base_name = parts[0] if len(parts) > 1 else proxy_name
+        proxies_by_base_name[base_name].append(proxy_name)
+
+    # Find old/new pairs within each base name group
+    for base_name, proxy_list in proxies_by_base_name.items():
+        old_proxy, new_proxy = None, None
+        for proxy_name in proxy_list:
+            # Only consider proxies that actually have results
+            if proxy_name not in test_results:
+                continue
+
+            config = proxy_configs.get(proxy_name, {})
+            version_tag = config.get('version')
+            if version_tag == 'old':
+                old_proxy = proxy_name
+            elif version_tag == 'new':
+                new_proxy = proxy_name
+
+        # Add pair if both found and have results
+        if old_proxy and new_proxy:
+             # No need to check scope similarity here, just need the pair
+             old_new_pairs.append((old_proxy, new_proxy))
+             # print(f"  Found valid pair for behavior change matrix: ({old_proxy}, {new_proxy})") # Optional debug print
+        # else:
+             # Optional: print why a pair wasn't formed for this base_name
+             # print(f"  Could not form pair for '{base_name}': old='{old_proxy}', new='{new_proxy}'")
+
+
+    return old_new_pairs
+
+def create_behavior_change_matrix(all_test_results, proxy_configs, output_directory):
+    """
+    Creates a heatmap showing the change in proxy behavior counts by subtracting
+    the total counts of 'old' proxies from the total counts of 'new' proxies
+    for each test and result category. Includes a sum row (expected to be zero).
+    (Refactored aggregation logic, updated aesthetics)
+    """
+    matrix_dir = os.path.join(output_directory, 'behavior_change')
+    os.makedirs(matrix_dir, exist_ok=True)
+
+    # 1. Define Categories and Mapping (using full names now)
+    categories_display_full = ["Dropped", "Error 500", "GOAWAY", "RESET", "Unmodified", "Modified", "Accepted"]
+    category_map_internal_to_full = {
+        'dropped': "Dropped", '500': "Error 500", 'goaway': "GOAWAY", 'reset': "RESET",
+        'unmodified': "Unmodified", 'modified': "Modified", 'received': "Accepted"
+    }
+    num_categories = len(categories_display_full)
+
+    # 2. Identify Pairs and separate old/new proxies
+    old_new_pairs = _find_old_new_pairs(proxy_configs, all_test_results)
+    if not old_new_pairs:
+        print("No old/new proxy pairs found for behavior change matrix.")
+        return
+    # Get unique lists of old and new proxies participating in pairs
+    old_proxies_in_pairs = sorted(list(set(pair[0] for pair in old_new_pairs)))
+    new_proxies_in_pairs = sorted(list(set(pair[1] for pair in old_new_pairs)))
+    print(f"Calculating change based on {len(old_proxies_in_pairs)} old proxies and {len(new_proxies_in_pairs)} new proxies.")
+
+    # 3. Get all relevant test IDs, sorted numerically
+    all_test_ids = sorted(
+        list(set().union(*(results.keys() for results in all_test_results.values()))),
+        key=lambda x: int(x) if x.isdigit() else float('inf')
+    )
+    all_test_ids = [tid for tid in all_test_ids if tid != '0'] # Exclude test '0'
+
+    num_tests = len(all_test_ids)
+    if num_tests == 0:
+        print("No valid test results found (excluding test '0') for behavior change matrix.")
+        return
+
+    # 4. Initialize Matrix using pandas DataFrame with full category names as index
+    change_matrix = pd.DataFrame(0, index=categories_display_full, columns=all_test_ids)
+
+    # 5. Populate Matrix using Aggregate Counts
+    for test_id in all_test_ids:
+        # <<< Add check for number of proxies reporting this test_id >>>
+        old_proxies_with_test = 0
+        new_proxies_with_test = 0
+
+        for category_full_name in categories_display_full:
+            total_old_count = 0
+            total_new_count = 0
+
+            # Sum counts across all old proxies
+            for old_proxy in old_proxies_in_pairs:
+                result_str = all_test_results.get(old_proxy, {}).get(test_id)
+                if category_map_internal_to_full.get(result_str) == category_full_name:
+                    total_old_count += 1
+                # Count if proxy has *any* result for this test (only once per test)
+                if category_full_name == categories_display_full[0] and result_str is not None:
+                     old_proxies_with_test += 1
+
+
+            # Sum counts across all new proxies
+            for new_proxy in new_proxies_in_pairs:
+                result_str = all_test_results.get(new_proxy, {}).get(test_id)
+                if category_map_internal_to_full.get(result_str) == category_full_name:
+                    total_new_count += 1
+                # Count if proxy has *any* result for this test (only once per test)
+                if category_full_name == categories_display_full[0] and result_str is not None:
+                     new_proxies_with_test += 1
+
+
+            # Store the difference of the aggregates
+            change_matrix.loc[category_full_name, test_id] = total_new_count - total_old_count
+
+        # Report discrepancy if counts of proxies reporting differ (optional)
+        if old_proxies_with_test != new_proxies_with_test:
+             print(f"Warning: Test ID {test_id} - Mismatch in reporting proxies: Old={old_proxies_with_test}, New={new_proxies_with_test}.")
+
+
+    # --- Sum row calculation removed ---
+    # column_sums = change_matrix.sum(axis=0)
+    # change_matrix.loc['Sum'] = column_sums.astype(int)
+    # categories_with_sum = categories_display + ['Sum']
+    # num_categories_total = len(categories_with_sum)
+
+    # 6. Create Visualization
+    # Adjust figsize for roughly square cells
+    cell_size = 0.2 # Inches per cell (adjust as needed)
+    figsize_width = max(10, num_tests * cell_size)  # Min width 10 inches
+    figsize_height = max(4, num_categories * cell_size) # Min height 4 inches
+    # Add constrained_layout=True
+    plt.figure(figsize=(figsize_width, figsize_height), constrained_layout=True)
+
+    # Determine color scale bounds (using the final matrix without sum row)
+    max_abs_change = change_matrix.abs().max().max()
+    if max_abs_change == 0: vmin, vmax = -1, 1
+    else: bound = max(1, max_abs_change); vmin, vmax = -bound, bound
+
+    # Plot heatmap
+    ax = sns.heatmap(change_matrix,
+                annot=False, cmap="coolwarm", linewidths=0.3, linecolor='white',
+                center=0, vmin=vmin, vmax=vmax)
+    cbar = ax.collections[0].colorbar
+    cbar.set_label('Change in Proxy Count', rotation=270, labelpad=15, fontsize=16)
+
+    # Update axis labels
+    plt.xlabel('Test ID', fontsize=20)
+    plt.ylabel('Behavior', fontsize=20) # Changed Y-axis label
+
+    # --- Set X ticks explicitly for 5, 10, 15, ... ---
+    # Create a map from test ID string to its index
+    test_id_to_index = {test_id: i for i, test_id in enumerate(all_test_ids)}
+
+    # Determine the max test ID to set the limit for labels
+    max_test_id_num = 0
+    if all_test_ids:
+        try:
+            # Find the maximum numeric test ID
+            max_test_id_num = max(int(tid) for tid in all_test_ids if tid.isdigit())
+        except ValueError:
+            pass # Handle cases where no numeric IDs are found
+
+    # Generate desired labels (5, 10, 15...) and find their corresponding indices
+    desired_labels = []
+    tick_positions = []
+    if max_test_id_num > 0:
+        for i in range(5, max_test_id_num + 1, 5):
+            label_str = str(i)
+            if label_str in test_id_to_index: # Check if this test ID actually exists in the data
+                desired_labels.append(label_str)
+                tick_positions.append(test_id_to_index[label_str])
+
+    # Set the ticks if any were found
+    if tick_positions:
+        ax.set_xticks(np.array(tick_positions) + 0.5) # Center ticks on the corresponding cells
+        ax.set_xticklabels(desired_labels)
+    else:
+        # Fallback if no '5', '10', etc. ticks found (unlikely but safe)
+        ax.xaxis.set_major_locator(mticker.MaxNLocator(nbins=min(num_tests, 15), integer=True))
+
+    plt.xticks(rotation=90, fontsize=16)
+    # Y ticks use the full category names from the index
+    plt.yticks(rotation=0, fontsize=16)
+    # Remove fig.subplots_adjust(...)
+    # fig.subplots_adjust(left=0.15, right=0.9, bottom=0.2, top=0.95)
+
+    # 7. Save Plot
+    output_path = os.path.join(matrix_dir, "behavior_change_matrix_aggregated_square.png") # New filename
+    try:
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        print(f"Saved aggregated square behavior change matrix: {output_path}")
+    except Exception as e:
+        print(f"Error saving aggregated square behavior change matrix {output_path}: {e}")
+    finally:
+        plt.close()
+
 def main():
     # Create base directories if they don't exist
-    base_dirs = {
+    # Define base directories and their subdirectories
+    base_dirs_config = {
         'analysis': ['tables', 'outliers', 'cloudflare', 'behavior', 'conformance', 'correlation'],
+        os.path.join('analysis', 'behavior'): ['proxies', 'radar_charts', 'matrix_graphs', 'behavior_change'] # Added 'behavior_change'
     }
-    
-    for base_dir, subdirs in base_dirs.items():
-        for subdir in subdirs:
-            os.makedirs(os.path.join(base_dir, subdir), exist_ok=True)
-    
+
+    # Create directories recursively based on the config
+    created_dirs = set() # Keep track of created dirs to avoid redundant makedirs calls
+    for base_dir, subdirs_or_nested in base_dirs_config.items():
+        if base_dir not in created_dirs:
+            os.makedirs(base_dir, exist_ok=True)
+            created_dirs.add(base_dir)
+
+        if isinstance(subdirs_or_nested, list):
+            for subdir in subdirs_or_nested:
+                dir_path = os.path.join(base_dir, subdir)
+                if dir_path not in created_dirs:
+                    os.makedirs(dir_path, exist_ok=True)
+                    created_dirs.add(dir_path)
+        elif isinstance(subdirs_or_nested, dict): # Handle potential future nested dicts if needed
+             pass # Currently only lists are used for subdirs
+
+
     # List of proxy folders with their test scope
+    # (Adding labels and colors for better plots later, if needed)
     proxy_configs = {
         'Nghttpx-1.62.1': {'scope': 'full', 'version': 'new'},
         'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
@@ -1871,17 +2089,17 @@ def main():
         'H2O-cf59e67c3': {'scope': 'full', 'version': 'new'},
         'H2O-26b116e95': {'scope': 'full', 'version': 'old'},
         'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
-        'Traefik-3.3.5': {'scope': 'client-only', 'version': 'new'},
-        'Traefik-2.6.2': {'scope': 'client-only', 'version': 'old'},
+        'Traefik-3.3.5': {'scope': 'full', 'version': 'new'},
+        'Traefik-2.6.2': {'scope': 'full', 'version': 'old'},
         'Nginx-1.26.0': {'scope': 'client-only', 'version': 'new'},
         'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
         'Lighttpd-1.4.76': {'scope': 'client-only', 'version': 'new'},
         'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
         'Varnish-7.7.0': {'scope': 'client-only', 'version': 'new'},
         'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
-        'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
-        'Cloudflare': {'scope': 'full', 'version': 'N/A'},
-        'Fastly': {'scope': 'client-only', 'version': 'N/A'},
+        # 'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
+        # 'Cloudflare': {'scope': 'full', 'version': 'N/A'},
+        # 'Fastly': {'scope': 'client-only', 'version': 'N/A'},
     }
     
     results_dir = 'results'
@@ -1996,6 +2214,9 @@ def main():
                                 client_side_tests_set=client_side_tests_set, global_test_ids=global_all_test_ids)
     else:
         print("Skipping proxy matrix graph: No test results loaded.")
+
+    # Call the new behavior change matrix function HERE
+    create_behavior_change_matrix(all_test_results, proxy_configs, distribution_dir)
 
 if __name__ == "__main__":
     main()
