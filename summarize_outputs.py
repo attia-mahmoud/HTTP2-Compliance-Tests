@@ -961,7 +961,7 @@ def create_client_server_conformance_visualization(test_results, client_side_tes
             if height > 0:  # Only add label if there's a non-zero value
                 plt.text(x_pos[i], height + 1,
                         f'{height:.1f}%',
-                        ha='center', va='bottom', fontsize=12) # Added fontsize for bar labels
+                        ha='center', va='bottom', fontsize=10) # Added fontsize for bar labels
     
     # Add labels for client and server bars
     add_labels(x - width/2, client_non_conformant)
@@ -1044,6 +1044,57 @@ def create_test_outcome_by_id_table(all_test_results, output_directory):
                 
                 # Add a separator between tests
                 f.write("\n")
+
+def create_modified_unmodified_summary(all_test_results, output_directory):
+    """Create a text file listing proxies that had modified or unmodified results for each test ID."""
+    os.makedirs(output_directory, exist_ok=True)
+
+    # Load test case descriptions
+    try:
+        with open('test_cases.json', 'r') as f:
+            test_cases = json.load(f)
+        test_descriptions = {str(case['id']): case['description'] for case in test_cases}
+    except Exception as e:
+        print(f"Warning: Could not load test descriptions from test_cases.json: {e}")
+        test_descriptions = {}
+
+    # Create a dict to organize test outcomes by test ID
+    test_outcomes = defaultdict(lambda: {"modified": [], "unmodified": []})
+
+    # Process each proxy's results
+    for proxy, results in all_test_results.items():
+        for test_id, result in results.items():
+            if result == "modified":
+                test_outcomes[test_id]["modified"].append(proxy)
+            elif result == "unmodified":
+                test_outcomes[test_id]["unmodified"].append(proxy)
+
+    # Create the output file
+    output_file = os.path.join(output_directory, "modified_unmodified_summary.md")
+
+    with open(output_file, 'w') as f:
+        f.write("# Modified and Unmodified Test Results Summary\n\n")
+        f.write("This file lists test cases where at least one proxy returned a 'modified' or 'unmodified' result.\n\n")
+
+        # Sort test IDs numerically
+        sorted_test_ids = sorted(test_outcomes.keys(), key=lambda x: int(x) if x.isdigit() else float('inf'))
+
+        for test_id in sorted_test_ids:
+            description = test_descriptions.get(test_id, "No description available")
+            outcomes = test_outcomes[test_id]
+
+            # Only include tests that have at least one modified or unmodified result
+            if outcomes["modified"] or outcomes["unmodified"]:
+                f.write(f"## Test {test_id}: {description}\n\n")
+
+                if outcomes["modified"]:
+                    f.write(f"**Modified by:** {', '.join(sorted(outcomes['modified']))}\n")
+
+                if outcomes["unmodified"]:
+                    f.write(f"**Unmodified by:** {', '.join(sorted(outcomes['unmodified']))}\n")
+
+                # Add a separator between tests
+                f.write("\n---\n\n")
 
 def create_client_server_proxy_line_graphs(test_results, proxy_configs, client_side_tests, server_side_tests, output_directory):
     """Create line graphs showing test result categories with different proxies as lines in CDF style,
@@ -1242,23 +1293,32 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
     summary = df.groupby('Proxy')['Has Discrepancy'].mean().reset_index()
     summary.columns = ['Proxy', 'Discrepancy Rate']
     summary = summary.sort_values('Discrepancy Rate', ascending=False)
-    
+
     # Create the bar chart visualization
-    plt.figure(figsize=(10, 6))
-    
+    fig, ax = plt.subplots(figsize=(10, 6))
+
     # Summary bar chart
-    bar_plot = plt.barh(summary['Proxy'], summary['Discrepancy Rate'], color='skyblue')
-    
-    # Add percentage labels to the bars
+    # Store the bars for potential future use
+    bars = ax.barh(summary['Proxy'], summary['Discrepancy Rate'], color='skyblue')
+
+    # Add percentage labels to the bars (using the raw rate value)
     for i, v in enumerate(summary['Discrepancy Rate']):
-        plt.text(v + 0.01, i, f"{v:.1%}", va='center')
-    
-    plt.title('Client/Server Test Pair Discrepancy Rates by Proxy', fontsize=14, fontweight='bold')
-    plt.xlabel('Percentage of Test Pairs with Discrepancies', fontsize=12)
-    plt.ylabel('Proxy', fontsize=12)
-    plt.xlim(0, max(summary['Discrepancy Rate']) * 1.2)  # Add some space for labels
+        # Place label slightly after the bar end
+        ax.text(v + 0.01, i, f"{v:.1%}", va='center')
+
+    # plt.title('Client/Server Test Pair Discrepancy Rates by Proxy', fontsize=14, fontweight='bold')
+    ax.set_xlabel('Percentage of Test Pairs with Varying Behavior', fontsize=12)
+    ax.set_ylabel('Proxy', fontsize=12)
+
+    # Set x-axis limits (slightly wider to accommodate labels)
+    max_rate = summary['Discrepancy Rate'].max()
+    ax.set_xlim(0, max_rate * 1.15 if max_rate > 0 else 0.1) # Adjusted limit calculation
+
+    # Format x-axis ticks as percentages
+    ax.xaxis.set_major_formatter(mticker.PercentFormatter(xmax=1.0))
+
     plt.tight_layout()
-    
+
     # Save the figure
     plt.savefig(os.path.join(output_directory, 'client_server_discrepancies.png'), 
                 dpi=300, bbox_inches='tight')
@@ -2048,12 +2108,246 @@ def create_behavior_change_matrix(all_test_results, proxy_configs, output_direct
     finally:
         plt.close()
 
+    # Add this function definition after create_proxy_matrix_graph 
+# and before the main function or radar chart functions
+
+def create_dual_scope_comparison_matrix(all_test_results_full, proxy_configs, client_side_tests_set, results_dir, output_directory):
+    """
+    Creates a matrix graph comparing full-scope and client-only scope results 
+    for proxies tested under both configurations.
+
+    Args:
+        all_test_results_full: Dictionary containing results for primary (full) scope proxies.
+        proxy_configs: Dictionary mapping proxy names to their configurations.
+        client_side_tests_set: A set of test IDs classified as client-side tests.
+        results_dir: The base directory where individual proxy result folders are located.
+        output_directory: The directory to save the generated comparison graphs.
+    """
+    comparison_charts_directory = os.path.join(output_directory, 'dual_scope_comparison')
+    os.makedirs(comparison_charts_directory, exist_ok=True)
+
+    # Define colors and mapping for the comparison graph
+    # Using distinct numerical values to avoid overlap where possible
+    colors = {
+        0: '#cccccc',  # Dropped (Gray) - Both
+        1: '#ffd93d',  # Modified (Yellow) - Full Only
+        2: '#ff6b6b',  # Unmodified (Red) - Full Only
+        3: '#6bccee',  # Reset (Light Blue) - Both
+        4: '#ff9f43',  # Goaway (Orange) - Both
+        5: '#a26bcd',  # 500 Error (Purple) - Both
+        6: '#000000',  # Not Applicable (Black) - NEW
+        7: '#2ecc71',  # Accepted (Green) - Client Only (from received/modified/unmodified)
+        -1: '#ffffff'  # Represents missing data point (White) - Not in legend
+    }
+    not_applicable_value = 6 # Define the value for N/A
+
+    # Mapping for full scope row (client tests only)
+    full_scope_map = {
+        "modified": 1, "unmodified": 2, "reset": 3, "goaway": 4,
+        "500": 5, "dropped": 0, "received": 0 # Treat 'received' in full scope on client test as 'dropped'
+    }
+    # Mapping for client-only scope row
+    client_scope_map = {
+        "received": 7, "modified": 7, "unmodified": 7, # Map all success types to 'Accepted'
+        "reset": 3, "goaway": 4, "500": 5, "dropped": 0
+    }
+
+    # Legend definitions
+    legend_labels = {
+        1: "Modified (Full)", 2: "Unmodified (Full)", 7: "Accepted (Client)",
+        3: "Reset", 4: "Goaway", 5: "Error 500", 0: "Dropped/Other",
+        6: "Not Applicable" # Add N/A to legend labels
+    }
+    # Adjust legend order if desired, adding 6
+    legend_order = [1, 2, 7, 3, 4, 5, 0, 6] 
+
+    # Find proxies configured for dual scope
+    dual_scope_proxies = []
+    for proxy_name, config in proxy_configs.items():
+        if config.get('scope') == 'full' and config.get('second-scope') == 'client-only':
+            if proxy_name in all_test_results_full: # Check if primary results exist
+                 dual_scope_proxies.append(proxy_name)
+            else:
+                 print(f"Skipping dual-scope comparison for {proxy_name}: Primary results missing.")
+
+
+    print(f"Found {len(dual_scope_proxies)} proxies for dual-scope comparison: {dual_scope_proxies}")
+
+    # Generate graph for each dual-scope proxy
+    for proxy_name in dual_scope_proxies:
+        print(f"Generating comparison matrix for: {proxy_name}")
+        
+        # 1. Get primary (full scope) results
+        primary_results = all_test_results_full[proxy_name]
+
+        # 2. Load secondary (client-only scope / H2H1) results
+        secondary_proxy_name = proxy_name + "-H2H1"
+        secondary_proxy_dir = os.path.join(results_dir, secondary_proxy_name)
+        secondary_results = {}
+        test_messages_secondary = {} # Placeholder if needed
+
+        if not os.path.exists(secondary_proxy_dir):
+            print(f"  Warning: Secondary results directory not found: {secondary_proxy_dir}. Skipping {proxy_name}.")
+            continue
+            
+        latest_secondary_file = get_latest_file(secondary_proxy_dir)
+        if not latest_secondary_file:
+            print(f"  Warning: No results file found in {secondary_proxy_dir}. Skipping {proxy_name}.")
+            continue
+
+        try:
+            # Analyze the secondary results explicitly using 'client-only' scope setting
+            _, _, _, _, _, _, _, secondary_results, test_messages_secondary = analyze_results(latest_secondary_file, 'client-only')
+            # No need to check if secondary_results is empty here, as we use a fixed range
+        except Exception as e:
+            print(f"  Error analyzing secondary results file {latest_secondary_file} for {proxy_name}: {e}. Skipping.")
+            continue
+
+        # 3. Define the fixed range of test IDs for the columns
+        test_ids_1_to_105 = [str(i) for i in range(1, 106)] 
+        num_tests = len(test_ids_1_to_105) # Will always be 105
+
+        print(f"  Generating comparison matrix for fixed test IDs 1-105.")
+
+        # 4. Create the 2xN numerical matrix (N=105)
+        matrix_data_numeric = np.full((2, num_tests), -1, dtype=int) # Initialize with -1 (missing)
+
+        # 5. Populate the matrix based on the fixed test ID list
+        tests_marked_na = 0
+        tests_missing_primary = 0
+        tests_missing_secondary = 0
+
+        for j, test_id in enumerate(test_ids_1_to_105):
+            # Check if the test is classified as client-side
+            if test_id not in client_side_tests_set:
+                # Mark as Not Applicable in both rows
+                matrix_data_numeric[0, j] = not_applicable_value 
+                matrix_data_numeric[1, j] = not_applicable_value 
+                tests_marked_na += 1
+            else:
+                # Test *is* classified as client-side
+
+                # Row 0: Full Scope (Client Test)
+                if test_id in primary_results: 
+                    full_result_str = primary_results.get(test_id) 
+                    matrix_data_numeric[0, j] = full_scope_map.get(full_result_str, 0) # Default mapped value to Dropped
+                else:
+                    # Primary results missing this specific client-side test
+                    matrix_data_numeric[0, j] = 0 # Mark as Dropped 
+                    tests_missing_primary += 1
+
+                # Row 1: Client-Only Scope (Client Test)
+                if test_id in secondary_results:
+                    client_result_str = secondary_results.get(test_id) 
+                    matrix_data_numeric[1, j] = client_scope_map.get(client_result_str, 0) # Default mapped value to Dropped
+                else:
+                    # Secondary results missing this specific client-side test
+                    matrix_data_numeric[1, j] = 0 # Mark as Dropped
+                    tests_missing_secondary += 1
+        
+        # Print summary stats for this proxy
+        print(f"    Tests marked N/A: {tests_marked_na}")
+        if tests_missing_primary > 0:
+             print(f"    Client tests missing in primary results: {tests_missing_primary}")
+        if tests_missing_secondary > 0:
+             print(f"    Client tests missing in secondary results: {tests_missing_secondary}")
+
+
+        # 6. Plotting Logic (Uses test_ids_1_to_105 for x-axis)
+        num_scopes = 2
+        row_labels = ['Full Scope', 'Client-Only Scope'] 
+
+        # --- Figure and Axes Creation ---
+        fig_height = num_scopes * 0.8 + 1.5 
+        # Recalculate width based on fixed 105 tests
+        fig_width = max(12, num_tests * 0.12 + 1) # Adjusted multiplier slightly for 105 tests
+        fig = plt.figure(figsize=(fig_width, fig_height))
+        ax_matrix = fig.add_subplot(111) 
+
+        # --- Plot Matrix Rectangles ---
+        # (This part remains the same)
+        rect_height = 1.0 
+        rect_width = 1.0
+        for i in range(num_scopes):
+            for j in range(num_tests): 
+                outcome = matrix_data_numeric[i, j]
+                color = colors.get(outcome, colors[-1]) 
+                y_pos = (num_scopes - 1 - i) * rect_height 
+                x_pos = j * rect_width
+                rect = plt.Rectangle((x_pos, y_pos), rect_width, rect_height, facecolor=color, edgecolor='white', linewidth=0.5)
+                ax_matrix.add_patch(rect)
+
+        # --- Axis and Grid Configuration ---
+        ax_matrix.set_xlim(0, num_tests * rect_width)
+        ax_matrix.set_ylim(0, num_scopes * rect_height)
+
+        # X-axis: Test IDs (Use test_ids_1_to_105)
+        x_tick_positions = []
+        x_tick_labels = []
+        for i, test_id in enumerate(test_ids_1_to_105): # Iterate over the fixed list 1-105
+            try:
+                test_num = int(test_id)
+                # Show labels every 5 tests
+                if test_num % 5 == 0: 
+                    x_tick_positions.append(i * rect_width + rect_width / 2)
+                    x_tick_labels.append(test_id)
+            except ValueError:
+                pass # Should not happen for 1-105
+        ax_matrix.set_xticks(x_tick_positions)
+        ax_matrix.set_xticklabels(x_tick_labels, rotation=90, ha='center', fontsize=9) # Smaller font for more ticks
+        ax_matrix.tick_params(axis='x', which='major', bottom=True, top=False, labelbottom=True)
+
+        # Y-axis: Scope Labels (Remains the same)
+        ax_matrix.set_yticks(np.arange(num_scopes) * rect_height + rect_height / 2)
+        ax_matrix.set_yticklabels(row_labels[::-1], fontsize=12) 
+        ax_matrix.tick_params(axis='y', which='major', left=True, right=False, labelleft=True)
+        
+        # --- Cleanup Ticks/Grid (Remains the same) ---
+        ax_matrix.set_xticks([], minor=True)
+        ax_matrix.set_yticks([], minor=True)
+        ax_matrix.grid(False) 
+        ax_matrix.tick_params(which='both', length=0) 
+        
+        # --- Add Legend (Remains the same) ---
+        legend_patches = []
+        for key in legend_order:
+             if key in colors and key in legend_labels:
+                 legend_patches.append(mpatches.Patch(color=colors[key], label=legend_labels[key]))
+        num_legend_items = len(legend_patches)
+        legend_cols = min(num_legend_items, 4) 
+        fig.legend(handles=legend_patches, loc='lower center', ncol=legend_cols, 
+                   bbox_to_anchor=(0.5, 0.01), frameon=False, fontsize=11)
+
+        # --- Titles and Layout ---
+        # plt.title(f'Dual Scope Comparison: {proxy_name}', fontsize=14, fontweight='bold', pad=20) 
+        plt.xlabel('Test ID', fontsize=8) # Update X label
+        plt.tight_layout(pad=2.0, rect=[0, 0.1, 1, 0.95]) # Adjust rect bottom for legend space
+
+        # --- Save Figure ---
+        # (Save logic remains the same)
+        filename = f'dual_scope_comparison_{proxy_name}_1-105.png' # Added range to filename
+        output_path = os.path.join(comparison_charts_directory, filename)
+        try:
+            plt.savefig(output_path, dpi=300, bbox_inches='tight')
+            print(f"  Saved comparison matrix: {output_path}")
+        except Exception as e:
+            print(f"  Error saving comparison matrix {output_path}: {e}")
+        finally:
+            plt.close(fig) 
+
+    print("Finished dual-scope comparison matrix generation.")
+
+
+# --- In main() function ---
+# Find the block where client_server_dir and client_side_tests are handled
+
+
 def main():
     # Create base directories if they don't exist
     # Define base directories and their subdirectories
     base_dirs_config = {
         'analysis': ['tables', 'outliers', 'cloudflare', 'behavior', 'conformance', 'correlation'],
-        os.path.join('analysis', 'behavior'): ['proxies', 'radar_charts', 'matrix_graphs', 'behavior_change'] # Added 'behavior_change'
+        os.path.join('analysis', 'behavior'): ['proxies', 'radar_charts', 'matrix_graphs', 'behavior_change', 'dual_scope_comparison'] # Added 'behavior_change' and 'dual_scope_comparison'
     }
 
     # Create directories recursively based on the config
@@ -2076,27 +2370,27 @@ def main():
     # List of proxy folders with their test scope
     # (Adding labels and colors for better plots later, if needed)
     proxy_configs = {
-        'Nghttpx-1.62.1': {'scope': 'full', 'version': 'new'},
-        'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
-        'HAproxy-2.9.10': {'scope': 'full', 'version': 'new'},
-        'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
-        'Apache-2.4.62': {'scope': 'full', 'version': 'new'},
-        'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
-        'Caddy-2.9.1': {'scope': 'full', 'version': 'new'},
-        'Node-20.16.0': {'scope': 'full', 'version': 'new'},
-        'Node-14.19.3': {'scope': 'full', 'version': 'old'},
-        'Envoy-1.32.2': {'scope': 'full', 'version': 'new'},
-        'H2O-cf59e67c3': {'scope': 'full', 'version': 'new'},
-        'H2O-26b116e95': {'scope': 'full', 'version': 'old'},
-        'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
-        'Traefik-3.3.5': {'scope': 'full', 'version': 'new'},
-        'Traefik-2.6.2': {'scope': 'full', 'version': 'old'},
-        'Nginx-1.26.0': {'scope': 'client-only', 'version': 'new'},
-        'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
-        'Lighttpd-1.4.76': {'scope': 'client-only', 'version': 'new'},
-        'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
-        'Varnish-7.7.0': {'scope': 'client-only', 'version': 'new'},
-        'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
+        'Nghttpx-1.62.1': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
+        # 'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
+        'HAproxy-2.9.10': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
+        # 'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
+        'Apache-2.4.62': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
+        # 'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
+        # 'Caddy-2.9.1': {'scope': 'full', 'version': 'new'},
+        # 'Node-20.16.0': {'scope': 'full', 'version': 'new'},
+        # 'Node-14.19.3': {'scope': 'full', 'version': 'old'},
+        'Envoy-1.32.2': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
+        # 'H2O-cf59e67c3': {'scope': 'full', 'version': 'new'},
+        # 'H2O-26b116e95': {'scope': 'full', 'version': 'old'},
+        # 'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
+        # 'Traefik-3.3.5': {'scope': 'full', 'version': 'new'},
+        # 'Traefik-2.6.2': {'scope': 'full', 'version': 'old'},
+        # 'Nginx-1.26.0': {'scope': 'client-only', 'version': 'new'},
+        # 'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
+        # 'Lighttpd-1.4.76': {'scope': 'client-only', 'version': 'new'},
+        # 'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
+        # 'Varnish-7.7.0': {'scope': 'client-only', 'version': 'new'},
+        # 'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
         # 'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
         # 'Cloudflare': {'scope': 'full', 'version': 'N/A'},
         # 'Fastly': {'scope': 'client-only', 'version': 'N/A'},
@@ -2144,6 +2438,7 @@ def main():
     create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, reset_counts, received_counts, all_test_results, proxy_configs, tables_dir)
     create_test_results_matrix(all_test_results, proxy_configs, tables_dir)
     create_test_outcome_by_id_table(all_test_results, tables_dir)
+    create_modified_unmodified_summary(all_test_results, tables_dir) # Add call here
     
     # Extract and save outliers
     outliers_dir = os.path.join('analysis', 'outliers')
@@ -2162,21 +2457,37 @@ def main():
 
     # run cloudflare_analysis.py
     os.system('python cloudflare_analysis.py')
+
+    all_test_results_primary = all_test_results 
     
     # Load client-server classification and create client-server visualizations
+    client_side_tests_set = set() # Initialize to empty set
+    server_side_tests_set = set()
     try:
         client_server_dir = os.path.join('analysis', 'behavior')
-        client_side_tests, server_side_tests = load_client_server_classification('docs/clientside_vs_serverside.json')
-        create_client_server_proxy_line_graphs(all_test_results, proxy_configs, client_side_tests, server_side_tests, client_server_dir)
-        create_test_timeline_graphs(all_test_results, proxy_configs, client_side_tests, server_side_tests, client_server_dir)
+        client_side_tests_set, server_side_tests_set = load_client_server_classification('docs/clientside_vs_serverside.json')
+        
+        # Run visualizations that depend on client/server classification
+        create_client_server_proxy_line_graphs(all_test_results_primary, proxy_configs, client_side_tests_set, server_side_tests_set, client_server_dir)
+        create_test_timeline_graphs(all_test_results_primary, proxy_configs, client_side_tests_set, server_side_tests_set, client_server_dir)
         
         conformance_dir = os.path.join('analysis', 'conformance')
-        # Generate conformance graphs for all, full, and client-only scopes
-        create_client_server_conformance_visualization(all_test_results, client_side_tests, server_side_tests, proxy_configs, conformance_dir, scope_filter='all')
-        create_client_server_conformance_visualization(all_test_results, client_side_tests, server_side_tests, proxy_configs, conformance_dir, scope_filter='full')
-        create_client_server_conformance_visualization(all_test_results, client_side_tests, server_side_tests, proxy_configs, conformance_dir, scope_filter='client-only')
+        create_client_server_conformance_visualization(all_test_results_primary, client_side_tests_set, server_side_tests_set, proxy_configs, conformance_dir, scope_filter='all')
+        create_client_server_conformance_visualization(all_test_results_primary, client_side_tests_set, server_side_tests_set, proxy_configs, conformance_dir, scope_filter='full')
+        create_client_server_conformance_visualization(all_test_results_primary, client_side_tests_set, server_side_tests_set, proxy_configs, conformance_dir, scope_filter='client-only')
+
+        # <<-- CALL THE NEW DUAL SCOPE FUNCTION HERE -->>
+        if client_side_tests_set: # Ensure classification was loaded
+             dual_scope_output_dir = os.path.join('analysis', 'behavior') # Output directory
+             create_dual_scope_comparison_matrix(all_test_results_primary, proxy_configs, client_side_tests_set, results_dir, dual_scope_output_dir)
+        else:
+             print("Skipping dual-scope comparison matrix: Failed to load client-side test classification.")
+             
+    except FileNotFoundError:
+        print("Warning: 'docs/clientside_vs_serverside.json' not found. Skipping client/server specific visualizations and dual-scope comparison.")
     except Exception as e:
-        print(f"Error creating client-server visualizations: {e}")
+        print(f"Error during client-server/dual-scope visualization setup: {e}")
+
     
     # Create client-server discrepancy visualization (only for full-scope proxies)
     try:
@@ -2188,35 +2499,32 @@ def main():
         print(f"Error creating client-server discrepancy visualization: {e}")
 
     # Create proxy matrix visualization (using behavior directory)
-    behavior_dir = os.path.join('analysis', 'behavior')
-    client_side_tests_set = None # Default to None
-    try:
-        # Load client-side test IDs needed for the matrix graph
-        _, server_side_tests = load_client_server_classification('docs/clientside_vs_serverside.json')
-        # Assuming load_client_server_classification returns (client_set, server_set)
-        # We actually need the client set for this specific feature
-        client_side_tests_set, _ = load_client_server_classification('docs/clientside_vs_serverside.json') 
-    except Exception as e:
-        print(f"Warning: Could not load client/server classification for matrix graph: {e}")
+    behavior_dir = os.path.join('analysis', 'behavior') 
+    # client_side_tests_set should be loaded from the try block above
         
-    if all_test_results:
+    if all_test_results_primary:
         # Determine the global set of all test IDs encountered across all results
         global_all_test_ids = sorted(
-            list(set().union(*(results.keys() for results in all_test_results.values()))),
+            list(set().union(*(results.keys() for results in all_test_results_primary.values()))),
             key=lambda x: int(x) if x.isdigit() else float('inf')
         )
 
         # Full scope graph (uses its own derived test IDs, pass None for global)
-        create_proxy_matrix_graph(all_test_results, proxy_configs, 'full', behavior_dir, 
-                                client_side_tests_set=None, global_test_ids=None)
+        create_proxy_matrix_graph(all_test_results_primary, proxy_configs, 'full', behavior_dir, 
+                                client_side_tests_set=None, global_test_ids=None) 
         # Client-only scope graph (pass the client-side test set and the global ID list)
-        create_proxy_matrix_graph(all_test_results, proxy_configs, 'client-only', behavior_dir, 
-                                client_side_tests_set=client_side_tests_set, global_test_ids=global_all_test_ids)
+        # Check if client_side_tests_set was loaded successfully before calling
+        if client_side_tests_set:
+            create_proxy_matrix_graph(all_test_results_primary, proxy_configs, 'client-only', behavior_dir, 
+                                    client_side_tests_set=client_side_tests_set, global_test_ids=global_all_test_ids)
+        else:
+             print("Skipping client-only proxy matrix graph: Client-side test classification not available.")
     else:
         print("Skipping proxy matrix graph: No test results loaded.")
 
     # Call the new behavior change matrix function HERE
-    create_behavior_change_matrix(all_test_results, proxy_configs, distribution_dir)
+    distribution_dir = os.path.join('analysis', 'behavior') # Confirm correct dir for behavior change
+    create_behavior_change_matrix(all_test_results_primary, proxy_configs, distribution_dir)
 
 if __name__ == "__main__":
     main()
