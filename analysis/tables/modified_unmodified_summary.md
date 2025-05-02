@@ -46,7 +46,7 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 
 ## Test 10: A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving.
 
-**Unmodified by:** HAproxy-2.6.0, Mitmproxy-11.1.0, Nghttpx-1.47.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
@@ -64,7 +64,7 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 
 ## Test 13: The identifier of a newly established stream MUST be numerically greater than all streams that the initiating endpoint has opened or reserved.
 
-**Unmodified by:** Mitmproxy-11.1.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
@@ -196,55 +196,55 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 
 ## Test 42: Field names MUST NOT contain control characters (0x00-0x1F)
 
-**Unmodified by:** Mitmproxy-11.1.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 43: Field names MUST NOT contain ASCII SP (0x20)
 
-**Unmodified by:** Mitmproxy-11.1.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 44: Field names MUST NOT contain DEL character (0x7F)
 
-**Unmodified by:** Mitmproxy-11.1.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 45: Field names MUST NOT contain high byte characters (0x80-0xFF)
 
-**Unmodified by:** Mitmproxy-11.1.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 46: With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a).
 
-**Unmodified by:** Mitmproxy-11.1.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 47: A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the start of the value)
 
-**Unmodified by:** Mitmproxy-11.1.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 48: A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the start of the value)
 
-**Unmodified by:** Mitmproxy-11.1.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 49: A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).
 
-**Unmodified by:** HAproxy-2.6.0, Mitmproxy-11.1.0, Nghttpx-1.47.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 50: A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).
 
-**Unmodified by:** HAproxy-2.6.0, Mitmproxy-11.1.0, Nghttpx-1.47.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
@@ -341,13 +341,13 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 
 ## Test 66: Clients MUST NOT generate a request with a Host header field that differs from the ":authority" pseudo-header field.
 
-**Unmodified by:** HAproxy-2.6.0, Mitmproxy-11.1.0, Nghttpx-1.47.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 67: ':authority' MUST NOT include the deprecated userinfo subcomponent for "http" or "https" schemed URIs.
 
-**Unmodified by:** HAproxy-2.6.0, Mitmproxy-11.1.0, Nghttpx-1.47.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
@@ -395,7 +395,7 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 
 ## Test 75: With the CONNECT method, The ":authority" pseudo-header field contains the host and port to connect to
 
-**Unmodified by:** HAproxy-2.6.0, Mitmproxy-11.1.0, Nghttpx-1.47.0
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
@@ -497,25 +497,25 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 
 ## Test 98: A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the middle of the value)
 
-**Unmodified by:** Mitmproxy-11.1.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 99: A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value)
 
-**Unmodified by:** Mitmproxy-11.1.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 100: A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value)
 
-**Unmodified by:** Mitmproxy-11.1.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 101: A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value)
 
-**Unmodified by:** Mitmproxy-11.1.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
@@ -563,7 +563,7 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 
 ## Test 110: A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving. (server side)
 
-**Unmodified by:** Caddy-2.9.1, Cloudflare, Envoy-1.21.2, Envoy-1.32.2, HAproxy-2.6.0, HAproxy-2.9.10, Mitmproxy-11.1.0, Nghttpx-1.47.0, Nghttpx-1.62.1, Node-14.19.3, Node-20.16.0
+**Unmodified by:** Caddy-2.9.1, Cloudflare, Envoy-1.32.2, HAproxy-2.9.10, Mitmproxy-11.1.0, Nghttpx-1.62.1, Node-20.16.0
 
 ---
 
@@ -617,7 +617,7 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 
 ## Test 126: Trailers MUST NOT include pseudo-header fields (Section 8.3).
 
-**Modified by:** Cloudflare, HAproxy-2.6.0, HAproxy-2.9.10, Mitmproxy-11.1.0, Node-14.19.3
+**Modified by:** Cloudflare, HAproxy-2.9.10, Mitmproxy-11.1.0
 
 ---
 
@@ -629,48 +629,48 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 
 ## Test 128: Field names MUST NOT contain control characters (0x00-0x1F)
 
-**Modified by:** Node-14.19.3, Node-20.16.0
+**Modified by:** Node-20.16.0
 **Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 129: Field names MUST NOT contain ASCII SP (0x20)
 
-**Modified by:** Node-14.19.3, Node-20.16.0
+**Modified by:** Node-20.16.0
 **Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 130: Field names MUST NOT contain DEL character (0x7F)
 
-**Unmodified by:** Mitmproxy-11.1.0, Node-14.19.3
+**Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 131: Field names MUST NOT contain high byte characters (0x80-0xFF)
 
-**Modified by:** Node-14.19.3, Node-20.16.0
+**Modified by:** Node-20.16.0
 **Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 132: With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a).
 
-**Modified by:** Node-14.19.3, Node-20.16.0
+**Modified by:** Node-20.16.0
 **Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 133: A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the start of the value)
 
-**Modified by:** Node-14.19.3, Node-20.16.0
+**Modified by:** Node-20.16.0
 **Unmodified by:** Mitmproxy-11.1.0
 
 ---
 
 ## Test 134: A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the start of the value)
 
-**Modified by:** Node-14.19.3, Node-20.16.0
+**Modified by:** Node-20.16.0
 **Unmodified by:** Mitmproxy-11.1.0
 
 ---
@@ -678,14 +678,14 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 ## Test 135: A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).
 
 **Modified by:** Cloudflare, Node-20.16.0
-**Unmodified by:** Caddy-2.9.1, Envoy-1.21.2, Envoy-1.32.2, HAproxy-2.6.0, HAproxy-2.9.10, Mitmproxy-11.1.0, Nghttpx-1.47.0, Node-14.19.3
+**Unmodified by:** Caddy-2.9.1, Envoy-1.32.2, HAproxy-2.9.10, Mitmproxy-11.1.0
 
 ---
 
 ## Test 136: A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).
 
 **Modified by:** Cloudflare, Node-20.16.0
-**Unmodified by:** Caddy-2.9.1, Envoy-1.21.2, Envoy-1.32.2, HAproxy-2.6.0, HAproxy-2.9.10, Mitmproxy-11.1.0, Nghttpx-1.47.0, Node-14.19.3
+**Unmodified by:** Caddy-2.9.1, Envoy-1.32.2, HAproxy-2.9.10, Mitmproxy-11.1.0
 
 ---
 
@@ -727,7 +727,7 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 ## Test 142: The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'.
 
 **Modified by:** Caddy-2.9.1
-**Unmodified by:** HAproxy-2.6.0, HAproxy-2.9.10, Mitmproxy-11.1.0
+**Unmodified by:** HAproxy-2.9.10, Mitmproxy-11.1.0
 
 ---
 
@@ -757,7 +757,7 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 
 ## Test 151: If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)
 
-**Unmodified by:** Caddy-2.9.1, Cloudflare, Envoy-1.32.2, HAproxy-2.9.10, Mitmproxy-11.1.0, Nghttpx-1.62.1, Node-14.19.3, Node-20.16.0
+**Unmodified by:** Caddy-2.9.1, Cloudflare, Envoy-1.32.2, HAproxy-2.9.10, Mitmproxy-11.1.0, Nghttpx-1.62.1, Node-20.16.0
 
 ---
 
@@ -829,7 +829,7 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 
 ## Test 165: Pseudo-header fields MUST NOT appear in a trailer section.
 
-**Modified by:** Cloudflare, HAproxy-2.6.0, HAproxy-2.9.10, Mitmproxy-11.1.0
+**Modified by:** Cloudflare, HAproxy-2.9.10, Mitmproxy-11.1.0
 
 ---
 
