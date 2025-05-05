@@ -1,0 +1,67 @@
+Dual-Scope Behavior Differences (Client-Only Count - Full Scope Count on Client Tests)
+=====================================================================================
+
+Proxy: Apache-2.4.62
+---------------------
+  Dropped: 6
+  Error 500: -4
+  GOAWAY: -2
+  RESET: 0
+  Accepted: 0
+
+Proxy: Cloudflare
+---------------------
+  Dropped: 6
+  Error 500: 1
+  GOAWAY: -7
+  RESET: 0
+  Accepted: 0
+
+Proxy: Envoy-1.32.2
+---------------------
+  Dropped: -3
+  Error 500: -3
+  GOAWAY: 0
+  RESET: 0
+  Accepted: 6
+
+Proxy: H2O-26b116e95
+---------------------
+  Dropped: -3
+  Error 500: 0
+  GOAWAY: 0
+  RESET: 0
+  Accepted: 3
+
+Proxy: HAproxy-2.9.10
+---------------------
+  Dropped: -3
+  Error 500: -2
+  GOAWAY: -1
+  RESET: 0
+  Accepted: 6
+
+Proxy: Nghttpx-1.62.1
+---------------------
+  Dropped: -5
+  Error 500: 0
+  GOAWAY: 0
+  RESET: 0
+  Accepted: 5
+
+Proxy: Node-20.16.0
+---------------------
+  Dropped: -1
+  Error 500: 0
+  GOAWAY: 1
+  RESET: 0
+  Accepted: 0
+
+Proxy: Traefik-3.3.5
+---------------------
+  Dropped: 0
+  Error 500: 0
+  GOAWAY: 0
+  RESET: 0
+  Accepted: 0
+
