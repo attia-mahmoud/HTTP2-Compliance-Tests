@@ -933,7 +933,7 @@ def create_client_server_conformance_visualization(test_results, client_side_tes
             server_non_conformant.append(0)
     
     # Create bars
-    plt.bar(x - width/2, client_non_conformant, width, label='Client Non-Compliant', color='#2ecc71')
+    plt.bar(x - width/2, client_non_conformant, width, label='Client Non-Compliant', color='#2ecc71', hatch='///')
     plt.bar(x + width/2, server_non_conformant, width, label='Server Non-Compliant', color='#3498db')
     
     # Customize the plot
@@ -2376,24 +2376,25 @@ def main():
         # 'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
         'Apache-2.4.62': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
         # 'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
-        # 'Caddy-2.9.1': {'scope': 'full', 'version': 'new'},
-        # 'Node-20.16.0': {'scope': 'full', 'version': 'new'},
+        'Caddy-2.9.1': {'scope': 'full', 'version': 'new'},
+        'Node-20.16.0': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
         # 'Node-14.19.3': {'scope': 'full', 'version': 'old'},
         'Envoy-1.32.2': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'H2O-cf59e67c3': {'scope': 'full', 'version': 'new'},
-        # 'H2O-26b116e95': {'scope': 'full', 'version': 'old'},
-        # 'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
-        # 'Traefik-3.3.5': {'scope': 'full', 'version': 'new'},
+        # 'Envoy-1.21.2': {'scope': 'full', 'version': 'old', 'second-scope': 'client-only'},
+        'H2O-26b116e95': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
+        # 'H2O-cf59e67c3': {'scope': 'full', 'version': 'old'},
+        'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
+        'Traefik-3.3.5': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
         # 'Traefik-2.6.2': {'scope': 'full', 'version': 'old'},
-        # 'Nginx-1.26.0': {'scope': 'client-only', 'version': 'new'},
+        'Nginx-1.26.0': {'scope': 'client-only', 'version': 'new'},
         # 'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
-        # 'Lighttpd-1.4.76': {'scope': 'client-only', 'version': 'new'},
+        'Lighttpd-1.4.76': {'scope': 'client-only', 'version': 'new'},
         # 'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
-        # 'Varnish-7.7.0': {'scope': 'client-only', 'version': 'new'},
+        'Varnish-7.7.0': {'scope': 'client-only', 'version': 'new'},
         # 'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
-        # 'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
-        # 'Cloudflare': {'scope': 'full', 'version': 'N/A'},
-        # 'Fastly': {'scope': 'client-only', 'version': 'N/A'},
+        'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
+        'Cloudflare': {'scope': 'full', 'version': 'N/A', 'second-scope': 'client-only'},
+        'Fastly': {'scope': 'client-only', 'version': 'N/A'},
     }
     
     results_dir = 'results'
@@ -2525,6 +2526,246 @@ def main():
     # Call the new behavior change matrix function HERE
     distribution_dir = os.path.join('analysis', 'behavior') # Confirm correct dir for behavior change
     create_behavior_change_matrix(all_test_results_primary, proxy_configs, distribution_dir)
+    # Add the call to the new line graph function
+    create_behavior_change_line_graph(all_test_results_primary, proxy_configs, distribution_dir)
+
+def create_behavior_change_line_graph(all_test_results, proxy_configs, output_directory):
+    """
+    Creates a line graph showing the change in proxy behavior counts (new - old) 
+    for each category across different proxy pairs.
+    """
+    change_dir = os.path.join(output_directory, 'behavior_change')
+    os.makedirs(change_dir, exist_ok=True)
+
+    # 1. Define Categories and Mapping
+    # Order matters for plotting
+    categories_plot = ["Dropped", "Error 500", "GOAWAY", "RESET", "Unmodified", "Modified", "Accepted"]
+    category_map_internal_to_plot = {
+        'dropped': "Dropped", '500': "Error 500", 'goaway': "GOAWAY", 'reset': "RESET",
+        'unmodified': "Unmodified", 'modified': "Modified", 'received': "Accepted"
+        # 'other' is ignored
+    }
+    num_categories = len(categories_plot)
+
+    # Define line styles and colors (ensure enough for num_categories)
+    line_styles = ['-', '--', '-.', ':', (0, (3, 1, 1, 1)), (0, (5, 1)), (0, (1, 1))]
+    # Using tab10 colors, repeating if necessary
+    colors = plt.cm.tab10(np.linspace(0, 1, 10)) 
+
+    # 2. Identify Pairs
+    old_new_pairs = _find_old_new_pairs(proxy_configs, all_test_results)
+    if not old_new_pairs:
+        print("No old/new proxy pairs found for behavior change line graph.")
+        return
+
+    # 3. Calculate Differences per Pair and Scope
+    differences_by_proxy_base = {} # { 'Nghttpx': {'full': {cat: diff, ...}, 'client-only': {cat: diff,...}}, ...}
+    proxy_base_names_full = []
+    proxy_base_names_client = []
+
+    for old_proxy, new_proxy in old_new_pairs:
+        # Determine base name (assuming format like 'ProxyName-Version')
+        base_name = old_proxy.rsplit('-', 1)[0] if '-' in old_proxy else old_proxy
+        
+        # Get scopes (crucial for correct counting)
+        scope_old = proxy_configs.get(old_proxy, {}).get('scope')
+        scope_new = proxy_configs.get(new_proxy, {}).get('scope')
+
+        # Process only if scopes match (essential for meaningful comparison)
+        if scope_old and scope_new and scope_old == scope_new:
+            scope = scope_old # The shared scope
+            
+            if base_name not in differences_by_proxy_base:
+                 differences_by_proxy_base[base_name] = {}
+                 if scope == 'full': proxy_base_names_full.append(base_name)
+                 else: proxy_base_names_client.append(base_name)
+
+            if scope not in differences_by_proxy_base[base_name]:
+                 differences_by_proxy_base[base_name][scope] = {cat: 0 for cat in categories_plot}
+
+            # Get results
+            results_old = all_test_results.get(old_proxy, {})
+            results_new = all_test_results.get(new_proxy, {})
+
+            # Count occurrences for old and new versions within the scope
+            counts_old = {cat: 0 for cat in categories_plot}
+            counts_new = {cat: 0 for cat in categories_plot}
+
+            for test_id, result_str in results_old.items():
+                category = category_map_internal_to_plot.get(result_str)
+                # Special handling for client-only: map modified/unmodified/received to Accepted
+                if scope == 'client-only' and category in ["Modified", "Unmodified"]:
+                    category = "Accepted" 
+                if category in counts_old:
+                    counts_old[category] += 1
+            
+            for test_id, result_str in results_new.items():
+                category = category_map_internal_to_plot.get(result_str)
+                if scope == 'client-only' and category in ["Modified", "Unmodified"]:
+                     category = "Accepted"
+                if category in counts_new:
+                    counts_new[category] += 1
+            
+            # Calculate difference (new - old) for each category
+            for cat in categories_plot:
+                 # Special check for client-only: Modified/Unmodified have diff=0
+                 if scope == 'client-only' and cat in ["Modified", "Unmodified"]:
+                     diff = 0 
+                 else:
+                     diff = counts_new[cat] - counts_old[cat]
+                 differences_by_proxy_base[base_name][scope][cat] = diff
+        else:
+             print(f"Skipping pair ({old_proxy}, {new_proxy}) for line graph due to scope mismatch or missing scope.")
+
+    # --- START: Write differences to text file ---
+    diff_file_path = os.path.join(change_dir, 'behavior_change_differences.txt')
+    try:
+        with open(diff_file_path, 'w') as f_diff:
+            f_diff.write("Behavior Change Differences (New Count - Old Count)\n")
+            f_diff.write("=================================================\n\n")
+            
+            sorted_proxy_base_names_for_file = sorted(proxy_base_names_full) + sorted(proxy_base_names_client)
+            
+            for base_name in sorted_proxy_base_names_for_file:
+                scope_found = None
+                if base_name in proxy_base_names_full:
+                    scope_found = 'full'
+                elif base_name in proxy_base_names_client:
+                    scope_found = 'client-only'
+                
+                if scope_found and base_name in differences_by_proxy_base and scope_found in differences_by_proxy_base[base_name]:
+                    f_diff.write(f"Proxy: {base_name} (Scope: {scope_found})\n")
+                    f_diff.write("-------------------------------------\n")
+                    diffs = differences_by_proxy_base[base_name][scope_found]
+                    for cat in categories_plot:
+                         # Only write categories relevant to the scope
+                         if scope_found == 'client-only' and cat in ["Modified", "Unmodified"]:
+                              continue # Skip M/U for client-only scope
+                         if scope_found == 'full' and cat == "Accepted" and not any(diffs.get(c,0) != 0 for c in ["Modified", "Unmodified", "Received"]):
+                              # Avoid writing "Accepted: 0" for full scope if M/U/R were all 0 difference
+                              # (Since Accepted isn't directly calculated for full scope)
+                              # This is a heuristic - might need refinement depending on exact desired output
+                              pass # Or potentially continue, if explicit Accepted=0 isn't desired for full scope
+                         
+                         difference_value = diffs.get(cat, 0)
+                         f_diff.write(f"  {cat}: {difference_value}\n")
+                    f_diff.write("\n")
+                else:
+                     f_diff.write(f"Proxy: {base_name} - Data not found for expected scope.\n\n") # Indicate if something went wrong
+                     
+        print(f"Saved behavior change differences to: {diff_file_path}")
+    except Exception as e:
+        print(f"Error writing behavior change differences file {diff_file_path}: {e}")
+    # --- END: Write differences to text file ---
+
+    # 4. Prepare Data for Plotting
+    # Combine and sort proxy names: full scope first, then client-only
+    sorted_proxy_base_names = sorted(proxy_base_names_full) + sorted(proxy_base_names_client)
+    if not sorted_proxy_base_names:
+        print("No valid pairs with matching scopes found to plot.")
+        return
+        
+    plot_data = {cat: [] for cat in categories_plot} # { 'Dropped': [diff1, diff2,...], ...}
+    proxy_labels_for_plot = []
+
+    for base_name in sorted_proxy_base_names:
+         scope_found = None
+         if base_name in proxy_base_names_full:
+             scope_found = 'full'
+         elif base_name in proxy_base_names_client:
+             scope_found = 'client-only'
+         
+         if scope_found and scope_found in differences_by_proxy_base[base_name]:
+             proxy_labels_for_plot.append(base_name)
+             diffs = differences_by_proxy_base[base_name][scope_found]
+             for cat in categories_plot:
+                 plot_data[cat].append(diffs.get(cat, 0)) # Append difference, default to 0
+         # Else: skip this base_name if data for its primary scope wasn't calculated
+
+    # 5. Create Visualization
+    plt.figure(figsize=(max(10, len(proxy_labels_for_plot) * 0.8), 7)) # Adjust width based on number of proxies
+    
+    num_full = len(proxy_base_names_full)
+    num_client = len(proxy_base_names_client)
+    num_total = len(proxy_labels_for_plot)
+
+    for i, category in enumerate(categories_plot):
+        style_index = i % len(line_styles)
+        color_index = i % len(colors)
+        
+        # Get the full data series for this category
+        full_data_series = np.array(plot_data[category])
+        plot_series = full_data_series.astype(float) # Convert to float for NaN
+
+        # Modify the series based on category relevance to scope
+        if category in ["Modified", "Unmodified"]:
+            # These only apply to full scope. Set client-only part to NaN.
+            if num_client > 0 and num_full < num_total:
+                plot_series[num_full:] = np.nan
+        elif category == "Accepted":
+            # This primarily applies to client-only. Set full-scope part to NaN.
+            if num_full > 0:
+                plot_series[:num_full] = np.nan
+        # Else (Dropped, Error 500, GOAWAY, RESET): Plot the full series
+
+        # Only add to plot if there's any non-NaN data in the relevant scope section
+        should_plot = False
+        if category in ["Modified", "Unmodified"]:
+            if num_full > 0 and np.any(~np.isnan(plot_series[:num_full])):
+                should_plot = True
+        elif category == "Accepted":
+            if num_client > 0 and np.any(~np.isnan(plot_series[num_full:])):
+                should_plot = True
+        else: # Shared categories
+            if np.any(~np.isnan(plot_series)):
+                should_plot = True
+                
+        if should_plot:
+            plt.plot(proxy_labels_for_plot, plot_series, 
+                     label=category, 
+                     marker='o', markersize=5,
+                     linestyle=line_styles[style_index], 
+                     color=colors[color_index],
+                     linewidth=1.5)
+
+    # Add horizontal line at y=0
+    plt.axhline(0, color='grey', linestyle='--', linewidth=1)
+
+    # Add vertical separator if both full and client-only proxies exist
+    # num_full = len(proxy_base_names_full)
+    if num_full > 0 and len(proxy_base_names_client) > 0:
+        plt.axvline(x=num_full - 0.5, color='black', linestyle=':', linewidth=1.5) # Removed label here to avoid duplication
+        # Add text annotation for scopes
+        # Determine y-position dynamically based on plot limits
+        ymin, ymax = plt.ylim()
+        text_y_pos = ymax - (ymax - ymin) * 0.05 # Place slightly below the top
+        
+        plt.text((num_full / 2.0) - 0.5, text_y_pos, 'Full Scope', ha='center', va='top', fontsize=10, color='black', backgroundcolor='white', alpha=0.8)
+        plt.text(num_full + (len(proxy_base_names_client) / 2.0) - 0.5, text_y_pos, 'Client-Only Scope', ha='center', va='top', fontsize=10, color='black', backgroundcolor='white', alpha=0.8)
+
+
+    # Customize plot
+    plt.xlabel('Proxy', fontsize=12)
+    plt.ylabel('Change in Count (New - Old)', fontsize=12)
+    # plt.title('Change in Test Outcome Counts Between Proxy Versions', fontsize=14, fontweight='bold')
+    plt.xticks(rotation=45, ha='right')
+    plt.grid(True, axis='y', linestyle='--', alpha=0.6)
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=10) # Legend outside plot
+    plt.tight_layout(rect=[0, 0, 0.85, 1]) # Adjust layout for legend
+
+    # 6. Save Plot
+    output_path = os.path.join(change_dir, "behavior_change_line_graph.png")
+    try:
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        print(f"Saved behavior change line graph: {output_path}")
+    except Exception as e:
+        print(f"Error saving behavior change line graph {output_path}: {e}")
+    finally:
+        plt.close()
+
+
+# Add this function definition after create_proxy_matrix_graph 
+# and before the main function or radar chart functions
 
 if __name__ == "__main__":
     main()
