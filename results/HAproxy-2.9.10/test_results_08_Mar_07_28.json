@@ -1149,6 +1149,7 @@
         "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER",
         "Variables": {
           "result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: UNMODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', 'example.com'), (':path', '/'), ('x-leading-space', ' value')]>]",
           "sent_frames": "[{'type': 'PING'}]",
           "msg": "Client_Failed_To_Receive_All_Frames"
@@ -1177,6 +1178,7 @@
         "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER",
         "Variables": {
           "result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: UNMODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', 'example.com'), (':path', '/'), ('x-trailing-space', 'value ')]>]",
           "sent_frames": "[{'type': 'PING'}]",
           "msg": "Client_Failed_To_Receive_All_Frames"
@@ -1557,6 +1559,7 @@
         "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER",
         "Variables": {
           "result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: MODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', 'example.com'), (':path', '/')]>]",
           "sent_frames": "[{'type': 'PING'}]",
           "msg": "Client_Failed_To_Receive_All_Frames"
@@ -1578,6 +1581,7 @@
         "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER",
         "Variables": {
           "result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: UNMODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', 'user:pass@example.com'), (':path', '/')]>]",
           "sent_frames": "[{'type': 'PING'}]",
           "msg": "Client_Failed_To_Receive_All_Frames"

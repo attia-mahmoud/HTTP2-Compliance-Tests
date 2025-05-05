@@ -1815,6 +1815,7 @@
         "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER",
         "Variables": {
           "result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: MODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'CONNECT'), (':authority', '192.168.122.214:8080'), ('x-forwarded-proto', 'https'), ('x-forwarded-for', '192.168.122.148'), ('via', '2 example.com')]>]",
           "sent_frames": "[{'type': 'PING'}]",
           "msg": "Client_Failed_To_Receive_All_Frames"
