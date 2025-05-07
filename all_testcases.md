@@ -3,7 +3,7 @@
    ✔ 2. "Once TLS negotiation is complete, both the client and the server MUST send a connection preface." (Implemented for client side)
 
 **Section 3.3 (Starting HTTP/2 with Prior Knowledge):**
-   3. "A client that knows that a server supports HTTP/2 can establish a TCP connection and send the connection preface (Section 3.4) followed by HTTP/2 frames. Servers can identify these connections by the presence of the connection preface. This only aﬀects the establishment of HTTP/2 connections over cleartext TCP; HTTP/2 connections over TLS use MUST protocol negotiation in TLS [TLS-ALPN]. Likewise, the server send a connection preface (Section 3.4)."
+   3. "A client that knows that a server supports HTTP/2 can establish a TCP connection and send the connection preface (Section 3.4) followed by HTTP/2 frames. Servers can identify these connections by the presence of the connection preface. This only aﬀects the establishment of HTTP/2 connections over cleartext TCP; HTTP/2 connections over TLS MUST use protocol negotiation in TLS [TLS-ALPN]. Likewise, the server MUST send a connection preface (Section 3.4)."
 
 **Section 3.4 (HTTP/2 Connection Preface):**
    ✔ 4. "That is, the connection preface starts with the string "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n". 
@@ -12,12 +12,13 @@
    7. "The SETTINGS frames received from a peer as part of the connection preface MUST be acknowledged (see Section 6.5.3) after sending the connection preface. Clients and servers MUST treat an invalid connection preface as a connection error (Section 5.4.1) of type PROTOCOL_ERROR."
 
 **Section 4.1 (Frame Format):**
-   ✔ 8. "Values greater than 214 (16,384) MUST NOT be sent unless the receiver has set a larger value for SETTINGS_MAX_FRAME_SIZE. An endpoint MUST send an error code of FRAME_SIZE_ERROR if a frame exceeds the size defined in SETTINGS_MAX_FRAME_SIZE."
+   ✔ 8. "Values greater than 214 (16,384) MUST NOT be sent unless the receiver has set a larger value for SETTINGS_MAX_FRAME_SIZE."
    ✔ 9. "The frame type determines the format and semantics of the frame. Frames defined in this document are listed in Section 6. Implementations MUST ignore and discard frames of unknown types."
    10. "Flags are assigned semantics specific to the indicated frame type. Unused flags are those that have no defined semantics for a particular frame type. Unused flags MUST be ignored on receipt and MUST be left unset (0x00) when sending."
    ✔ 11. "A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving."
 
 **Section 4.2 (Frame Size):**
+   - An endpoint MUST send an error code of FRAME_SIZE_ERROR if a frame exceeds the size defined in SETTINGS_MAX_FRAME_SIZE.
    12. "An endpoint MUST be capable of receiving and minimally processing frames up to 2^14 octets in length. A frame size error in a frame that could alter the state of the entire connection MUST be treated as a connection error."
 
 **Section 4.3 (Field Section Compression and Decompression):**
@@ -132,7 +133,7 @@
         72. "Padding octets MUST be set to zero when sending."
     - **END_HEADERS (0x04):**
         ✔ 73. "A PUSH_PROMISE frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream. A receiver MUST treat the receipt of any other type of frame or a frame on a different stream as a connection error (Section 5.4.1) of type PROTOCOL_ERROR."
-    ✔ 74. "A sender MUST NOT send a PUSH_PROMISE on a stream unless that stream is either "open" or "half-closed (remote). PUSH_PROMISE frames MUST only be sent on a peer-initiated stream that is in either the "open" or "half-closed (remote)" state."
+    ✔ 74. "A sender MUST NOT send a PUSH_PROMISE on a stream unless that stream is either "open" or "half-closed (remote). PUSH_PROMISE frames MUST only be sent on a peer-initiated stream that is in either the "open" or "half-closed (remote)" state. A receiver MUST treat the receipt of a PUSH_PROMISE on a stream that is neither "open" nor "half-closed (local)" as a connection error (Section 5.4.1) of type PROTOCOL_ERROR. 
     ✔ 75. "If the Stream Identifier field specifies the value 0x00, a recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR. A receiver MUST treat the receipt of a PUSH_PROMISE that promises an illegal stream identifier (Section 5.1.1) as a connection error (Section 5.4.1) of type PROTOCOL_ERROR."
     ✔ 76. "PUSH_PROMISE MUST NOT be sent if the SETTINGS_ENABLE_PUSH setting of the peer endpoint is set to 0. An endpoint that has set this setting and has received acknowledgment MUST treat the receipt of a PUSH_PROMISE frame as a connection error (Section 5.4.1) of type PROTOCOL_ERROR."
     ✔ 77. "the sender MUST ensure that the promised stream is a valid choice for a new stream identifier (Section 5.1.1) (that is, the promised stream MUST be in the "idle" state)."
@@ -197,6 +198,7 @@
     ✔ 112. "Field names MUST be converted to lowercase when constructing an HTTP/2 message."
 
 **Section 8.2.1 (Field Validity):**
+    - Implementations MUST perform the following minimal validation of field names and values:
     ✔ 113. "A field name MUST NOT contain characters in the ranges 0x00-0x20, 0x41-0x5a, or 0x7f-0xff (all ranges inclusive). This specifically excludes all non-visible ASCII characters, ASCII SP (0x20), and uppercase characters ('A' to 'Z', ASCII 0x41 to 0x5a)."
     ✔ 114. "With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a)."
     ✔ 115. "A field value MUST NOT contain the zero value (ASCII NUL, 0x00), line feed (ASCII LF, 0x0a), or carriage return (ASCII CR, 0x0d) at any position."
@@ -204,11 +206,10 @@
 
 **Section 8.2.2 (Connection-Specific Header Fields):**
     ✔ 117. "An endpoint MUST NOT generate an HTTP/2 message containing connection-specific header fields. This includes the Connection header field and those listed as having connection-specific semantics in Section 7.6.1 of [HTTP] (that is, Proxy-Connection, Keep-Alive, Transfer-Encoding, and Upgrade). Any message containing connection-specific header fields MUST be treated as malformed (Section 8.1.1)."
-    118. "The only exception to this is the TE header field, which MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than "trailers"."
+    ✔ 118. "The only exception to this is the TE header field, which MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than "trailers"."
     119. "An intermediary transforming an HTTP/1.x message to HTTP/2 MUST remove connection-specific header fields as discussed in Section 7.6.1 of [HTTP], or their messages will be treated by other HTTP/2 endpoints as malformed (Section 8.1.1)."
 
 **Section 8.2.3 (Compressing the Cookie Header Field):**
-    120. "The Cookie header field MUST NOT be compressed."
     121. "If there are multiple Cookie header fields after decompression, these MUST be concatenated into a single octet string using the two-octet delimiter of 0x3b, 0x20 (the ASCII string "; ") before being passed into a non-HTTP/2 context, such as an HTTP/1.1 connection, or a generic HTTP server application."
 
 **Section 8.3 (HTTP Control Data):**
@@ -248,6 +249,8 @@
     ✔ 145. "The server MUST include a method in the ":method" pseudo-header field that is safe and cacheable. If a client receives a PUSH_PROMISE that does not include a complete and valid set of header fields or the ":method" pseudo-header field identifies a method that is not safe, it MUST respond on the promised stream with a stream error (Section 5.4.2) of type PROTOCOL_ERROR."
     ✔ 146. "PUSH_PROMISE frames MUST NOT be sent by the client."
     ✔ 147. "PUSH_PROMISE frames can be sent by the server on any client-initiated stream, but the stream MUST be in either the "open" or "half-closed (remote)" state with respect to the server."
+
+**Section 8.4.2 (Push Responses):**
     148. "Clients receiving a pushed response MUST validate that either the server is authoritative (see Section 10.1) or the proxy that provided the pushed response is configured for the corresponding request."
 
 **Section 8.5 (The CONNECT Method):**
