@@ -2371,30 +2371,30 @@ def main():
     # (Adding labels and colors for better plots later, if needed)
     proxy_configs = {
         'Nghttpx-1.62.1': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
+        'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
         'HAproxy-2.9.10': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
+        'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
         'Apache-2.4.62': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
-        'Caddy-2.9.1': {'scope': 'full', 'version': 'new'},
+        'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
+        # 'Caddy-2.9.1': {'scope': 'full', 'version': 'new'},
         'Node-20.16.0': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Node-14.19.3': {'scope': 'full', 'version': 'old'},
+        'Node-14.19.3': {'scope': 'full', 'version': 'old'},
         'Envoy-1.32.2': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Envoy-1.21.2': {'scope': 'full', 'version': 'old', 'second-scope': 'client-only'},
+        'Envoy-1.21.2': {'scope': 'full', 'version': 'old'},
         'H2O-26b116e95': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'H2O-cf59e67c3': {'scope': 'full', 'version': 'old'},
-        'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
+        'H2O-cf59e67c3': {'scope': 'full', 'version': 'old'},
+        # 'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
         'Traefik-3.3.5': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Traefik-2.6.2': {'scope': 'full', 'version': 'old'},
+        'Traefik-2.6.2': {'scope': 'full', 'version': 'old'},
         'Nginx-1.26.0': {'scope': 'client-only', 'version': 'new'},
-        # 'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
+        'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
         'Lighttpd-1.4.76': {'scope': 'client-only', 'version': 'new'},
-        # 'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
+        'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
         'Varnish-7.7.0': {'scope': 'client-only', 'version': 'new'},
-        # 'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
-        'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
-        'Cloudflare': {'scope': 'full', 'version': 'N/A', 'second-scope': 'client-only'},
-        'Fastly': {'scope': 'client-only', 'version': 'N/A'},
+        'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
+        # 'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
+        # 'Cloudflare': {'scope': 'full', 'version': 'N/A', 'second-scope': 'client-only'},
+        # 'Fastly': {'scope': 'client-only', 'version': 'N/A'},
     }
     
     results_dir = 'results'
@@ -2481,6 +2481,8 @@ def main():
         if client_side_tests_set: # Ensure classification was loaded
              dual_scope_output_dir = os.path.join('analysis', 'behavior') # Output directory
              create_dual_scope_comparison_matrix(all_test_results_primary, proxy_configs, client_side_tests_set, results_dir, dual_scope_output_dir)
+             create_dual_scope_difference_line_graph(all_test_results_primary, proxy_configs, client_side_tests_set, results_dir, dual_scope_output_dir)
+
         else:
              print("Skipping dual-scope comparison matrix: Failed to load client-side test classification.")
              
@@ -2750,8 +2752,8 @@ def create_behavior_change_line_graph(all_test_results, proxy_configs, output_di
     # plt.title('Change in Test Outcome Counts Between Proxy Versions', fontsize=14, fontweight='bold')
     plt.xticks(rotation=45, ha='right')
     plt.grid(True, axis='y', linestyle='--', alpha=0.6)
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=10) # Legend outside plot
-    plt.tight_layout(rect=[0, 0, 0.85, 1]) # Adjust layout for legend
+    plt.legend(loc='lower right', fontsize=10) # Ensure loc='lower right', remove bbox_to_anchor
+    # plt.tight_layout() # Ensure rect argument is removed - REMOVED COMPLETELY
 
     # 6. Save Plot
     output_path = os.path.join(change_dir, "behavior_change_line_graph.png")
@@ -2766,6 +2768,165 @@ def create_behavior_change_line_graph(all_test_results, proxy_configs, output_di
 
 # Add this function definition after create_proxy_matrix_graph 
 # and before the main function or radar chart functions
+
+def create_dual_scope_difference_line_graph(all_test_results_primary, proxy_configs, client_side_tests_set, results_dir, output_directory):
+    """
+    Creates a line graph comparing proxy behavior between 'full' and 'client-only'
+    scopes for client-side tests. Calculates difference: client_only_count - full_scope_count.
+    """
+    comparison_dir = os.path.join(output_directory, 'dual_scope_comparison')
+    os.makedirs(comparison_dir, exist_ok=True)
+
+    # 1. Define Comparison Categories and Plot Styles
+    categories_plot = ['Dropped', 'Error 500', 'GOAWAY', 'RESET', 'Accepted']
+    num_categories = len(categories_plot)
+    line_styles = ['-', '--', '-.', ':', (0, (3, 1, 1, 1))]
+    colors = plt.cm.viridis(np.linspace(0, 1, num_categories)) # Different color scheme
+
+    # 2. Identify Dual-Scope Proxies
+    dual_scope_proxies = []
+    for proxy_name, config in proxy_configs.items():
+        if config.get('scope') == 'full' and config.get('second-scope') == 'client-only':
+            if proxy_name in all_test_results_primary: # Check if primary results exist
+                dual_scope_proxies.append(proxy_name)
+            # else: print(f"Skipping {proxy_name} for dual-scope diff graph: Primary results missing.")
+
+    if not dual_scope_proxies:
+        print("No dual-scope proxies with primary results found for difference line graph.")
+        return
+    if not client_side_tests_set:
+         print("Skipping dual-scope difference line graph: Client-side test classification missing.")
+         return
+
+    print(f"Calculating dual-scope differences for: {dual_scope_proxies}")
+    
+    # 3. Calculate Differences per Proxy
+    differences_by_proxy = {} # { 'ProxyName': {cat: diff, ...}, ...}
+    valid_proxies_for_plot = []
+
+    for proxy_name in dual_scope_proxies:
+        # Get primary results (full scope)
+        primary_results = all_test_results_primary[proxy_name]
+        
+        # Load secondary results (client-only scope)
+        secondary_proxy_name = proxy_name + "-H2H1"
+        secondary_proxy_dir = os.path.join(results_dir, secondary_proxy_name)
+        secondary_results = {}
+        try:
+            latest_secondary_file = get_latest_file(secondary_proxy_dir)
+            if latest_secondary_file:
+                 _, _, _, _, _, _, _, secondary_results, _ = analyze_results(latest_secondary_file, 'client-only')
+            else:
+                 print(f"  Warning: No results file found for {secondary_proxy_name}. Skipping diff calculation for {proxy_name}.")
+                 continue
+        except Exception as e:
+             print(f"  Error loading/analyzing secondary results for {secondary_proxy_name}: {e}. Skipping diff calculation for {proxy_name}.")
+             continue
+             
+        # Initialize counts
+        counts_full = {cat: 0 for cat in categories_plot}
+        counts_client = {cat: 0 for cat in categories_plot}
+
+        # Aggregate counts, filtering by client_side_tests_set
+        # Full Scope Counts (on client-side tests only)
+        for test_id, result_str in primary_results.items():
+            if test_id in client_side_tests_set:
+                 # Map full-scope success (M/U/Received) to Dropped for this comparison
+                 if result_str in ["modified", "unmodified", "received"]:
+                      counts_full["Dropped"] += 1
+                 elif result_str == "500": counts_full["Error 500"] += 1
+                 elif result_str == "goaway": counts_full["GOAWAY"] += 1
+                 elif result_str == "reset": counts_full["RESET"] += 1
+                 elif result_str == "dropped": counts_full["Dropped"] += 1
+                 # Ignore 'Accepted' category here, it's calculated from client-only results
+                 
+        # Client-Only Scope Counts (inherently client-side tests)
+        for test_id, result_str in secondary_results.items():
+             # No need to filter by client_side_tests_set again, analyze_results used scope='client-only'
+             if result_str in ["received", "modified", "unmodified"]:
+                  counts_client["Accepted"] += 1
+             elif result_str == "500": counts_client["Error 500"] += 1
+             elif result_str == "goaway": counts_client["GOAWAY"] += 1
+             elif result_str == "reset": counts_client["RESET"] += 1
+             elif result_str == "dropped": counts_client["Dropped"] += 1
+        
+        # Calculate difference (client_only - full_scope) for each category
+        proxy_diffs = {} 
+        for cat in categories_plot:
+            proxy_diffs[cat] = counts_client[cat] - counts_full[cat]
+            
+        differences_by_proxy[proxy_name] = proxy_diffs
+        valid_proxies_for_plot.append(proxy_name)
+
+    if not valid_proxies_for_plot:
+        print("No valid data calculated for dual-scope difference line graph.")
+        return
+        
+    # 4. Save Differences to File
+    diff_file_path = os.path.join(comparison_dir, 'dual_scope_behavior_differences.txt')
+    try:
+        with open(diff_file_path, 'w') as f_diff:
+            f_diff.write("Dual-Scope Behavior Differences (Client-Only Count - Full Scope Count on Client Tests)\n")
+            f_diff.write("=====================================================================================\n\n")
+            for proxy_name in sorted(valid_proxies_for_plot):
+                f_diff.write(f"Proxy: {proxy_name}\n")
+                f_diff.write("---------------------\n")
+                diffs = differences_by_proxy[proxy_name]
+                for cat in categories_plot:
+                    f_diff.write(f"  {cat}: {diffs.get(cat, 0)}\n")
+                f_diff.write("\n")
+        print(f"Saved dual-scope behavior differences to: {diff_file_path}")
+    except Exception as e:
+        print(f"Error writing dual-scope behavior differences file {diff_file_path}: {e}")
+
+    # 5. Prepare Plotting Data
+    plot_data = {cat: [] for cat in categories_plot}
+    proxy_labels_for_plot = sorted(valid_proxies_for_plot)
+
+    for proxy_name in proxy_labels_for_plot:
+        diffs = differences_by_proxy[proxy_name]
+        for cat in categories_plot:
+            plot_data[cat].append(diffs.get(cat, 0))
+            
+    # 6. Create Visualization
+    plt.figure(figsize=(max(8, len(proxy_labels_for_plot) * 0.7), 6)) 
+    # plt.yscale('symlog', linthresh=1) # Use symlog scale
+
+    for i, category in enumerate(categories_plot):
+        style_index = i % len(line_styles)
+        color_index = i % len(colors)
+        
+        # Adjust label for Accepted category
+        plot_label = "Accepted (U/M/A)" if category == "Accepted" else category
+        
+        plt.plot(proxy_labels_for_plot, plot_data[category], 
+                 label=plot_label, # Use adjusted label 
+                 marker='o', markersize=6, # Different marker
+                 linestyle=line_styles[style_index], 
+                 color=colors[color_index],
+                 linewidth=1.5)
+
+    # Add horizontal line at y=0
+    plt.axhline(0, color='grey', linestyle='--', linewidth=1)
+
+    # Customize plot
+    plt.xlabel('Proxy', fontsize=12)
+    plt.ylabel('Difference (Client-Only - Full Scope)', fontsize=12)
+    # plt.title('Difference in Client-Side Test Outcomes: Client-Only vs Full Scope', fontsize=14, fontweight='bold') # Removed title
+    plt.xticks(rotation=45, ha='right')
+    # plt.grid(True, axis='y', linestyle='--', alpha=0.6) # Removed y-axis grid lines
+    plt.legend(loc='upper right', fontsize=10) # Changed loc to upper right, removed bbox_to_anchor
+    plt.tight_layout() # Removed rect argument
+
+    # 7. Save Plot
+    output_path = os.path.join(comparison_dir, "dual_scope_behavior_difference_line.png")
+    try:
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        print(f"Saved dual-scope behavior difference line graph: {output_path}")
+    except Exception as e:
+        print(f"Error saving dual-scope behavior difference line graph {output_path}: {e}")
+    finally:
+        plt.close()
 
 if __name__ == "__main__":
     main()
