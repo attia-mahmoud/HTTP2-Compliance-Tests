@@ -1,7 +1,39 @@
 {
+  "0": {
+    "description": "A normal GET request from the client, followed by small DATA. The server responds with a 200 HEADERS, some DATA, and a final set of trailers. Checks a typical request/response flow in HTTP/2.",
+    "result": {
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "role": "server",
+          "client_val": "client",
+          "event": "TIMEOUT",
+          "server": null,
+          "msg": "Timeout occurred after 5.0s while waiting for client connection at 0.0.0.0:8080.",
+          "result": "TIMEOUT"
+        }
+      },
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
   "1": {
     "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid DATA frame'.",
+          "sent_frames": "[{'type': 'DATA'}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -12,14 +44,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'DATA'}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -40,11 +64,9 @@
         }
       },
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "State": "REJECTED",
         "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+          "msg": "No initial settings received from peer at fastly.nopasaran.co:443"
         }
       }
     }
@@ -78,12 +100,15 @@
     "description": "Client preface must include a SETTINGS frame",
     "result": {
       "Worker_2": {
-        "State": "FINAL",
+        "State": "TIMEOUT",
         "Variables": {
+          "ctrl": null,
           "server": null,
-          "result": "Received 1 HTTP/1.1 requests.",
-          "result_received": "Successfully sent 1 frames.",
-          "packets_received": "['GET /test-frame HTTP/1.1\\r\\nX-FORWARDED-PROTO: https\\r\\nX-FORWARDED-PORT: 443\\r\\nX-Forwarded-For: 139.162.102.98:60748\\r\\nX-Original-URL: /test-frame\\r\\nConnection: keep-alive\\r\\nX-AppGW-Trace-Id: 0dd90389bfa146c5c3d3ed72f10567ad\\r\\nHost: 172.236.62.68:8080\\r\\nX-ORIGINAL-HOST: azure.nopasaran.co\\r\\nuser-agent: nopasaran-http2-client\\r\\naccept: */*\\r\\n\\r\\n']"
+          "client_val": "client",
+          "role": "server",
+          "event": "TIMEOUT",
+          "result": "TIMEOUT",
+          "packets_received": null
         }
       },
       "Worker_1": {
@@ -99,6 +124,13 @@
   "7": {
     "description": "If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED.",
     "result": {
+      "Worker_1": {
+        "State": "RESET_RECEIVED",
+        "Variables": {
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #2 of 2: DATA. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': True}}, {'type': 'DATA'}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -110,35 +142,29 @@
           "result": "TIMEOUT",
           "packets_received": null
         }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 2 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': True}}, {'type': 'DATA'}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
-        }
       }
     }
   },
   "8": {
     "description": "Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE",
     "result": {
-      "Worker_2": {
-        "State": "FINAL",
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "server": null,
-          "result": "Received 1 HTTP/1.1 requests.",
-          "result_received": "Successfully sent 2 frames.",
-          "packets_received": "['GET /test-frame HTTP/1.1\\r\\nX-FORWARDED-PROTO: https\\r\\nX-FORWARDED-PORT: 443\\r\\nX-Forwarded-For: 139.162.102.98:47544\\r\\nX-Original-URL: /test-frame\\r\\nConnection: keep-alive\\r\\nX-AppGW-Trace-Id: 65ab79783fd6500e877e70c1f6e287c8\\r\\nHost: 172.236.62.68:8080\\r\\nX-ORIGINAL-HOST: azure.nopasaran.co\\r\\nContent-Length: 17000\\r\\nuser-agent: nopasaran-http2-client\\r\\naccept: */*\\r\\n\\r\\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx']"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 2 of 2 frames. Error code 6. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'payload_size': 17000, 'flags': {'END_STREAM': True}}]"
         }
       },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+      "Worker_2": {
+        "State": "TIMEOUT",
         "Variables": {
-          "result": "Successfully sent 2 frames.",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'payload_size': 17000, 'flags': {'END_STREAM': True}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+          "ctrl": null,
+          "server": null,
+          "client_val": "client",
+          "role": "server",
+          "event": "TIMEOUT",
+          "result": "TIMEOUT",
+          "packets_received": null
         }
       }
     }
@@ -189,6 +215,13 @@
   "11": {
     "description": "Streams initiated by a client MUST use odd-numbered stream identifiers.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid stream id in HEADERS frame'.",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 2}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -199,14 +232,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 2}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -214,6 +239,13 @@
   "13": {
     "description": "The identifier of a newly established stream MUST be numerically greater than all streams that the initiating endpoint has opened or reserved.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 2 of 2 frames. Error code 5. Additional data: b'closed stream id in HEADERS frame'.",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 3}, {'type': 'HEADERS', 'stream_id': 1}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -224,14 +256,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 2 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 3}, {'type': 'HEADERS', 'stream_id': 1}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -239,6 +263,13 @@
   "15": {
     "description": "If a PRIORITY frame is received with a stream identifier of 0x00, the recipient MUST respond with a connection error of type PROTOCOL_ERROR",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid stream id in PRIORITY frame'.",
+          "sent_frames": "[{'type': 'PRIORITY', 'stream_id': 0}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -249,14 +280,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'PRIORITY', 'stream_id': 0}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -264,6 +287,13 @@
   "17": {
     "description": "If a RST_STREAM frame is received with a stream identifier of 0x00, the recipient MUST treat this as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 2 of 2 frames. Error code 1. Additional data: b'invalid stream id in RST_STREAM frame'.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM', 'stream_id': 0}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -274,14 +304,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 2 frames.",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM', 'stream_id': 0}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -289,6 +311,13 @@
   "18": {
     "description": "When set, the ACK flag indicates that this frame acknowledges receipt and application of the peer's SETTINGS frame. When this bit is set, the frame payload of the SETTINGS frame MUST be empty.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 6. Additional data: b'invalid SETTINGS frame (+ACK)'.",
+          "sent_frames": "[{'type': 'SETTINGS', 'flags': {'ACK': True}, 'settings': {'MAX_CONCURRENT_STREAMS': 100}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -299,14 +328,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'SETTINGS', 'flags': {'ACK': True}, 'settings': {'MAX_CONCURRENT_STREAMS': 100}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -314,6 +335,13 @@
   "19": {
     "description": "A RST_STREAM frame with a length other than 4 octets MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 2 of 2 frames. Error code 6. Additional data: b'invalid RST_STREAM frame'.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM', 'payload_length': 5}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -324,14 +352,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 2 frames.",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM', 'payload_length': 5}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -339,6 +359,13 @@
   "20": {
     "description": "The stream identifier for a SETTINGS frame MUST be zero (0x00).",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid stream id in SETTINGS frame'.",
+          "sent_frames": "[{'type': 'SETTINGS', 'stream_id': 1, 'settings': {'MAX_CONCURRENT_STREAMS': 100}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -349,14 +376,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'SETTINGS', 'stream_id': 1, 'settings': {'MAX_CONCURRENT_STREAMS': 100}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -364,6 +383,13 @@
   "21": {
     "description": "A SETTINGS frame with a length other than a multiple of 6 octets MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 6. Additional data: None.",
+          "sent_frames": "[{'type': 'SETTINGS', 'extra_bytes': 5, 'settings': {'MAX_CONCURRENT_STREAMS': 100}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -374,14 +400,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'SETTINGS', 'extra_bytes': 5, 'settings': {'MAX_CONCURRENT_STREAMS': 100}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -389,6 +407,13 @@
   "22": {
     "description": "The initial value of SETTINGS_ENABLE_PUSH is 1. Any value other than 0 or 1 MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid SETTINGS frame'.",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 2}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -399,14 +424,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 2}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -414,6 +431,13 @@
   "25": {
     "description": "For SETTINGS_INITIAL_WINDOW_SIZE, values above the maximum flow-control window size of 2^31-1 (2147483647) MUST be treated as a connection error (Section 5.4.1) of type FLOW_CONTROL_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 3. Additional data: b'invalid SETTINGS frame'.",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'INITIAL_WINDOW_SIZE': 2147483648}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -424,14 +448,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'INITIAL_WINDOW_SIZE': 2147483648}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -439,6 +455,13 @@
   "26": {
     "description": "The value advertised by an endpoint MUST be between initial value (2^14 = 16,384) and maximum allowed frame size (2^24-1 = 16,777,215 octets), inclusive.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid SETTINGS frame'.",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'MAX_FRAME_SIZE': 16777216}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -449,14 +472,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'MAX_FRAME_SIZE': 16777216}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -489,6 +504,13 @@
   "30": {
     "description": "If a PING frame is received with a Stream Identifier field value other than 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid PING frame'.",
+          "sent_frames": "[{'type': 'PING', 'stream_id': 3}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -499,14 +521,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'PING', 'stream_id': 3}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -514,6 +528,13 @@
   "31": {
     "description": "With the CONNECT method, the \" :scheme\" and \" :path\" pseudo-header fields MUST be omitted. (Tested with only :path present)",
     "result": {
+      "Worker_1": {
+        "State": "RESET_RECEIVED",
+        "Variables": {
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':path': '/', ':authority': 'example.com:80'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -524,14 +545,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':path': '/', ':authority': 'example.com:80'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -539,6 +552,13 @@
   "32": {
     "description": "With the CONNECT method, the \" :scheme\" and \" :path\" pseudo-header fields MUST be omitted. (Tested with only :scheme present)",
     "result": {
+      "Worker_1": {
+        "State": "RESET_RECEIVED",
+        "Variables": {
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':scheme': 'http', ':authority': 'example.com:80'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -549,14 +569,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':scheme': 'http', ':authority': 'example.com:80'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -564,6 +576,13 @@
   "33": {
     "description": "A receiver MUST treat the receipt of a WINDOW_UPDATE frame with a flow-control window increment of 0 as a stream error (Section 5.4.2) of type PROTOCOL_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid WINDOW_UPDATE frame'.",
+          "sent_frames": "[{'type': 'WINDOW_UPDATE', 'increment': 0}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -574,14 +593,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'WINDOW_UPDATE', 'increment': 0}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -589,6 +600,13 @@
   "34": {
     "description": "A sender MUST NOT allow a flow-control window to exceed 2^31-1 octets. If a sender receives a WINDOW_UPDATE that causes a flow-control window to exceed this maximum, it MUST terminate either the stream or the connection, as appropriate.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 3. Additional data: b'flow control window overflow'.",
+          "sent_frames": "[{'type': 'WINDOW_UPDATE', 'increment': 2147483647}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -599,14 +617,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'WINDOW_UPDATE', 'increment': 2147483647}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -614,6 +624,13 @@
   "35": {
     "description": "An endpoint MUST treat a change to SETTINGS_INITIAL_WINDOW_SIZE that causes any flow-control window to exceed the maximum size as a connection error (Section 5.4.1) of type FLOW_CONTROL_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 3. Additional data: b'invalid SETTINGS frame'.",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'INITIAL_WINDOW_SIZE': 2147483648}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -624,14 +641,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'INITIAL_WINDOW_SIZE': 2147483648}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -639,6 +648,13 @@
   "36": {
     "description": "If a CONTINUATION frame is received with a Stream Identifier field of 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 2 of 2 frames. Error code 1. Additional data: b'unexpected stream id in CONTINUATION frame'.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'CONTINUATION', 'stream_id': 0}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -649,14 +665,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 2 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'CONTINUATION', 'stream_id': 0}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -664,6 +672,13 @@
   "37": {
     "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using HEADERS frame with END_HEADERS flag set)",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 2 of 2 frames. Error code 1. Additional data: b'received invalid CONTINUATION frame'.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': True}}, {'type': 'CONTINUATION'}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -674,14 +689,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 2 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': True}}, {'type': 'CONTINUATION'}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -689,6 +696,13 @@
   "40": {
     "description": "Trailers MUST NOT include pseudo-header fields (Section 8.3).",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 3 of 3 frames. Error code 1. Additional data: b'invalid pseudo header'.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA'}, {'type': 'TRAILERS', 'headers': {':path': '/'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -699,14 +713,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 3 frames.",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA'}, {'type': 'TRAILERS', 'headers': {':path': '/'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -714,6 +720,13 @@
   "41": {
     "description": "Field names MUST be converted to lowercase when constructing an HTTP/2 message.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':METHOD': 'GET', ':SCHEME': 'http', ':PATH': '/', ':AUTHORITY': 'example.com'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -724,14 +737,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':METHOD': 'GET', ':SCHEME': 'http', ':PATH': '/', ':AUTHORITY': 'example.com'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -964,6 +969,13 @@
   "51": {
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2)",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'found an unexpected connection-specific header'.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'connection': 'keep-alive'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -974,14 +986,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'connection': 'keep-alive'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1039,6 +1043,13 @@
   "54": {
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2)",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'found an unexpected connection-specific header'.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'transfer-encoding': 'chunked'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1049,14 +1060,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'transfer-encoding': 'chunked'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1064,6 +1067,13 @@
   "55": {
     "description": "An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2)",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'found an unexpected connection-specific header'.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'upgrade': 'h2c'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1074,14 +1084,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'upgrade': 'h2c'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1089,6 +1091,13 @@
   "56": {
     "description": "The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'found an unexpected connection-specific header'.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'te': 'gzip'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1099,14 +1108,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'te': 'gzip'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1114,6 +1115,13 @@
   "57": {
     "description": "Pseudo-header fields are not HTTP header fields. Endpoints MUST NOT generate pseudo-header fields other than those defined in this document.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', ':version': '2.0'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1124,14 +1132,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', ':version': '2.0'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1139,6 +1139,13 @@
   "59": {
     "description": "Pseudo-header fields defined for responses MUST NOT appear in requests.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', ':status': '200'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1149,14 +1156,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', ':status': '200'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1164,6 +1163,13 @@
   "60": {
     "description": "All pseudo-header fields sent from a client MUST appear in a field block before all regular field lines. Any request or response that contains a pseudo-header field that appears in a field block after a regular field line MUST be treated as malformed (Section 8.1.1).",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid pseudo header'.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {'accept': '*/*', ':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1174,14 +1180,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {'accept': '*/*', ':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1189,6 +1187,13 @@
   "62": {
     "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with the same value.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid pseudo header'.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}, 'duplicate_headers': {':authority': 'example.com'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1199,14 +1204,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}, 'duplicate_headers': {':authority': 'example.com'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1214,6 +1211,13 @@
   "63": {
     "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with different values.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid pseudo header'.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}, 'duplicate_headers': {':authority': 'nopasaran.com'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1224,14 +1228,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}, 'duplicate_headers': {':authority': 'nopasaran.com'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1289,6 +1285,13 @@
   "68": {
     "description": "The \":path\" pseudo-header field MUST NOT be empty for \"http\" or \"https\" URIs; \"http\" or \"https\" URIs that do not contain a path component MUST include a value of '/'.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid pseudo header'.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '', ':authority': 'example.com'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1299,14 +1302,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '', ':authority': 'example.com'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1314,6 +1309,13 @@
   "69": {
     "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :method missing)",
     "result": {
+      "Worker_1": {
+        "State": "RESET_RECEIVED",
+        "Variables": {
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':scheme': 'http', ':path': '/', ':authority': 'example.com'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1324,14 +1326,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':scheme': 'http', ':path': '/', ':authority': 'example.com'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1339,6 +1333,13 @@
   "70": {
     "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :scheme missing)",
     "result": {
+      "Worker_1": {
+        "State": "RESET_RECEIVED",
+        "Variables": {
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':path': '/', ':authority': 'example.com'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1349,14 +1350,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':path': '/', ':authority': 'example.com'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1364,6 +1357,13 @@
   "72": {
     "description": "A client cannot push. Thus, servers MUST treat the receipt of a PUSH_PROMISE frame as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 2 of 2 frames. Error code 1. Additional data: b'received PUSH_PROMISE frame'.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'PUSH_PROMISE', 'flags': {'END_STREAM': True}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1374,14 +1374,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 2 frames.",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'PUSH_PROMISE', 'flags': {'END_STREAM': True}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1389,6 +1381,13 @@
   "74": {
     "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted. (Tested with both present)",
     "result": {
+      "Worker_1": {
+        "State": "RESET_RECEIVED",
+        "Variables": {
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':scheme': 'http', ':path': '/', ':authority': 'example.com:80'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1399,14 +1398,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':scheme': 'http', ':path': '/', ':authority': 'example.com:80'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1439,6 +1430,13 @@
   "76": {
     "description": "An endpoint MUST NOT send frames other than PRIORITY on a closed stream.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 3 of 3 frames. Error code 5. Additional data: b'closed stream id in HEADERS frame'.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM'}, {'type': 'HEADERS', 'flags': {'END_STREAM': True}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1449,14 +1447,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 3 frames.",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM'}, {'type': 'HEADERS', 'flags': {'END_STREAM': True}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1464,6 +1454,13 @@
   "77": {
     "description": "RST_STREAM frames MUST NOT be sent for a stream in the 'idle' state.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'unexpected stream id in RST_STREAM frame'.",
+          "sent_frames": "[{'type': 'RST_STREAM'}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1474,14 +1471,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'RST_STREAM'}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1489,6 +1478,13 @@
   "78": {
     "description": "RST_STREAM frames MUST be associated with a stream.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'unexpected stream id in RST_STREAM frame'.",
+          "sent_frames": "[{'type': 'RST_STREAM'}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1499,14 +1495,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'RST_STREAM'}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1532,6 +1520,13 @@
   "80": {
     "description": "DATA frames MUST be associated with a stream.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid DATA frame'.",
+          "sent_frames": "[{'type': 'DATA'}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1542,14 +1537,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'DATA'}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1557,6 +1544,13 @@
   "81": {
     "description": "If a DATA frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 2 of 2 frames. Error code 1. Additional data: b'invalid stream id in DATA frame'.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'stream_id': 0, 'flags': {'END_STREAM': True}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1567,14 +1561,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 2 frames.",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'stream_id': 0, 'flags': {'END_STREAM': True}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1582,6 +1568,13 @@
   "82": {
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the idle state.)",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid DATA frame'.",
+          "sent_frames": "[{'type': 'DATA'}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1592,14 +1585,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'DATA'}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1607,6 +1592,13 @@
   "83": {
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)",
     "result": {
+      "Worker_1": {
+        "State": "RESET_RECEIVED",
+        "Variables": {
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #2 of 2: DATA. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': True}}, {'type': 'DATA'}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1617,14 +1609,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 2 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': True}}, {'type': 'DATA'}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1632,6 +1616,13 @@
   "84": {
     "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.)",
     "result": {
+      "Worker_1": {
+        "State": "RESET_RECEIVED",
+        "Variables": {
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #3 of 3: DATA. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM'}, {'type': 'DATA', 'flags': {'END_STREAM': True}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1642,14 +1633,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 3 frames.",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM'}, {'type': 'DATA', 'flags': {'END_STREAM': True}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1657,6 +1640,13 @@
   "85": {
     "description": "A HEADERS frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 2 of 2 frames. Error code 1. Additional data: b'expected CONTINUATION frame'.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'DATA'}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1667,14 +1657,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 2 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'DATA'}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1682,6 +1664,13 @@
   "86": {
     "description": "If a HEADERS frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'invalid stream id in HEADERS frame'.",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 0}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1692,14 +1681,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 0}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1775,6 +1756,13 @@
   "94": {
     "description": "CONTINUATION frames MUST be associated with a stream.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: b'received invalid CONTINUATION frame'.",
+          "sent_frames": "[{'type': 'CONTINUATION'}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1785,14 +1773,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'CONTINUATION'}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1800,6 +1780,13 @@
   "95": {
     "description": "If the END_HEADERS flag is not set, this frame MUST be followed by another CONTINUATION frame. A receiver MUST treat the receipt of any other type of frame or a frame on a different stream as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 2 of 2 frames. Error code 1. Additional data: b'expected CONTINUATION frame'.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'DATA'}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1810,14 +1797,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 2 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'DATA'}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1825,6 +1804,13 @@
   "96": {
     "description": "Other frames (from any stream) MUST NOT occur between the HEADERS frame and any CONTINUATION frames that might follow.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 2 of 3 frames. Error code 1. Additional data: b'expected CONTINUATION frame'.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'DATA'}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1835,14 +1821,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 3 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'DATA'}, {'type': 'CONTINUATION'}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1850,6 +1828,13 @@
   "97": {
     "description": "An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving the HEADERS frame that opens a request or after receiving a final (non-informational) status code MUST treat the corresponding request or response as malformed (Section 8.1.1).",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 2 of 2 frames. Error code 1. Additional data: b'invalid pseudo header'.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'HEADERS', 'flags': {'END_STREAM': True}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1860,14 +1845,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 2 frames.",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'HEADERS', 'flags': {'END_STREAM': True}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -1975,6 +1952,13 @@
   "102": {
     "description": "Pseudo-header fields MUST NOT appear in a trailer section.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 3 of 3 frames. Error code 1. Additional data: b'invalid pseudo header'.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA'}, {'type': 'TRAILERS', 'headers': {':path': '/'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -1985,14 +1969,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 3 frames.",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA'}, {'type': 'TRAILERS', 'headers': {':path': '/'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -2000,6 +1976,13 @@
   "103": {
     "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing)",
     "result": {
+      "Worker_1": {
+        "State": "RESET_RECEIVED",
+        "Variables": {
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':authority': 'example.com'}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -2010,14 +1993,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 1 frames.",
-          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':authority': 'example.com'}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }
@@ -2025,6 +2000,13 @@
   "105": {
     "description": "PUSH_PROMISE frames MUST NOT be sent by the client.",
     "result": {
+      "Worker_1": {
+        "State": "GOAWAY_RECEIVED",
+        "Variables": {
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 2 of 2 frames. Error code 1. Additional data: b'received PUSH_PROMISE frame'.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'PUSH_PROMISE', 'flags': {'END_STREAM': True}}]"
+        }
+      },
       "Worker_2": {
         "State": "TIMEOUT",
         "Variables": {
@@ -2035,14 +2017,6 @@
           "event": "TIMEOUT",
           "result": "TIMEOUT",
           "packets_received": null
-        }
-      },
-      "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
-        "Variables": {
-          "result": "Successfully sent 2 frames.",
-          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'PUSH_PROMISE', 'flags': {'END_STREAM': True}}]",
-          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
         }
       }
     }

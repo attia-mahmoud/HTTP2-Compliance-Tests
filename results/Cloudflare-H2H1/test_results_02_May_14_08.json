@@ -42,7 +42,7 @@
       "Worker_1": {
         "State": "REJECTED",
         "Variables": {
-          "msg": "No initial settings received from peer at japancloudflare.nopasaran.co:80"
+          "msg": "No initial settings received from peer at australiacloudflare.nopasaran.co:80"
         }
       }
     }
