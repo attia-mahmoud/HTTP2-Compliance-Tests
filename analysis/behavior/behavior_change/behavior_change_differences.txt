@@ -3,9 +3,9 @@ Behavior Change Differences (New Count - Old Count)
 
 Proxy: Apache (Scope: full)
 -------------------------------------
-  Dropped: -82
-  Error 500: 46
-  GOAWAY: 36
+  Dropped: -77
+  Error 500: 43
+  GOAWAY: 34
   RESET: 0
   Unmodified: 0
   Modified: 0
@@ -13,8 +13,8 @@ Proxy: Apache (Scope: full)
 
 Proxy: Envoy (Scope: full)
 -------------------------------------
-  Dropped: 5
-  Error 500: 1
+  Dropped: 4
+  Error 500: 2
   GOAWAY: -4
   RESET: -5
   Unmodified: 3
@@ -23,9 +23,9 @@ Proxy: Envoy (Scope: full)
 
 Proxy: H2O (Scope: full)
 -------------------------------------
-  Dropped: -26
+  Dropped: -24
   Error 500: 7
-  GOAWAY: 18
+  GOAWAY: 16
   RESET: 0
   Unmodified: 0
   Modified: 1
@@ -33,8 +33,8 @@ Proxy: H2O (Scope: full)
 
 Proxy: HAproxy (Scope: full)
 -------------------------------------
-  Dropped: -9
-  Error 500: 9
+  Dropped: -8
+  Error 500: 8
   GOAWAY: 1
   RESET: 0
   Unmodified: -2
@@ -73,11 +73,11 @@ Proxy: Traefik (Scope: full)
 
 Proxy: Lighttpd (Scope: client-only)
 -------------------------------------
-  Dropped: -5
+  Dropped: -4
   Error 500: -1
   GOAWAY: 1
   RESET: 1
-  Accepted: 4
+  Accepted: 3
 
 Proxy: Nginx (Scope: client-only)
 -------------------------------------
@@ -89,9 +89,9 @@ Proxy: Nginx (Scope: client-only)
 
 Proxy: Varnish (Scope: client-only)
 -------------------------------------
-  Dropped: 8
+  Dropped: 7
   Error 500: 0
   GOAWAY: 1
   RESET: 0
-  Accepted: -9
+  Accepted: -8
 
