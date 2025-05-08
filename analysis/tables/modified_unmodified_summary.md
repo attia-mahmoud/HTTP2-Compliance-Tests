@@ -1,101 +1,103 @@
-# Modified and Unmodified Test Results Summary
-
-This file lists test cases where at least one proxy returned a 'modified' or 'unmodified' result.
-
-## Test 3: the connection preface starts with the string: PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n
+# Modified and Unmodified Test Results Summary\n\nThis file lists test cases where at least one proxy returned a 'modified' or 'unmodified' result.\n\n## Test 4: Client preface must include a SETTINGS frame
 
 **Modified by:** Cloudflare
 
 ---
 
-## Test 81: If a DATA frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
+## Test 110: A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving. (server side)
 
 **Unmodified by:** Caddy-2.9.1, Cloudflare, Envoy-1.32.2, HAproxy-2.9.10, Nghttpx-1.62.1, Node-20.16.0
 
 ---
 
-## Test 78: RST_STREAM frames MUST be associated with a stream.
+## Test 75: With the CONNECT method, The ":authority" pseudo-header field contains the host and port to connect to
 
 **Modified by:** H2O-26b116e95
 **Unmodified by:** Nghttpx-1.62.1
 
 ---
 
-## Test 51: An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2)
+## Test 49: A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).
 
 **Unmodified by:** Envoy-1.32.2, HAproxy-2.9.10
 
 ---
 
-## Test 52: An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2)
+## Test 50: A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).
 
 **Unmodified by:** Envoy-1.32.2, HAproxy-2.9.10
 
 ---
 
-## Test 68: The ":path" pseudo-header field MUST NOT be empty for "http" or "https" URIs; "http" or "https" URIs that do not contain a path component MUST include a value of '/'.
+## Test 66: Clients MUST NOT generate a request with a Host header field that differs from the ":authority" pseudo-header field.
 
 **Modified by:** HAproxy-2.9.10, Nghttpx-1.62.1
 
 ---
 
-## Test 69: All HTTP/2 requests MUST include exactly one valid value for the ":method", ":scheme", and ":path" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :method missing)
+## Test 67: ':authority' MUST NOT include the deprecated userinfo subcomponent for "http" or "https" schemed URIs.
 
 **Unmodified by:** HAproxy-2.9.10, Nghttpx-1.62.1
 
 ---
 
-## Test 6: An endpoint MUST NOT send any type of frame other than HEADERS, RST_STREAM, or PRIORITY in the reserved (local) state.
+## Test 10: A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving.
 
 **Unmodified by:** Nghttpx-1.62.1
 
 ---
 
-## Test 144: An endpoint MUST NOT send frames other than PRIORITY on a closed stream.
+## Test 139: An endpoint MUST NOT generate an HTTP/2 message containing keep-alive header field (RFC9113 Section 8.2.2)
 
 **Modified by:** Caddy-2.9.1
 
 ---
 
-## Test 148: DATA frames MUST be associated with a stream. (server side)
+## Test 58: Pseudo-header fields defined for requests MUST NOT appear in responses.
 
 **Modified by:** Cloudflare
 
 ---
 
-## Test 92: PUSH_PROMISE MUST NOT be sent if the SETTINGS_ENABLE_PUSH setting of the peer endpoint is set to 0.
+## Test 151: If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)
 
 **Unmodified by:** Caddy-2.9.1, Cloudflare, Envoy-1.32.2, HAproxy-2.9.10, Nghttpx-1.62.1, Node-20.16.0
 
 ---
 
-## Test 153: A HEADERS frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream.
+## Test 71: For HTTP/2 responses, a single ":status" pseudo-header field is defined that carries the HTTP status code field. This pseudo-header field MUST be included in all responses, including interim responses; otherwise, the response is malformed.
 
 **Unmodified by:** Cloudflare
 
 ---
 
-## Test 145: RST_STREAM frames MUST NOT be sent for a stream in the 'idle' state. (server side)
+## Test 140: An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2)
 
 **Modified by:** Caddy-2.9.1
 
 ---
 
-## Test 146: RST_STREAM frames MUST be associated with a stream. (server side)
+## Test 141: An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2)
 
 **Modified by:** Caddy-2.9.1, Cloudflare
 
 ---
 
-## Test 156: The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver.
+## Test 166: HTTP/2 does not support the 101 (Switching Protocols) informational status code (Section 15.2.2 of [HTTP]).
 
 **Unmodified by:** Caddy-2.9.1
 
 ---
 
-## Test 125: A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using HEADERS frame with END_HEADERS flag set)
+## Test 126: Trailers MUST NOT include pseudo-header fields (Section 8.3). (server side)
 
 **Modified by:** Cloudflare, HAproxy-2.9.10
+
+---
+
+## Test 128: Field names MUST NOT contain control characters (0x00-0x1F)
+
+**Modified by:** Node-20.16.0
 
 ---
 
@@ -105,7 +107,7 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 
 ---
 
-## Test 130: Field names MUST NOT contain DEL character (0x7F)
+## Test 131: Field names MUST NOT contain high byte characters (0x80-0xFF)
 
 **Modified by:** Node-20.16.0
 
@@ -131,7 +133,8 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 
 ## Test 135: A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).
 
-**Modified by:** Node-20.16.0
+**Modified by:** Cloudflare, Node-20.16.0
+**Unmodified by:** Caddy-2.9.1, Envoy-1.32.2, HAproxy-2.9.10
 
 ---
 
@@ -142,27 +145,20 @@ This file lists test cases where at least one proxy returned a 'modified' or 'un
 
 ---
 
-## Test 137: An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2)
-
-**Modified by:** Cloudflare, Node-20.16.0
-**Unmodified by:** Caddy-2.9.1, Envoy-1.32.2, HAproxy-2.9.10
-
----
-
-## Test 147: Implementations MUST discard frames that have unknown or unsupported types. (server side)
+## Test 142: The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'.
 
 **Modified by:** Caddy-2.9.1
 **Unmodified by:** HAproxy-2.9.10
 
 ---
 
-## Test 142: The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'.
+## Test 137: An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2)
 
 **Modified by:** Caddy-2.9.1
 
 ---
 
-## Test 143: Pseudo-header fields are not HTTP header fields. Endpoints MUST NOT generate pseudo-header fields other than those defined in this document.
+## Test 138: An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2)
 
 **Modified by:** Caddy-2.9.1
 
