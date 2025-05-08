@@ -11,10 +11,10 @@ Proxy: Apache-2.4.62
 
 Proxy: Cloudflare
 ---------------------
-  Dropped: 6
+  Dropped: 7
   Error 500: 1
-  GOAWAY: -7
-  RESET: 0
+  GOAWAY: -6
+  RESET: -2
   Accepted: 0
 
 Proxy: Envoy-1.32.2
@@ -27,11 +27,11 @@ Proxy: Envoy-1.32.2
 
 Proxy: H2O-26b116e95
 ---------------------
-  Dropped: -3
+  Dropped: -2
   Error 500: 0
   GOAWAY: 0
   RESET: 0
-  Accepted: 3
+  Accepted: 2
 
 Proxy: HAproxy-2.9.10
 ---------------------
