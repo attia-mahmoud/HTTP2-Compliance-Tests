@@ -63,43 +63,42 @@ tests_tree = "http_2_to_1_conformance.png"
 
 tests = []
 
-
-# Load client-side test cases from clientside_vs_serverside.json
 with open('docs/clientside_vs_serverside.json', 'r') as f:
     test_filters = json.load(f)
     tests = test_filters['client_side_non_conformant_frames']
 
 list_of_proxies = [
     # {"PROXY": "Direct", "PROXY_PORT": "8080"}
-    # {"PROXY": "Apache", "PROXY_PORT": "7700"},
-    # {"PROXY": "Caddy", "PROXY_PORT": "7701"},
-    # {"PROXY": "Envoy", "PROXY_PORT": "7702"}
-    # {"PROXY": "HAproxy", "PROXY_PORT": "7704"},
-    {"PROXY": "Nginx-1.22.0", "PROXY_PORT": "7770", "tls_enabled": "true"}
+    # {"PROXY": "Apache-2.4.62-H2H1", "PROXY_PORT": "7700"},
+    # {"PROXY": "Caddy-2.9.1-H2H1", "PROXY_PORT": "7716"},
+    # {"PROXY": "Envoy-1.32.2-H2H1", "PROXY_PORT": "7702"}
+    # {"PROXY": "HAproxy-2.9.10-H2H1", "PROXY_PORT": "7704"},   
+    # {"PROXY": "Nginx-1.22.0", "PROXY_PORT": "7770", "tls_enabled": "true"}
     # {"PROXY": "Lighttpd", "PROXY_PORT": "7771", "tls_enabled": "true"}
-    # {"PROXY": "Nghttpx", "PROXY_PORT": "7706"}
-    # {"PROXY": "Node", "PROXY_PORT": "7707"}
+    # {"PROXY": "Nghttpx-1.62.1-H2H1", "PROXY_PORT": "7706"}
+    # {"PROXY": "Node-20.16.0-H2H1", "PROXY_PORT": "7777"}
     # {"PROXY": "Mitmproxy", "PROXY_PORT": "7708", "tls_enabled": "true"}
-    # {"PROXY": "H2O", "PROXY_PORT": "7709", "tls_enabled": "true"}
-    # {"PROXY": "Cloudflare", "PROXY_PORT": "443", "tls_enabled": "true", "cloudflare_origin": "true"},
+    # {"PROXY": "H2O-26b116e95-H2H1", "PROXY_PORT": "7709"}
+    {"PROXY": "Cloudflare-H2H1", "PROXY_PORT": "80"}
     # {"PROXY": "Azure-AG", "PROXY_PORT": "443", "tls_enabled": "true"}
-    # {"PROXY": "Fastly", "PROXY_PORT": "80"}
-    # {"PROXY": "Muraena", "PROXY_PORT": "80"},
+    # {"PROXY": "Fastly", "PROXY_PORT": "443", "tls_enabled": "true"}
     # {"PROXY": "Varnish-7.1.0", "PROXY_PORT": "9080"},
+    # {"PROXY": "Traefik-3.3.5-H2H1", "PROXY_PORT": "7715"},
 ]
 
-# CLIENT_WORKER = "linodegermany.admin.worker.nopasaran.org"
-# SERVER_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
-# SERVER_PORT = "8080"
+CLIENT_WORKER = "linodejapan.admin.worker.nopasaran.org"
+SERVER_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
+SERVER_PORT = "80"
+PROXY_IP = "australiacloudflare.nopasaran.co"
 
-CLIENT_WORKER = "labworker3.admin.worker.nopasaran.org"
-SERVER_WORKER = "worker1.admin.worker.nopasaran.org"
-PROXY_IP = "192.168.122.9"
-SERVER_PORT = "8080"
+# CLIENT_WORKER = "labworker3.admin.worker.nopasaran.org"
+# SERVER_WORKER = "worker1.admin.worker.nopasaran.org"
+# PROXY_IP = "192.168.122.6"
+# SERVER_PORT = "8080"
 
 # file = "test_cases_debug.json"
 file = "test_cases.json"
-MASTER = "mahmoudmaster.admin.master.nopasaran.org"
+MASTER = "dmaster.admin.master.nopasaran.org"
 
 ################ VARIABLES #################
 
