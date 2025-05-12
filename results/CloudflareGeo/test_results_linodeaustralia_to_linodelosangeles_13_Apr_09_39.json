@@ -2,7 +2,7 @@
   "metadata": {
     "date": "2025-04-13 10:53:21",
     "proxy": "Cloudflare",
-    "master": "mahmoudmaster.admin.master.nopasaran.org",
+    "master": "master.admin.master.nopasaran.org",
     "client_worker": "linodeaustralia.admin.worker.nopasaran.org",
     "server_worker": "linodelosangeles.admin.worker.nopasaran.org"
   },

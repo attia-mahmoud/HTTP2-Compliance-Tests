@@ -80,7 +80,7 @@
           "server": null,
           "result": "Received 1 HTTP/1.1 requests.",
           "result_received": "Successfully sent 1 frames.",
-          "packets_received": "['GET /test-frame HTTP/1.1\\r\\nhost: 192.168.122.6\\r\\nscheme: http\\r\\nuser-agent: nopasaran-http2-client\\r\\naccept: */*\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 ilies (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 65537\\r\\n\\r\\n']"
+          "packets_received": "['GET /test-frame HTTP/1.1\\r\\nhost: 192.168.122.6\\r\\nscheme: http\\r\\nuser-agent: nopasaran-http2-client\\r\\naccept: */*\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 master (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 65537\\r\\n\\r\\n']"
         }
       },
       "Worker_1": {
@@ -158,7 +158,7 @@
           "server": null,
           "result": "Received 1 HTTP/1.1 requests.",
           "result_received": "Successfully sent 1 frames.",
-          "packets_received": "['GET /test-frame HTTP/1.1\\r\\nhost: 192.168.122.6\\r\\nscheme: http\\r\\nuser-agent: nopasaran-http2-client\\r\\naccept: */*\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 ilies (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 98306\\r\\n\\r\\n']"
+          "packets_received": "['GET /test-frame HTTP/1.1\\r\\nhost: 192.168.122.6\\r\\nscheme: http\\r\\nuser-agent: nopasaran-http2-client\\r\\naccept: */*\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 master (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 98306\\r\\n\\r\\n']"
         }
       },
       "Worker_1": {
@@ -663,7 +663,7 @@
           "server": null,
           "result": "Received 1 HTTP/1.1 requests.",
           "result_received": "Successfully sent 3 frames.",
-          "packets_received": "['GET /test-frame HTTP/1.1\\r\\nhost: 192.168.122.6\\r\\nscheme: http\\r\\nuser-agent: nopasaran-http2-client\\r\\naccept: */*\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 ilies (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 98310\\r\\n\\r\\n']"
+          "packets_received": "['GET /test-frame HTTP/1.1\\r\\nhost: 192.168.122.6\\r\\nscheme: http\\r\\nuser-agent: nopasaran-http2-client\\r\\naccept: */*\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 master (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 98310\\r\\n\\r\\n']"
         }
       },
       "Worker_1": {
@@ -935,7 +935,7 @@
           "server": null,
           "result": "Received 1 HTTP/1.1 requests.",
           "result_received": "Successfully sent 1 frames.",
-          "packets_received": "['GET / HTTP/1.1\\r\\nscheme: http\\r\\nhost: example.com\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 ilies (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 98311\\r\\n\\r\\n']"
+          "packets_received": "['GET / HTTP/1.1\\r\\nscheme: http\\r\\nhost: example.com\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 master (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 98311\\r\\n\\r\\n']"
         }
       },
       "Worker_1": {
@@ -957,7 +957,7 @@
           "server": null,
           "result": "Received 1 HTTP/1.1 requests.",
           "result_received": "Successfully sent 1 frames.",
-          "packets_received": "['GET / HTTP/1.1\\r\\nscheme: http\\r\\nhost: example.com\\r\\nproxy-connection: keep-alive\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 ilies (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 98312\\r\\n\\r\\n']"
+          "packets_received": "['GET / HTTP/1.1\\r\\nscheme: http\\r\\nhost: example.com\\r\\nproxy-connection: keep-alive\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 master (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 98312\\r\\n\\r\\n']"
         }
       },
       "Worker_1": {
@@ -979,7 +979,7 @@
           "server": null,
           "result": "Received 1 HTTP/1.1 requests.",
           "result_received": "Successfully sent 1 frames.",
-          "packets_received": "['GET / HTTP/1.1\\r\\nscheme: http\\r\\nhost: example.com\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 ilies (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 65546\\r\\n\\r\\n']"
+          "packets_received": "['GET / HTTP/1.1\\r\\nscheme: http\\r\\nhost: example.com\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 master (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 65546\\r\\n\\r\\n']"
         }
       },
       "Worker_1": {
@@ -1001,7 +1001,7 @@
           "server": null,
           "result": "Received 1 HTTP/1.1 requests.",
           "result_received": "Successfully sent 1 frames.",
-          "packets_received": "['GET / HTTP/1.1\\r\\nscheme: http\\r\\nhost: example.com\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 ilies (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 65547\\r\\n\\r\\n']"
+          "packets_received": "['GET / HTTP/1.1\\r\\nscheme: http\\r\\nhost: example.com\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 master (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 65547\\r\\n\\r\\n']"
         }
       },
       "Worker_1": {
@@ -1023,7 +1023,7 @@
           "server": null,
           "result": "Received 1 HTTP/1.1 requests.",
           "result_received": "Successfully sent 1 frames.",
-          "packets_received": "['GET / HTTP/1.1\\r\\nscheme: http\\r\\nhost: example.com\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 ilies (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 98313\\r\\n\\r\\n']"
+          "packets_received": "['GET / HTTP/1.1\\r\\nscheme: http\\r\\nhost: example.com\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 master (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 98313\\r\\n\\r\\n']"
         }
       },
       "Worker_1": {
@@ -1046,7 +1046,7 @@
           "server": null,
           "result": "Received 1 HTTP/1.1 requests.",
           "result_received": "Successfully sent 1 frames.",
-          "packets_received": "['GET / HTTP/1.1\\r\\nscheme: http\\r\\nhost: example.com\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 ilies (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 65548\\r\\n\\r\\n']"
+          "packets_received": "['GET / HTTP/1.1\\r\\nscheme: http\\r\\nhost: example.com\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 master (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 65548\\r\\n\\r\\n']"
         }
       },
       "Worker_1": {
@@ -1118,7 +1118,7 @@
           "server": null,
           "result": "Received 1 HTTP/1.1 requests.",
           "result_received": "Successfully sent 1 frames.",
-          "packets_received": "['GET / HTTP/1.1\\r\\naccept: */*\\r\\nscheme: http\\r\\nhost: example.com\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 ilies (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 98314\\r\\n\\r\\n']"
+          "packets_received": "['GET / HTTP/1.1\\r\\naccept: */*\\r\\nscheme: http\\r\\nhost: example.com\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 master (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 98314\\r\\n\\r\\n']"
         }
       },
       "Worker_1": {
@@ -1216,7 +1216,7 @@
           "server": null,
           "result": "Received 1 HTTP/1.1 requests.",
           "result_received": "Successfully sent 1 frames.",
-          "packets_received": "['GET / HTTP/1.1\\r\\nscheme: http\\r\\nhost: user:pass@example.com\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 ilies (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 65552\\r\\n\\r\\n']"
+          "packets_received": "['GET / HTTP/1.1\\r\\nscheme: http\\r\\nhost: user:pass@example.com\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 master (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 65552\\r\\n\\r\\n']"
         }
       },
       "Worker_1": {
@@ -1647,7 +1647,7 @@
           "server": null,
           "result": "Received 1 HTTP/1.1 requests.",
           "result_received": "Successfully sent 1 frames.",
-          "packets_received": "['GET /test-frame HTTP/1.1\\r\\nhost: 192.168.122.6\\r\\nscheme: http\\r\\nuser-agent: nopasaran-http2-client\\r\\naccept: */*\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 ilies (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 98317\\r\\n\\r\\n']"
+          "packets_received": "['GET /test-frame HTTP/1.1\\r\\nhost: 192.168.122.6\\r\\nscheme: http\\r\\nuser-agent: nopasaran-http2-client\\r\\naccept: */*\\r\\nX-Forwarded-For: 192.168.122.148\\r\\nVia: 1.1 master (Varnish/7.7)\\r\\nAccept-Encoding: gzip\\r\\nX-Varnish: 98317\\r\\n\\r\\n']"
         }
       },
       "Worker_1": {
