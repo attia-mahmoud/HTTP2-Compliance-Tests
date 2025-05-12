@@ -1,4 +1,4 @@
-# HTTP2-Conformance-Tests
+# HTTP2-Compliance-Tests
  
 python -m venv .venv
 
