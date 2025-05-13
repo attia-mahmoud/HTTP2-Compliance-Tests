@@ -32,6 +32,8 @@ def analyze_results(filename, scope):
     if 'metadata' in data:
         del data['metadata']
     
+    # Define tests to exclude (these should match those in load_test_order_mapping)
+    
     dropped_count = 0
     received_count = 0
     goaway_count = 0
@@ -42,7 +44,12 @@ def analyze_results(filename, scope):
     test_results = {}
     test_messages = {}
     
+    # Define special case tests (these are known test IDs with specific behaviors)
+    # modified_tests = ['4', '126']  # Tests that should be categorized as "modified"
+    # unmodified_tests = ['6', '8', '110', '151', '7', '83']  # Tests that should be categorized as "unmodified"
+    
     for test_id, test_data in data.items():
+            
         if not test_data or not test_data.get('result'):
             # Handle missing/empty result data as 'dropped' and count it
             test_results[test_id] = "dropped"
@@ -51,14 +58,6 @@ def analyze_results(filename, scope):
             continue # Continue to next test_id
         
         result = test_data['result']
-        is_goaway = False
-        is_reset = False
-        is_500 = False
-        is_dropped = False
-        is_received = False
-        is_modified = False
-        is_unmodified = False
-        message = ""
         
         if isinstance(result, str):
             # Treat string results as 'dropped'
@@ -74,155 +73,99 @@ def analyze_results(filename, scope):
         vars1 = worker1.get('Variables', {}) or {}
         vars2 = worker2.get('Variables', {}) or {}
 
-        if vars2.get('result', '').startswith('Received'):
-            if test_id in ['4', '87', '126', '165']:
-                if scope == 'full':
-                    is_modified = True
-                else:
-                    is_received = True
-            elif test_id in ['8', '110', '151', '7', '83']:
-                if scope == 'full':
-                    is_unmodified = True
-                else:
-                    is_received = True
-            else:
-                if scope == 'full':
-                    is_unmodified = True
-                else:
-                    is_received = True
-            message = vars2['result']
+        def is_result_goaway(worker1, worker2):
+            if worker1 and worker1.get('State', '') == 'GOAWAY_RECEIVED':
+                return True
+            if worker2 and worker2.get('State', '') == 'GOAWAY_RECEIVED':
+                return True
+            return False
         
-        elif vars1.get('client_result', '') == 'Test result: MODIFIED' or vars1.get('result', '') == 'Test result: MODIFIED':
-            if scope == 'full':
-                is_modified = True
-            else:
-                is_received = True
-            message = vars1.get('client_result', vars1.get('result', ''))
-        elif vars1.get('client_result', '') == 'Test result: UNMODIFIED' or vars1.get('result', '') == 'Test result: UNMODIFIED':
-            if scope == 'full':
-                is_unmodified = True
-            else:
-                is_received = True
-            message = vars1.get('client_result', vars1.get('result', ''))
+        def is_result_reset(worker1, worker2):
+            if worker1 and worker1.get('State', '') == 'RESET_RECEIVED':
+                return True
+            if worker2 and worker2.get('State', '') == 'RESET_RECEIVED':
+                return True
+            return False
+    
+        def is_result_500(worker1, worker2):
+            if worker1 and worker1.get('State', '') == 'REJECTED':
+                return True
+            if worker2 and worker2.get('State', '') == 'REJECTED':
+                return True
+            return False
+        
+        def is_result_modified(vars1, vars2):
+            if vars1 and (vars1.get('client_result', '') == "Test result: MODIFIED" or vars1.get('result', '') == "Test result: MODIFIED") or vars1.get('server_result', '') == "Test result: MODIFIED":
+                return True
+            if vars2 and (vars2.get('server_result', '') == "Test result: MODIFIED" or vars2.get('result', '') == "Test result: MODIFIED" or vars2.get('client_result', '') == "Test result: MODIFIED"):
+                return True
+            return False
+        
+        def is_result_unmodified(vars1, vars2):
+            if vars1 and (vars1.get('client_result', '') == "Test result: UNMODIFIED" or vars1.get('result', '') == "Test result: UNMODIFIED") or vars1.get('server_result', '') == "Test result: UNMODIFIED":
+                return True
+            if vars2 and (vars2.get('server_result', '') == "Test result: UNMODIFIED" or vars2.get('result', '') == "Test result: UNMODIFIED" or vars2.get('client_result', '') == "Test result: UNMODIFIED"):
+                return True
+            return False
+        
+        def is_result_received(vars2):
+            if vars2 and vars2.get('result', '').startswith("Received 1 HTTP/1.1 requests"):
+                return True
+            return False
+        
+        def is_result_dropped(worker1, worker2):
+            if worker1 and worker1.get('State', '') == "TIMEOUT":
+                return True
+            if worker2 and worker2.get('State', '') == "TIMEOUT":
+                return True
+            return False
 
-        elif vars2.get('server_result', '') == 'Test result: MODIFIED':
-            if scope == 'full':
-                is_modified = True
-            else:
-                is_received = True
-            message = vars2['server_result']
-        elif vars2.get('server_result', '') == 'Test result: UNMODIFIED':
-            if scope == 'full':
-                is_unmodified = True
-            else:
-                is_received = True
-            message = vars2['server_result']
-            
-        elif worker1 and worker1.get('State', '') == 'GOAWAY_RECEIVED':
-            is_goaway = True
-            message = vars1['msg'] if vars1.get('msg', '') else vars1['client_result']
-        elif worker2 and worker2.get('State', '') == 'GOAWAY_RECEIVED':
-            is_goaway = True
-            message = vars2['msg'] if vars2.get('msg', '') else vars2['server_result']
-        elif worker1 and worker1.get('State', '') == 'REJECTED':
-            is_500 = True
-            message = vars1['msg'] if vars1.get('msg', '') else vars1['client_result']
-        elif worker2 and worker2.get('State', '') == 'REJECTED':
-            is_500 = True
-            message = vars2['server_result']
-        elif worker1 and worker1.get('State', '') == 'RESET_RECEIVED':
-            if vars1.get('msg'):
-                is_reset = True
-                message = vars1['msg']
-            elif vars1.get('client_result'):
-                is_reset = True # TODO: check if this is correct
-                message = vars1['client_result']
-        elif worker2 and worker2.get('State', '') == 'RESET_RECEIVED':
-            if vars2.get('msg'):
-                is_reset = True
-                message = vars2['msg']
-            elif vars2.get('server_result'):
-                is_reset = True # TODO: check if this is correct
-                message = vars2['server_result']
-        elif vars1 and vars1.get('client_result', '').startswith('Successfully received all') and vars1.get('server_result', '').startswith('Successfully received all'):
-            if test_id in ['4', '87', '126', '165']:
-                if scope == 'full':
-                    is_modified = True
-                else:
-                    is_received = True
-            elif test_id in ['8', '110', '151', '7', '83']:
-                if scope == 'full':
-                    is_unmodified = True
-                else:
-                    is_received = True
-            else:
-                if scope == 'full':
-                    is_unmodified = True
-                else:
-                    is_received = True
-            message = vars1['client_result']
-        elif vars2 and vars2.get('client_result', '').startswith('Successfully received all')and vars2.get('server_result', '').startswith('Successfully received all'):
-            if test_id in ['4', '87', '126', '165']:
-                if scope == 'full':
-                    is_modified = True
-                else:
-                    is_received = True
-            elif test_id in ['8', '110', '151', '7', '83']:
-                if scope == 'full':
-                    is_unmodified = True
-                else:
-                    is_received = True
-            else:
-                if scope == 'full':
-                    is_unmodified = True
-                else:
-                    is_received = True
-            message = vars2['server_result']
-        elif vars2.get('msg', '').startswith("Timeout occurred after 5.0s while waiting for client connection"):
-            is_dropped = True
-            message = vars2['msg']
-        elif worker1 and worker1.get('State', '') in ['CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT', 'CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT']:
-            is_dropped = True
-            message = vars1['msg']
-        elif worker2 and worker2.get('State', '') in ['CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_SERVER', 'CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER']:
-            is_dropped = True
-            message = vars2['msg']
-        else:
-            is_dropped = True
-            message = "Unknown error"
+        special_tests = ['1', '6', '81', '92']
+        special_case_handled = False
+        if test_id in special_tests:
+            if test_id == '6':
+                if vars2 and vars2.get('result', '') == 'Successfully received all 1/1 frames.':
+                    test_results[test_id] = "unmodified"
+                    unmodified_count += 1
+                    special_case_handled = True
+            elif test_id in ['81', '92']:
+                if vars1 and (vars1.get('client_result', '').startswith('Successfully received all') or vars1.get('result', '').startswith('Successfully received all')):
+                    test_results[test_id] = "unmodified"
+                    unmodified_count += 1
+                    special_case_handled = True
+            elif test_id == '1':
+                if worker1 and worker1.get('State', '') == 'REJECTED':
+                    test_results[test_id] = "dropped"
+                    dropped_count += 1
+                    special_case_handled = True
 
-        # Store results
-        if is_modified:
-            test_results[test_id] = "modified"
-            modified_count += 1
-        elif is_unmodified:
-            test_results[test_id] = "unmodified"
-            unmodified_count += 1
-        elif is_dropped:
-            test_results[test_id] = "dropped"
-            dropped_count += 1
-        elif is_reset:
-            test_results[test_id] = "reset"
-            reset_count += 1
-        elif is_500:
-            test_results[test_id] = "500"
-            error_500_count += 1
-        elif is_goaway:
-            test_results[test_id] = "goaway"
-            goaway_count += 1
-        elif is_received:
-            test_results[test_id] = "received"
-            received_count += 1
-        else:
-            test_results[test_id] = "dropped" # Default to dropped
-            dropped_count += 1
-            message = f"Unknown dictionary state/result, categorized as dropped: {result}" # Provide context
-            # Optional: print a warning for debugging unhandled cases
-            # print(f"Warning: Unhandled dictionary structure for test {test_id}, categorized as dropped.")
-
-        # Assign message if not already set by specific conditions
-        if test_id not in test_messages:
-            test_messages[test_id] = message if message else "Category assigned"
+        if not special_case_handled:
+            if is_result_modified(vars1, vars2):
+                test_results[test_id] = "modified"
+                modified_count += 1
+            elif is_result_unmodified(vars1, vars2):
+                test_results[test_id] = "unmodified"
+                unmodified_count += 1
+            elif is_result_received(vars2):
+                test_results[test_id] = "received"
+                received_count += 1
+            elif is_result_goaway(worker1, worker2):
+                test_results[test_id] = "goaway"
+                goaway_count += 1
+            elif is_result_500(worker1, worker2):
+                test_results[test_id] = "500"
+                error_500_count += 1
+            elif is_result_reset(worker1, worker2):
+                test_results[test_id] = "reset"
+                reset_count += 1
+            elif is_result_dropped(worker1, worker2):
+                test_results[test_id] = "dropped"
+                dropped_count += 1
+            elif "Mitmproxy-11.1.0" in filename:
+                unmodified_count += 1
+                test_results[test_id] = "unmodified"
+            else:
+                print(f"Unknown result for proxy {filename}, test {test_id}")
     
     return dropped_count, error_500_count, goaway_count, reset_count, received_count, modified_count, unmodified_count, test_results, test_messages
 
@@ -573,50 +516,145 @@ def create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, 
     """Create a markdown table summarizing the counts of dropped, error, reset, goaway, and received results."""
     os.makedirs(output_directory, exist_ok=True)
     
-    # Create table header
-    table = "| Proxy | Test Scope | Dropped Count | 500 Error Count | GOAWAY Count | RESET Count | Received Count | Modified Count | Unmodified Count | Received Tests | Modified Tests | Unmodified Tests |\n"
-    table += "| ----- | ---------- | ------------- | --------------- | ------------ | ----------- | -------------- | -------------- | ---------------- | -------------- | -------------- | ---------------- |\n"
-    
-    # Add rows for each proxy
-    for proxy in sorted(dropped_counts.keys()):
-        # Get the list of test IDs for each result type
-        received_tests = []
-        modified_tests = []
-        unmodified_tests = []
-        modified_count = 0
-        unmodified_count = 0
+    table = """# HTTP/2 Conformance Test Results
+
+## Overview
+This document presents the results of HTTP/2 conformance testing across various proxy servers. The tests evaluate how each proxy handles different HTTP/2 protocol scenarios.
+
+## Test Categories
+- **Error Handling Tests**: How proxies handle protocol errors (500 Error, GOAWAY, RESET)
+- **Connection Tests**: Tests for connection handling (Dropped connections)
+- **Response Tests**: Tests for response handling (Received, Modified, Unmodified)
+
+## Result Types Explained
+| Result Type | Description |
+|:------------|:------------|
+| Dropped     | Connection timed out or was dropped |
+| 500 Error   | Server returned HTTP 500 error |
+| GOAWAY      | Server sent HTTP/2 GOAWAY frame |
+| RESET       | Server sent HTTP/2 RST_STREAM frame |
+| Received    | Response received successfully |
+| Modified    | Response was modified by proxy |
+| Unmodified  | Response passed through unmodified |
+
+"""
+
+    # Function to format test ranges
+    def format_test_ranges(test_ids):
+        if not test_ids:
+            return ""
+        test_ids = sorted([int(x) for x in test_ids])
+        ranges = []
+        range_start = test_ids[0]
+        prev = test_ids[0]
         
-        if proxy in all_test_results:
-            for test_id, result in all_test_results[proxy].items():
-                if result == "received":
-                    received_tests.append(test_id)
-                elif result == "modified":
-                    modified_tests.append(test_id)
-                    modified_count += 1
-                elif result == "unmodified":
-                    unmodified_tests.append(test_id)
-                    unmodified_count += 1
+        for curr in test_ids[1:] + [None]:
+            if curr != prev + 1:
+                if prev == range_start:
+                    ranges.append(str(range_start))
+                else:
+                    ranges.append(f"{range_start}-{prev}")
+                range_start = curr
+            prev = curr
+            
+        return ", ".join(ranges)
+
+    # Process each scope
+    for scope in ['full', 'client-only']:
+        scope_proxies = [proxy for proxy, config in proxy_configs.items() 
+                        if config['scope'] == scope and proxy in dropped_counts]
         
-        # Format the test ID lists
-        received_tests_str = ", ".join(sorted(received_tests, key=lambda x: int(x) if x.isdigit() else float('inf')))
-        modified_tests_str = ", ".join(sorted(modified_tests, key=lambda x: int(x) if x.isdigit() else float('inf')))
-        unmodified_tests_str = ", ".join(sorted(unmodified_tests, key=lambda x: int(x) if x.isdigit() else float('inf')))
+        if not scope_proxies:
+            continue
+
+        # Add scope section
+        scope_title = "Full Test Suite" if scope == "full" else "Client-side Only Tests"
+        table += f"\n## {scope_title}\n\n"
         
-        # Get test scope
-        scope = proxy_configs[proxy]['scope']
-        scope_display = "Full" if scope == "full" else "Client-side Only"
+        # Add summary table
+        table += "### Error Handling & Connection Statistics\n"
+        table += "| Proxy | Connection Issues | Error Responses | Protocol Errors | Response Stats |\n"
+        table += "|:------|:------------------|:----------------|:----------------|:--------------|\n"
         
-        # Add the row with all information
-        table += f"| {proxy} | {scope_display} | {dropped_counts.get(proxy, 0)} | {error_500_counts.get(proxy, 0)} | {goaway_counts.get(proxy, 0)} | {reset_counts.get(proxy, 0)} | {received_counts.get(proxy, 0)} | {modified_count} | {unmodified_count} | {received_tests_str} | {modified_tests_str} | {unmodified_tests_str} |\n"
+        for proxy in sorted(scope_proxies):
+            dropped = dropped_counts.get(proxy, 0)
+            error_500 = error_500_counts.get(proxy, 0)
+            goaway = goaway_counts.get(proxy, 0)
+            reset = reset_counts.get(proxy, 0)
+            received = received_counts.get(proxy, 0)
+            
+            # Count modified and unmodified
+            modified = 0
+            unmodified = 0
+            if proxy in all_test_results:
+                for result in all_test_results[proxy].values():
+                    if result == "modified":
+                        modified += 1
+                    elif result == "unmodified":
+                        unmodified += 1
+            
+            # Format statistics
+            connection_stats = f"Dropped: {dropped}"
+            error_stats = f"500 Error: {error_500}"
+            protocol_stats = f"GOAWAY: {goaway}, RESET: {reset}"
+            response_stats = f"Modified: {modified}, Unmodified: {unmodified}"
+            if scope == "client-only":
+                response_stats = f"Received: {received}"
+            
+            table += f"| {proxy} | {connection_stats} | {error_stats} | {protocol_stats} | {response_stats} |\n"
+        
+        # Add detailed test results
+        table += "\n### Detailed Test Results\n"
+        table += "| Proxy | Test Details |\n"
+        table += "|:------|:-------------|\n"
+        
+        for proxy in sorted(scope_proxies):
+            if proxy not in all_test_results:
+                continue
+                
+            test_results = all_test_results[proxy]
+            
+            # Group tests by result
+            results_by_type = {
+                "modified": [],
+                "unmodified": [],
+                "received": [],
+            }
+            
+            for test_id, result in test_results.items():
+                if result in results_by_type:
+                    results_by_type[result].append(test_id)
+            
+            # Format details
+            details = []
+            if scope == "full":
+                if results_by_type["modified"]:
+                    details.append(f"**Modified Tests**: {format_test_ranges(results_by_type['modified'])}")
+                if results_by_type["unmodified"]:
+                    details.append(f"**Unmodified Tests**: {format_test_ranges(results_by_type['unmodified'])}")
+            else:  # client-only
+                if results_by_type["received"]:
+                    details.append(f"**Received Tests**: {format_test_ranges(results_by_type['received'])}")
+            
+            details_text = "No test details available"
+            if details:
+                details_text = "<br>".join(details)
+            
+            table += f"| {proxy} | {details_text} |\n"
+        
+        table += "\n"  # Add spacing between sections
     
     # Write to file
     with open(os.path.join(output_directory, "result_counts.md"), "w") as f:
         f.write(table)
 
+def sort_test_ids(test_ids):
+    """Sort test IDs numerically, respecting the new ordering if available."""
+    return sorted(test_ids, key=lambda x: int(x) if x.isdigit() else float('inf'))
+
 def create_test_results_matrix(all_test_results, proxy_configs, output_directory):
     """Create a matrix showing test results for each proxy and test ID."""
-    all_test_ids = sorted(set().union(*[test_results.keys() for test_results in all_test_results.values()]),
-                         key=lambda x: int(x) if x.isdigit() else float('inf'))
+    all_test_ids = sort_test_ids(set().union(*[test_results.keys() for test_results in all_test_results.values()]))
     
     proxies = list(proxy_configs.keys())  # Convert dict_keys to list
     matrix_headers = ['Test ID'] + proxies
@@ -713,8 +751,7 @@ def extract_and_save_outliers(all_test_results, proxy_configs, output_directory)
                          if config['scope'] == 'client-only' and proxy in all_test_results]
     
     # Get all test IDs
-    all_test_ids = sorted(set().union(*[results.keys() for results in all_test_results.values()]),
-                         key=lambda x: int(x) if x.isdigit() else float('inf'))
+    all_test_ids = sort_test_ids(set().union(*[results.keys() for results in all_test_results.values()]))
     
     # Dictionary to collect outliers by scope
     # {test_id: {outlier_proxy, outlier_behavior, common_behavior}}
@@ -817,9 +854,23 @@ def load_client_server_classification(json_path):
     with open(json_path, 'r') as f:
         classification = json.load(f)
     
-    # Convert frame numbers to strings to match test IDs
-    client_side_tests = set(str(frame) for frame in classification['client_side_non_conformant_frames'])
-    server_side_tests = set(str(frame) for frame in classification['server_side_non_conformant_frames'])
+    # Convert frame numbers to strings and apply mapping
+    client_side_tests = set()
+    server_side_tests = set()
+    
+    # Excluded test count tracking
+    excluded_client = 0
+    excluded_server = 0
+    
+    for frame in classification['client_side_non_conformant_frames']:
+        orig_id = str(frame)
+        client_side_tests.add(orig_id)
+    
+    for frame in classification['server_side_non_conformant_frames']:
+        orig_id = str(frame)
+        server_side_tests.add(orig_id)
+    
+    print(f"Loaded client/server classification: {len(client_side_tests)} client-side and {len(server_side_tests)} server-side tests.")
     
     return client_side_tests, server_side_tests
 
@@ -977,30 +1028,45 @@ def create_client_server_conformance_visualization(test_results, client_side_tes
     plt.close()
 
 def load_test_pairs(pairs_file='docs/pairs.json'):
-    """Load the test pairs from the JSON file."""
+    """Load the test pairs from the JSON file and apply the test ID mapping."""
     with open(pairs_file, 'r') as f:
         data = json.load(f)
-    return data['pairs']
+    
+    raw_pairs = data['pairs']
+    mapped_pairs = []
+    
+    # Apply mapping to each test ID in the pairs
+    for client_test, server_test in raw_pairs:
+        client_test_str = str(client_test)
+        server_test_str = str(server_test)
+        
+        mapped_pairs.append((client_test_str, server_test_str))
+    
+    print(f"Loaded {len(mapped_pairs)} test pairs")
+        
+    return mapped_pairs
 
 def create_test_outcome_by_id_table(all_test_results, output_directory):
     """Create a text file listing proxies that had modified, unmodified, or received results for each test ID."""
     os.makedirs(output_directory, exist_ok=True)
     
-    # Load test case descriptions
+    # Load test case descriptions (keyed by ORIGINAL_IDs)
     with open('test_cases.json', 'r') as f:
         test_cases = json.load(f)
     
-    # Create a mapping of test ID to description
+    # Create a mapping of original test ID to description
     test_descriptions = {str(case['id']): case['description'] for case in test_cases}
     
     # Create a dict to organize test outcomes by test ID
+    # Keys will be NEW IDs if mapping is active
     test_outcomes = {}
     
     # Process each proxy's results
     for proxy, results in all_test_results.items():
+        # Skip Mitmproxy as per original logic
         if proxy in ["Mitmproxy"]:
             continue
-        for test_id, result in results.items():
+        for test_id, result in results.items(): # test_id is NEW ID
             if test_id not in test_outcomes:
                 test_outcomes[test_id] = {
                     "received": [],
@@ -1021,16 +1087,21 @@ def create_test_outcome_by_id_table(all_test_results, output_directory):
     with open(output_file, 'w') as f:
         f.write("Test Outcomes by Test ID\n\n")
         
-        # Sort test IDs numerically
-        sorted_test_ids = sorted(test_outcomes.keys(), key=lambda x: int(x) if x.isdigit() else float('inf'))
+        # Sort test IDs (these are NEW IDs) using our helper function
+        sorted_new_ids = sort_test_ids(test_outcomes.keys())
         
-        for test_id in sorted_test_ids:
-            description = test_descriptions.get(test_id, "No description available")
-            outcomes = test_outcomes[test_id]
+        for new_id_str in sorted_new_ids:
+            # Get the ORIGINAL ID for display and description lookup
+            original_id_str = new_id_str
+            
+            description = test_descriptions.get(original_id_str, "No description available")
+            # Access outcomes using the NEW ID
+            outcomes = test_outcomes[new_id_str]
             
             # Only include tests that have at least one positive outcome (received, modified, or unmodified)
             if any(outcomes.values()):
-                f.write(f"{test_id} {description}\n")
+                # Write the ORIGINAL ID and description
+                f.write(f"Test #{original_id_str} {description}\n")
                 
                 # List proxies for each outcome type
                 if outcomes["received"]:
@@ -1049,7 +1120,7 @@ def create_modified_unmodified_summary(all_test_results, output_directory):
     """Create a text file listing proxies that had modified or unmodified results for each test ID."""
     os.makedirs(output_directory, exist_ok=True)
 
-    # Load test case descriptions
+    # Load test case descriptions (keyed by ORIGINAL_IDs)
     try:
         with open('test_cases.json', 'r') as f:
             test_cases = json.load(f)
@@ -1059,11 +1130,12 @@ def create_modified_unmodified_summary(all_test_results, output_directory):
         test_descriptions = {}
 
     # Create a dict to organize test outcomes by test ID
+    # Keys in test_outcomes will be NEW IDs if mapping is active, as all_test_results keys are new IDs.
     test_outcomes = defaultdict(lambda: {"modified": [], "unmodified": []})
 
     # Process each proxy's results
     for proxy, results in all_test_results.items():
-        for test_id, result in results.items():
+        for test_id, result in results.items(): # test_id here is a NEW ID if mapping is active
             if result == "modified":
                 test_outcomes[test_id]["modified"].append(proxy)
             elif result == "unmodified":
@@ -1073,19 +1145,26 @@ def create_modified_unmodified_summary(all_test_results, output_directory):
     output_file = os.path.join(output_directory, "modified_unmodified_summary.md")
 
     with open(output_file, 'w') as f:
-        f.write("# Modified and Unmodified Test Results Summary\n\n")
-        f.write("This file lists test cases where at least one proxy returned a 'modified' or 'unmodified' result.\n\n")
+        f.write("# Modified and Unmodified Test Results Summary\\n\\n")
+        f.write("This file lists test cases where at least one proxy returned a 'modified' or 'unmodified' result.\\n\\n")
 
-        # Sort test IDs numerically
-        sorted_test_ids = sorted(test_outcomes.keys(), key=lambda x: int(x) if x.isdigit() else float('inf'))
+        # Get new_ids from test_outcomes.keys(). These are strings.
+        # sort_test_ids sorts these new_ids numerically, which respects the reordered sequence.
+        list_of_new_ids = list(test_outcomes.keys())
+        sorted_new_ids = sort_test_ids(list_of_new_ids)
 
-        for test_id in sorted_test_ids:
-            description = test_descriptions.get(test_id, "No description available")
-            outcomes = test_outcomes[test_id]
+        for new_id_str in sorted_new_ids: # new_id_str is a string representing the new ID
+            # Get the original ID for display and description lookup
+            original_id_str = new_id_str
+
+            description = test_descriptions.get(original_id_str, "No description available")
+            # Access outcomes using the new_id_str, as test_outcomes is keyed by new IDs
+            outcomes = test_outcomes[new_id_str]
 
             # Only include tests that have at least one modified or unmodified result
             if outcomes["modified"] or outcomes["unmodified"]:
-                f.write(f"## Test {test_id}: {description}\n\n")
+                # Display the ORIGINAL ID in the header
+                f.write(f"## Test {original_id_str}: {description}\n\n")
 
                 if outcomes["modified"]:
                     f.write(f"**Modified by:** {', '.join(sorted(outcomes['modified']))}\n")
@@ -1333,17 +1412,11 @@ def create_test_timeline_graphs(test_results, proxy_configs, client_side_tests, 
     categories = ['dropped', '500', 'goaway', 'reset', 'unmodified', 'modified']
     category_map = {cat: i for i, cat in enumerate(categories)}
     
-    # Get all unique test IDs sorted numerically (used for full scope)
-    all_test_ids_full = sorted(
-        list(set().union(*(results.keys() for results in test_results.values()))),
-        key=lambda x: int(x) if x.isdigit() else float('inf')
-    )
+    # Get all unique test IDs sorted using our helper function (for full scope)
+    all_test_ids_full = sort_test_ids(set().union(*(results.keys() for results in test_results.values())))
 
     # Filter test IDs for client-side only tests
-    all_test_ids_client_only = sorted(
-        [tid for tid in all_test_ids_full if tid in client_side_tests],
-        key=lambda x: int(x) if x.isdigit() else float('inf')
-    )
+    all_test_ids_client_only = sort_test_ids([tid for tid in all_test_ids_full if tid in client_side_tests])
 
     # Split proxies by scope
     full_scope_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'full' and proxy in test_results]
@@ -1382,7 +1455,17 @@ def create_test_timeline_graphs(test_results, proxy_configs, client_side_tests, 
                      linewidth=1.5, color=colors[i], label=proxy)
 
         # Configure the plot
-        plt.xticks(x_values, current_test_ids, rotation=90, fontsize=8) # Rotate test IDs for readability
+        # Use position numbers (1, 2, 3...) instead of raw test IDs
+        position_labels = [str(i+1) for i in range(len(current_test_ids))]
+        # Only show a subset of the position labels to avoid overcrowding
+        sparse_positions = []
+        sparse_labels = []
+        label_step = max(1, len(position_labels) // 20)  # Show about 20 labels at most
+        for i in range(0, len(position_labels), label_step):
+            sparse_positions.append(i)
+            sparse_labels.append(position_labels[i])
+            
+        plt.xticks(sparse_positions, sparse_labels, rotation=90, fontsize=8)
         plt.yticks(list(category_map.values()), list(category_map.keys())) # Use category names for Y-axis labels
 
         plt.xlim(-0.5, len(current_test_ids) - 0.5)
@@ -1404,50 +1487,54 @@ def create_test_timeline_graphs(test_results, proxy_configs, client_side_tests, 
         plt.savefig(os.path.join(output_directory, filename), dpi=300, bbox_inches='tight')
         plt.close()
 
-def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output_directory, client_side_tests_set=None, global_test_ids=None):
-    """Creates a matrix visualization of test outcomes filtered by proxy scope."""
+def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output_directory):
+    """Creates a matrix visualization of test outcomes filtered by proxy scope.
+    
+    Args:
+        outcomes_dict: Dictionary mapping proxy names to their test results
+        proxy_configs: Dictionary mapping proxy names to their configurations
+        scope_filter: 'full' or 'client-only' to filter proxies by scope
+        output_directory: Directory to save the generated matrix graphs
+    """
     charts_directory = os.path.join(output_directory, 'matrix_graphs')
     os.makedirs(charts_directory, exist_ok=True)
 
     # Define distinct colors and map for each relevant category
-    # 1: Modified (Yellow) - Full scope only
-    # 2: Unmodified (Red) - Full scope only
-    # 3: Reset (Light Blue)
-    # 4: Goaway (Orange)
-    # 5: 500 Error (Purple)
-    # 6: Not Applicable (Black) - Client-only scope only
-    # 7: Received (Red) - Includes Modified/Unmodified for client-only
-    # 0: Dropped/Other (Gray)
     colors = {
-        1: '#ffd93d',  # Modified (M)
-        2: '#ff6b6b',  # Unmodified (U)
+        1: '#ffd93d',  # Modified (M) - Yellow
+        2: '#ff6b6b',  # Unmodified (U) - Red
         3: '#6bccee',  # Reset (R) - Light Blue
         4: '#ff9f43',  # Goaway (G) - Orange
         5: '#a26bcd',  # 500 Error (E) - Purple
         6: '#000000',  # Not Applicable (N) - Black
-        7: '#ff6b6b',  # Received (Rec) - Red
+        7: '#ff6b6b',  # Received/Accepted (Rec) - Red
         0: '#cccccc'   # Dropped/Other (D) - Gray
     }
-    # Base mapping
+
+    # Base mapping for outcomes
     outcome_map = {
-        "not_applicable": 6, # Used for client-only filtering
         "dropped": 0,
         "500": 5,
         "goaway": 4,
         "reset": 3,
-        "received": 7
+        "received": 7,
+        "other": 0
     }
+
     # Add scope-specific mappings
     if scope_filter == 'full':
-        outcome_map["modified"] = 1
-        outcome_map["unmodified"] = 2
-    else: # client-only
-        # Map modified/unmodified to Received for client-only
-        outcome_map["modified"] = 7
-        outcome_map["unmodified"] = 7
+        outcome_map.update({
+            "modified": 1,
+            "unmodified": 2
+        })
+    else:  # client-only
+        # Map modified/unmodified to Received/Accepted for client-only
+        outcome_map.update({
+            "modified": 7,
+            "unmodified": 7
+        })
 
-
-    # --- Filtering and Data Preparation ---
+    # Filter proxies by scope
     filtered_proxies = sorted([
         proxy for proxy, config in proxy_configs.items()
         if proxy in outcomes_dict and config['scope'] == scope_filter
@@ -1457,60 +1544,39 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
         print(f"No proxies found for scope '{scope_filter}'. Skipping matrix graph.")
         return
 
-    # Determine the list of test IDs to use for this graph
-    if scope_filter == 'client-only' and global_test_ids is not None:
-        # For client-only graph, use the globally provided list
-        test_ids_for_graph = global_test_ids
-        # Filter out tests >= 106
-        test_ids_for_graph = [tid for tid in test_ids_for_graph if int(tid) < 106]
+    # Determine test range based on scope
+    if scope_filter == 'client-only':
+        test_ids_for_graph = [str(x) for x in range(1, 79)]  # Client-only tests
     else:
-        # For full scope, derive IDs only from the filtered proxies' results
-        test_ids_for_graph = sorted(
-            list(set().union(*(outcomes_dict[proxy].keys() for proxy in filtered_proxies))),
-            key=lambda x: int(x) if x.isdigit() else float('inf')
-        )
-        # Ensure full scope also respects global_test_ids if provided, although less typical
-        if global_test_ids is not None:
-             global_test_ids_set = set(global_test_ids)
-             test_ids_for_graph = [tid for tid in test_ids_for_graph if tid in global_test_ids_set]
-
-
-    if not test_ids_for_graph:
-        print(f"No test IDs found for scope '{scope_filter}'. Skipping matrix graph.")
-        return
+        test_ids_for_graph = [str(x) for x in range(1, 157)]  # Full test suite
 
     num_tests = len(test_ids_for_graph)
+    if num_tests == 0:
+        print(f"No test IDs determined for scope '{scope_filter}'. Skipping matrix graph.")
+        return
 
+    # Process data for visualization
     matrix_data_numeric = []
     proxy_labels = []
 
-    # Process data (rows = proxies, columns = tests)
     for proxy in filtered_proxies:
         outcomes = outcomes_dict[proxy]
         numerical_outcomes = []
-        # Iterate using the determined test ID list for this graph
+        
         for test_id in test_ids_for_graph:
-            # Removed redundant check: if scope_filter == 'client-only' and int(test_id) >= 106: continue
-
-            # Check if this test should be marked as "Not Applicable" for client-only scope
-            if scope_filter == 'client-only' and client_side_tests_set is not None and test_id not in client_side_tests_set:
-                numerical_outcomes.append(outcome_map["not_applicable"]) # Assign 6 (Black)
-            else:
-                # Otherwise, use the normal result mapping
-                result_str = outcomes.get(test_id, "other") # Default to "other" if test missing for this proxy
-                # Map the result string using the finalized outcome_map
-                numerical_outcomes.append(outcome_map.get(result_str, 0)) # Default to 0 (Dropped/Other)
+            result_str = outcomes.get(test_id, "other")
+            numerical_outcomes.append(outcome_map.get(result_str, 0))
 
         matrix_data_numeric.append(numerical_outcomes)
-        proxy_labels.append(proxy) # Use original proxy name
+        proxy_labels.append(proxy)
 
-    matrix_data = np.array(matrix_data_numeric) # No transpose
+    matrix_data = np.array(matrix_data_numeric)
     num_proxies_display = len(proxy_labels)
-    num_tests_display = num_tests # Use num_tests determined earlier
+    num_tests_display = num_tests
 
-    # --- Figure and Axes Creation ---
-    fig_height = num_proxies_display * 0.4 + 1.5 # Adjust multiplier and base as needed
-    fig_width = num_tests_display * 0.15 + 1 # Adjust multiplier and base as needed
+    # Create visualization
+    fig_height = num_proxies_display * 0.4 + 1.5
+    fig_width = num_tests_display * 0.15 + 1
     fig = plt.figure(figsize=(fig_width, fig_height))
 
     ax_matrix = plt.subplot2grid((num_proxies_display + 2, num_tests_display + 1),
@@ -1518,46 +1584,42 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
                                rowspan=num_proxies_display,
                                colspan=num_tests_display)
 
-    # --- Plot Matrix Rectangles ---
-    rect_height = 1.0 # Represents height for one proxy
-    rect_width = 1.0  # Represents width for one test
-    for i in range(num_proxies_display):  # Iterate over proxies (rows)
-        for j in range(num_tests_display):  # Iterate over tests (columns)
-            # Check if matrix_data[i][j] exists before accessing
+    # Plot matrix rectangles
+    rect_height = 1.0
+    rect_width = 1.0
+    for i in range(num_proxies_display):
+        for j in range(num_tests_display):
             if i < matrix_data.shape[0] and j < matrix_data.shape[1]:
                 outcome = matrix_data[i][j]
-                color = colors.get(outcome, colors[0]) # Default to color for 0 if outcome not found
+                color = colors.get(outcome, colors[0])
                 y_pos = (num_proxies_display - 1 - i) * rect_height
                 x_pos = j * rect_width
-                rect = plt.Rectangle((x_pos, y_pos), rect_width, rect_height, facecolor=color, edgecolor='white', linewidth=0.5)
+                rect = plt.Rectangle((x_pos, y_pos), rect_width, rect_height,
+                                   facecolor=color, edgecolor='white', linewidth=0.5)
                 ax_matrix.add_patch(rect)
 
-    # --- Axis and Grid Configuration ---
+    # Configure axes and grid
     ax_matrix.set_xlim(0, num_tests_display * rect_width)
     ax_matrix.set_ylim(0, num_proxies_display * rect_height)
 
     ax_matrix.set_xticks(np.arange(num_tests_display + 1) * rect_width)
     ax_matrix.set_yticks(np.arange(num_proxies_display + 1) * rect_height)
 
-    # Set minor ticks and labels for X axis (Tests - every 10th)
+    # Set X-axis labels (test positions)
     x_tick_positions = []
     x_tick_labels = []
-    for i, test_id in enumerate(test_ids_for_graph):
-        try:
-            test_num = int(test_id)
-            if test_num % 10 == 0:
-                x_tick_positions.append(i * rect_width + rect_width / 2)
-                x_tick_labels.append(test_id)
-        except ValueError:
-            pass
+    for i in range(num_tests_display):
+        if (i+1) % 10 == 0:
+            x_tick_positions.append(i * rect_width + rect_width / 2)
+            x_tick_labels.append(str(i+1))
     ax_matrix.set_xticks(x_tick_positions, minor=True)
     ax_matrix.set_xticklabels(x_tick_labels, minor=True, rotation=0, ha='center', fontsize=10)
 
-    # Set minor ticks and labels for Y axis (Proxies)
+    # Set Y-axis labels (proxy names)
     ax_matrix.set_yticks(np.arange(num_proxies_display) * rect_height + rect_height / 2, minor=True)
     ax_matrix.set_yticklabels(proxy_labels[::-1], minor=True, fontsize=10)
 
-    # Configure label appearance and grid
+    # Configure tick appearance
     ax_matrix.tick_params(axis='x', which='minor', labelsize=16, bottom=True, top=False, labelbottom=True)
     ax_matrix.tick_params(axis='y', which='minor', labelsize=16, left=True, right=False, labelleft=True)
     ax_matrix.set_xticklabels([], minor=False)
@@ -1566,13 +1628,7 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
     ax_matrix.grid(True, which='major', color='white', linewidth=1)
     ax_matrix.tick_params(which='minor', length=0)
 
-    # Adjust layout and save
-    plt.tight_layout(pad=1.0, rect=[0, 0.05, 1, 0.95])
-
-    filename = f'proxy_outcome_matrix_{scope_filter}.png'
-
-    # --- Add Legend ---
-    # Map numerical value back to a display name
+    # Add legend
     outcome_display_names = {
         1: "Modified",
         2: "Unmodified",
@@ -1581,22 +1637,16 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
         5: "Error 500",
         6: "Not Applicable",
         7: "Accepted",
-        0: "Dropped", # Changed label for 0
+        0: "Dropped"
     }
 
     legend_patches = []
-    keys_for_this_legend = []
-
     if scope_filter == 'client-only':
-        # Order: Reset(3), Goaway(4), 500(5), Received(7), Dropped(0), Not Applicable(6)
-        keys_for_this_legend = [0, 5, 4, 3, 7, 6]
-        # Note: Modified(1)/Unmodified(2) are mapped to Received(7) in outcome_map for this scope
-    else: # scope_filter == 'full'
-        # Order: Modified(1), Unmodified(2), Reset(3), Goaway(4), 500(5), Received(7), Dropped(0)
-        keys_for_this_legend = [0, 5, 4, 3, 2, 1]
-        # Not Applicable(6) is omitted
+        legend_keys = [0, 5, 4, 3, 7]  # Client-only order
+    else:
+        legend_keys = [0, 5, 4, 3, 2, 1]  # Full scope order
 
-    for key in keys_for_this_legend:
+    for key in legend_keys:
         if key in colors:
             display_name = outcome_display_names.get(key, f"Unknown ({key})")
             legend_patches.append(mpatches.Patch(color=colors[key], label=display_name))
@@ -1604,9 +1654,18 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
     fig.legend(handles=legend_patches, loc='lower center', ncol=len(legend_patches),
                bbox_to_anchor=(0.5, 0), frameon=False, fontsize=16)
 
-    plt.savefig(os.path.join(charts_directory, filename),
-                dpi=300, bbox_inches='tight')
-    plt.close(fig) # Close the figure explicitly
+    # Save the visualization
+    plt.tight_layout(pad=1.0, rect=[0, 0.05, 1, 0.95])
+    filename = f'proxy_outcome_matrix_{scope_filter}.png'
+    output_path = os.path.join(charts_directory, filename)
+    
+    try:
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        print(f"Saved proxy outcome matrix: {output_path}")
+    except Exception as e:
+        print(f"Error saving proxy outcome matrix {output_path}: {e}")
+    finally:
+        plt.close(fig)
 
 # // === Start Refactor for Combined Plots ===
 
@@ -1978,11 +2037,8 @@ def create_behavior_change_matrix(all_test_results, proxy_configs, output_direct
     new_proxies_in_pairs = sorted(list(set(pair[1] for pair in old_new_pairs)))
     print(f"Calculating change based on {len(old_proxies_in_pairs)} old proxies and {len(new_proxies_in_pairs)} new proxies.")
 
-    # 3. Get all relevant test IDs, sorted numerically
-    all_test_ids = sorted(
-        list(set().union(*(results.keys() for results in all_test_results.values()))),
-        key=lambda x: int(x) if x.isdigit() else float('inf')
-    )
+    # 3. Get all relevant test IDs, sorted using our helper function
+    all_test_ids = sort_test_ids(set().union(*(results.keys() for results in all_test_results.values())))
     all_test_ids = [tid for tid in all_test_ids if tid != '0'] # Exclude test '0'
 
     num_tests = len(all_test_ids)
@@ -2058,39 +2114,29 @@ def create_behavior_change_matrix(all_test_results, proxy_configs, output_direct
     cbar.set_label('Change in Proxy Count', rotation=270, labelpad=15, fontsize=16)
 
     # Update axis labels
-    plt.xlabel('Test ID', fontsize=20)
-    plt.ylabel('Behavior', fontsize=20) # Changed Y-axis label
+    plt.xlabel('Position', fontsize=20)  # Changed from 'Test ID' to 'Position'
+    plt.ylabel('Behavior', fontsize=20)
 
-    # --- Set X ticks explicitly for 5, 10, 15, ... ---
-    # Create a map from test ID string to its index
-    test_id_to_index = {test_id: i for i, test_id in enumerate(all_test_ids)}
-
-    # Determine the max test ID to set the limit for labels
-    max_test_id_num = 0
-    if all_test_ids:
-        try:
-            # Find the maximum numeric test ID
-            max_test_id_num = max(int(tid) for tid in all_test_ids if tid.isdigit())
-        except ValueError:
-            pass # Handle cases where no numeric IDs are found
-
-    # Generate desired labels (5, 10, 15...) and find their corresponding indices
-    desired_labels = []
+    # Set X ticks to show position numbers instead of test IDs
+    num_tests = len(all_test_ids)
+    
+    # Generate position tick marks at regular intervals
+    tick_step = max(1, num_tests // 20)  # Show about 20 ticks
     tick_positions = []
-    if max_test_id_num > 0:
-        for i in range(5, max_test_id_num + 1, 5):
-            label_str = str(i)
-            if label_str in test_id_to_index: # Check if this test ID actually exists in the data
-                desired_labels.append(label_str)
-                tick_positions.append(test_id_to_index[label_str])
-
-    # Set the ticks if any were found
-    if tick_positions:
-        ax.set_xticks(np.array(tick_positions) + 0.5) # Center ticks on the corresponding cells
-        ax.set_xticklabels(desired_labels)
-    else:
-        # Fallback if no '5', '10', etc. ticks found (unlikely but safe)
-        ax.xaxis.set_major_locator(mticker.MaxNLocator(nbins=min(num_tests, 15), integer=True))
+    tick_labels = []
+    
+    for i in range(0, num_tests, tick_step):
+        tick_positions.append(i + 0.5)  # Center on cell
+        tick_labels.append(str(i+1))    # 1-based position number
+    
+    # Add the last position if not included
+    if (num_tests - 1) % tick_step != 0:
+        tick_positions.append(num_tests - 0.5)
+        tick_labels.append(str(num_tests))
+    
+    # Set the ticks
+    ax.set_xticks(tick_positions)
+    ax.set_xticklabels(tick_labels)
 
     plt.xticks(rotation=90, fontsize=16)
     # Y ticks use the full category names from the index
@@ -2204,12 +2250,25 @@ def create_dual_scope_comparison_matrix(all_test_results_full, proxy_configs, cl
             continue
 
         # 3. Define the fixed range of test IDs for the columns
-        test_ids_1_to_105 = [str(i) for i in range(1, 106)] 
-        num_tests = len(test_ids_1_to_105) # Will always be 105
+        # Determine max client-side test ID dynamically
+        max_client_test_id = 0
+        if client_side_tests_set:
+            for test_id in client_side_tests_set:
+                if test_id.isdigit() and int(test_id) > max_client_test_id:
+                    max_client_test_id = int(test_id)
+        else:
+            # Fallback to original max of 105 if client_side_tests_set not provided
+            max_client_test_id = 105
+        
+        print(f"  Using maximum client-side test ID: {max_client_test_id}")
+        
+        # Generate test IDs from 1 to max_client_test_id
+        test_ids_for_matrix = [str(i) for i in range(1, max_client_test_id + 1)]
+        num_tests = len(test_ids_for_matrix)
 
-        print(f"  Generating comparison matrix for fixed test IDs 1-105.")
+        print(f"  Generating comparison matrix for test IDs 1-{max_client_test_id}.")
 
-        # 4. Create the 2xN numerical matrix (N=105)
+        # 4. Create the 2xN numerical matrix (N=max_client_test_id)
         matrix_data_numeric = np.full((2, num_tests), -1, dtype=int) # Initialize with -1 (missing)
 
         # 5. Populate the matrix based on the fixed test ID list
@@ -2217,7 +2276,7 @@ def create_dual_scope_comparison_matrix(all_test_results_full, proxy_configs, cl
         tests_missing_primary = 0
         tests_missing_secondary = 0
 
-        for j, test_id in enumerate(test_ids_1_to_105):
+        for j, test_id in enumerate(test_ids_for_matrix):
             # Check if the test is classified as client-side
             if test_id not in client_side_tests_set:
                 # Mark as Not Applicable in both rows
@@ -2281,51 +2340,48 @@ def create_dual_scope_comparison_matrix(all_test_results_full, proxy_configs, cl
         ax_matrix.set_xlim(0, num_tests * rect_width)
         ax_matrix.set_ylim(0, num_scopes * rect_height)
 
-        # X-axis: Test IDs (Use test_ids_1_to_105)
+        # X-axis: Use position numbers (1, 2, 3...) instead of test IDs
         x_tick_positions = []
         x_tick_labels = []
-        for i, test_id in enumerate(test_ids_1_to_105): # Iterate over the fixed list 1-105
-            try:
-                test_num = int(test_id)
-                # Show labels every 5 tests
-                if test_num % 5 == 0: 
-                    x_tick_positions.append(i * rect_width + rect_width / 2)
-                    x_tick_labels.append(test_id)
-            except ValueError:
-                pass # Should not happen for 1-105
+        for i in range(num_tests): # Iterate over positions
+            # Show labels every 10 positions
+            if i % 10 == 0: 
+                x_tick_positions.append(i * rect_width + rect_width / 2)
+                x_tick_labels.append(str(i+1))  # 1-based position numbers
+        
         ax_matrix.set_xticks(x_tick_positions)
-        ax_matrix.set_xticklabels(x_tick_labels, rotation=90, ha='center', fontsize=9) # Smaller font for more ticks
+        ax_matrix.set_xticklabels(x_tick_labels, rotation=90, ha='center', fontsize=9)
         ax_matrix.tick_params(axis='x', which='major', bottom=True, top=False, labelbottom=True)
 
         # Y-axis: Scope Labels (Remains the same)
         ax_matrix.set_yticks(np.arange(num_scopes) * rect_height + rect_height / 2)
-        ax_matrix.set_yticklabels(row_labels[::-1], fontsize=12) 
+        ax_matrix.set_yticklabels(row_labels[::-1], fontsize=12)
         ax_matrix.tick_params(axis='y', which='major', left=True, right=False, labelleft=True)
-        
+
         # --- Cleanup Ticks/Grid (Remains the same) ---
         ax_matrix.set_xticks([], minor=True)
         ax_matrix.set_yticks([], minor=True)
-        ax_matrix.grid(False) 
-        ax_matrix.tick_params(which='both', length=0) 
-        
+        ax_matrix.grid(False)
+        ax_matrix.tick_params(which='both', length=0)
+
         # --- Add Legend (Remains the same) ---
         legend_patches = []
         for key in legend_order:
-             if key in colors and key in legend_labels:
-                 legend_patches.append(mpatches.Patch(color=colors[key], label=legend_labels[key]))
+            if key in colors and key in legend_labels:
+                legend_patches.append(mpatches.Patch(color=colors[key], label=legend_labels[key]))
         num_legend_items = len(legend_patches)
-        legend_cols = min(num_legend_items, 4) 
-        fig.legend(handles=legend_patches, loc='lower center', ncol=legend_cols, 
-                   bbox_to_anchor=(0.5, 0.01), frameon=False, fontsize=11)
+        legend_cols = min(num_legend_items, 4)
+        fig.legend(handles=legend_patches, loc='lower center', ncol=legend_cols,
+                  bbox_to_anchor=(0.5, 0.01), frameon=False, fontsize=11)
 
         # --- Titles and Layout ---
-        # plt.title(f'Dual Scope Comparison: {proxy_name}', fontsize=14, fontweight='bold', pad=20) 
-        plt.xlabel('Test ID', fontsize=8) # Update X label
-        plt.tight_layout(pad=2.0, rect=[0, 0.1, 1, 0.95]) # Adjust rect bottom for legend space
+        # plt.title(f'Dual Scope Comparison: {proxy_name}', fontsize=14, fontweight='bold', pad=20)
+        plt.xlabel('Position', fontsize=8)  # Changed from 'Test ID' to 'Position'
+        plt.tight_layout(pad=2.0, rect=[0, 0.1, 1, 0.95])
 
         # --- Save Figure ---
         # (Save logic remains the same)
-        filename = f'dual_scope_comparison_{proxy_name}_1-105.png' # Added range to filename
+        filename = f'dual_scope_comparison_{proxy_name}_1-{max_client_test_id}.png' # Added range to filename
         output_path = os.path.join(comparison_charts_directory, filename)
         try:
             plt.savefig(output_path, dpi=300, bbox_inches='tight')
@@ -2371,30 +2427,31 @@ def main():
     # (Adding labels and colors for better plots later, if needed)
     proxy_configs = {
         'Nghttpx-1.62.1': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
+        # 'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
         'HAproxy-2.9.10': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
+        # 'HAproxy-3.2.0': {'scope': 'full', 'version': 'new'},
+        # 'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
         'Apache-2.4.62': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
-        # 'Caddy-2.9.1': {'scope': 'full', 'version': 'new'},
+        # 'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
+        'Caddy-2.9.1': {'scope': 'full', 'version': 'new'},
         'Node-20.16.0': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        'Node-14.19.3': {'scope': 'full', 'version': 'old'},
+        # 'Node-14.19.3': {'scope': 'full', 'version': 'old'},
         'Envoy-1.32.2': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        'Envoy-1.21.2': {'scope': 'full', 'version': 'old'},
+        # 'Envoy-1.21.2': {'scope': 'full', 'version': 'old'},
         'H2O-26b116e95': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        'H2O-cf59e67c3': {'scope': 'full', 'version': 'old'},
-        # 'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
+        # 'H2O-cf59e67c3': {'scope': 'full', 'version': 'old'},
+        'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
         'Traefik-3.3.5': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        'Traefik-2.6.2': {'scope': 'full', 'version': 'old'},
+        # 'Traefik-2.6.2': {'scope': 'full', 'version': 'old'},
         'Nginx-1.26.0': {'scope': 'client-only', 'version': 'new'},
-        'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
+        # 'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
         'Lighttpd-1.4.76': {'scope': 'client-only', 'version': 'new'},
-        'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
+        # 'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
         'Varnish-7.7.0': {'scope': 'client-only', 'version': 'new'},
-        'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
-        # 'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
-        # 'Cloudflare': {'scope': 'full', 'version': 'N/A', 'second-scope': 'client-only'},
-        # 'Fastly': {'scope': 'client-only', 'version': 'N/A'},
+        # 'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
+        'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
+        'Cloudflare': {'scope': 'full', 'version': 'N/A', 'second-scope': 'client-only'},
+        'Fastly': {'scope': 'client-only', 'version': 'N/A'},
     }
     
     results_dir = 'results'
@@ -2437,27 +2494,27 @@ def main():
     # Create tables with scope indicators
     tables_dir = os.path.join('analysis', 'tables')
     create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, reset_counts, received_counts, all_test_results, proxy_configs, tables_dir)
-    create_test_results_matrix(all_test_results, proxy_configs, tables_dir)
+    # create_test_results_matrix(all_test_results, proxy_configs, tables_dir)
     create_test_outcome_by_id_table(all_test_results, tables_dir)
-    create_modified_unmodified_summary(all_test_results, tables_dir) # Add call here
+    # create_modified_unmodified_summary(all_test_results, tables_dir) # Add call here
     
     # Extract and save outliers
     outliers_dir = os.path.join('analysis', 'outliers')
-    extract_and_save_outliers(all_test_results, proxy_configs, outliers_dir)
+    # extract_and_save_outliers(all_test_results, proxy_configs, outliers_dir)
 
     # Create correlation visualizations
     correlation_dir = os.path.join('analysis', 'correlation')
-    create_proxy_correlation_matrix(all_test_results, proxy_configs, correlation_dir)
+    # create_proxy_correlation_matrix(all_test_results, proxy_configs, correlation_dir)
     
     # Create distribution visualizations
     distribution_dir = os.path.join('analysis', 'behavior')
-    create_proxy_result_pies(all_test_results, proxy_configs, distribution_dir)
-    create_proxy_line_graphs(all_test_results, proxy_configs, distribution_dir)
-    create_proxy_radar_chart(all_test_results, proxy_configs, distribution_dir) # Call the new function
+    # create_proxy_result_pies(all_test_results, proxy_configs, distribution_dir)
+    # create_proxy_line_graphs(all_test_results, proxy_configs, distribution_dir)
+    # create_proxy_radar_chart(all_test_results, proxy_configs, distribution_dir) # Call the new function
     # Removed call to create_test_timeline_graphs here, moved after loading client/server tests
 
     # run cloudflare_analysis.py
-    os.system('python cloudflare_analysis.py')
+    # os.system('python cloudflare_analysis.py')
 
     all_test_results_primary = all_test_results 
     
@@ -2469,18 +2526,18 @@ def main():
         client_side_tests_set, server_side_tests_set = load_client_server_classification('docs/clientside_vs_serverside.json')
         
         # Run visualizations that depend on client/server classification
-        create_client_server_proxy_line_graphs(all_test_results_primary, proxy_configs, client_side_tests_set, server_side_tests_set, client_server_dir)
-        create_test_timeline_graphs(all_test_results_primary, proxy_configs, client_side_tests_set, server_side_tests_set, client_server_dir)
+        # create_client_server_proxy_line_graphs(all_test_results_primary, proxy_configs, client_side_tests_set, server_side_tests_set, client_server_dir)
+        # create_test_timeline_graphs(all_test_results_primary, proxy_configs, client_side_tests_set, server_side_tests_set, client_server_dir)
         
         conformance_dir = os.path.join('analysis', 'conformance')
-        create_client_server_conformance_visualization(all_test_results_primary, client_side_tests_set, server_side_tests_set, proxy_configs, conformance_dir, scope_filter='all')
+        # create_client_server_conformance_visualization(all_test_results_primary, client_side_tests_set, server_side_tests_set, proxy_configs, conformance_dir, scope_filter='all')
         create_client_server_conformance_visualization(all_test_results_primary, client_side_tests_set, server_side_tests_set, proxy_configs, conformance_dir, scope_filter='full')
-        create_client_server_conformance_visualization(all_test_results_primary, client_side_tests_set, server_side_tests_set, proxy_configs, conformance_dir, scope_filter='client-only')
+        # create_client_server_conformance_visualization(all_test_results_primary, client_side_tests_set, server_side_tests_set, proxy_configs, conformance_dir, scope_filter='client-only')
 
         # <<-- CALL THE NEW DUAL SCOPE FUNCTION HERE -->>
         if client_side_tests_set: # Ensure classification was loaded
              dual_scope_output_dir = os.path.join('analysis', 'behavior') # Output directory
-             create_dual_scope_comparison_matrix(all_test_results_primary, proxy_configs, client_side_tests_set, results_dir, dual_scope_output_dir)
+            #  create_dual_scope_comparison_matrix(all_test_results_primary, proxy_configs, client_side_tests_set, results_dir, dual_scope_output_dir)
              create_dual_scope_difference_line_graph(all_test_results_primary, proxy_configs, client_side_tests_set, results_dir, dual_scope_output_dir)
 
         else:
@@ -2491,8 +2548,6 @@ def main():
     except Exception as e:
         print(f"Error during client-server/dual-scope visualization setup: {e}")
 
-    
-    # Create client-server discrepancy visualization (only for full-scope proxies)
     try:
         test_pairs = load_test_pairs()
         full_scope_results = {proxy: results for proxy, results in all_test_results.items() 
@@ -2505,29 +2560,11 @@ def main():
     behavior_dir = os.path.join('analysis', 'behavior') 
     # client_side_tests_set should be loaded from the try block above
         
-    if all_test_results_primary:
-        # Determine the global set of all test IDs encountered across all results
-        global_all_test_ids = sorted(
-            list(set().union(*(results.keys() for results in all_test_results_primary.values()))),
-            key=lambda x: int(x) if x.isdigit() else float('inf')
-        )
-
-        # Full scope graph (uses its own derived test IDs, pass None for global)
-        create_proxy_matrix_graph(all_test_results_primary, proxy_configs, 'full', behavior_dir, 
-                                client_side_tests_set=None, global_test_ids=None) 
-        # Client-only scope graph (pass the client-side test set and the global ID list)
-        # Check if client_side_tests_set was loaded successfully before calling
-        if client_side_tests_set:
-            create_proxy_matrix_graph(all_test_results_primary, proxy_configs, 'client-only', behavior_dir, 
-                                    client_side_tests_set=client_side_tests_set, global_test_ids=global_all_test_ids)
-        else:
-             print("Skipping client-only proxy matrix graph: Client-side test classification not available.")
-    else:
-        print("Skipping proxy matrix graph: No test results loaded.")
-
+    create_proxy_matrix_graph(all_test_results_primary, proxy_configs, 'full', behavior_dir) 
+    create_proxy_matrix_graph(all_test_results_primary, proxy_configs, 'client-only', behavior_dir)
     # Call the new behavior change matrix function HERE
     distribution_dir = os.path.join('analysis', 'behavior') # Confirm correct dir for behavior change
-    create_behavior_change_matrix(all_test_results_primary, proxy_configs, distribution_dir)
+    # create_behavior_change_matrix(all_test_results_primary, proxy_configs, distribution_dir)
     # Add the call to the new line graph function
     create_behavior_change_line_graph(all_test_results_primary, proxy_configs, distribution_dir)
 

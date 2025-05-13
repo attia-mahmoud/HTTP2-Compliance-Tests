@@ -66,33 +66,33 @@ list_of_proxies = [
     # {"PROXY": "Apache-2.4.62", "PROXY_PORT": "7700"},
     # {"PROXY": "Caddy-2.9.1", "PROXY_PORT": "7701"},
     # {"PROXY": "Envoy-1.21.2", "PROXY_PORT": "8080"}
-    # {"PROXY": "HAproxy-2.9.10", "PROXY_PORT": "7704"},
+    {"PROXY": "HAproxy-3.2.0", "PROXY_PORT": "7700"},
     # {"PROXY": "Nginx-1.22.0", "PROXY_PORT": "7770", "tls_enabled": "true"}
     # {"PROXY": "Nghttpx-1.62.1", "PROXY_PORT": "7706"}
     # {"PROXY": "Node-20.16.0", "PROXY_PORT": "7707"}
     # {"PROXY": "Mitmproxy", "PROXY_PORT": "7708", "tls_enabled": "true"}
     # {"PROXY": "H2O-cf59e67c3", "PROXY_PORT": "7703", "tls_enabled": "false"}
     # {"PROXY": "Cloudflare", "PROXY_PORT": "443", "tls_enabled": "true", "cloudflare_origin": "true"},
-    {"PROXY": "Fastly", "PROXY_PORT": "443", "tls_enabled": "true"}
+    # {"PROXY": "Fastly", "PROXY_PORT": "443", "tls_enabled": "true"}
     # {"PROXY": "Traefik_old", "PROXY_PORT": "7715"},
     # {"PROXY": "Caddy_old", "PROXY_PORT": "7716"},
     # {"PROXY": "BunnyCDN", "PROXY_PORT": "443", "tls_enabled": "true"},
     # {"PROXY": "lighttpd-1.4.64", "PROXY_PORT": "7771"},
 ]
 
-CLIENT_WORKER = "linodejapan.admin.worker.nopasaran.org"
-SERVER_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
-SERVER_PORT = "8080"
-PROXY_IP = "fastly.nopasaran.co"
-
-# CLIENT_WORKER = "labworker3.admin.worker.nopasaran.org"
-# SERVER_WORKER = "worker1.admin.worker.nopasaran.org"
-# PROXY_IP = "192.168.122.10"
+# CLIENT_WORKER = "linodejapan.admin.worker.nopasaran.org"
+# SERVER_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
 # SERVER_PORT = "8080"
+# PROXY_IP = "fastly.nopasaran.co"
+
+CLIENT_WORKER = "labworker3.admin.worker.nopasaran.org"
+SERVER_WORKER = "worker1.admin.worker.nopasaran.org"
+PROXY_IP = "192.168.122.6"
+SERVER_PORT = "8080"
 
 MASTER = "master.admin.master.nopasaran.org"
 
-file = "test_cases_debug.json"
+file = "test_cases.json"
 
 tests = []
 

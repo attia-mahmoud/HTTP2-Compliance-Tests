@@ -98,7 +98,7 @@ PROXY_IP = "australiacloudflare.nopasaran.co"
 
 # file = "test_cases_debug.json"
 file = "test_cases.json"
-MASTER = "dmaster.admin.master.nopasaran.org"
+MASTER = "master.admin.master.nopasaran.org"
 
 ################ VARIABLES #################
 
