@@ -3,7 +3,7 @@ Dual-Scope Behavior Differences (Client-Only Count - Full Scope Count on Client 
 
 Proxy: Apache-2.4.62
 ---------------------
-  Dropped: 4
+  Dropped: 5
   Error 500: -3
   GOAWAY: -2
   RESET: 0
@@ -19,11 +19,11 @@ Proxy: Cloudflare
 
 Proxy: Envoy-1.32.2
 ---------------------
-  Dropped: -5
+  Dropped: -4
   Error 500: -2
   GOAWAY: 0
   RESET: 0
-  Accepted: 5
+  Accepted: 6
 
 Proxy: H2O-26b116e95
 ---------------------
@@ -35,23 +35,23 @@ Proxy: H2O-26b116e95
 
 Proxy: HAproxy-2.9.10
 ---------------------
-  Dropped: -5
+  Dropped: -4
   Error 500: -1
   GOAWAY: -1
   RESET: 0
-  Accepted: 5
+  Accepted: 6
 
 Proxy: Nghttpx-1.62.1
 ---------------------
-  Dropped: -6
+  Dropped: -5
   Error 500: 0
   GOAWAY: 0
   RESET: 0
-  Accepted: 4
+  Accepted: 5
 
 Proxy: Node-20.16.0
 ---------------------
-  Dropped: -2
+  Dropped: -1
   Error 500: 0
   GOAWAY: 1
   RESET: 0
