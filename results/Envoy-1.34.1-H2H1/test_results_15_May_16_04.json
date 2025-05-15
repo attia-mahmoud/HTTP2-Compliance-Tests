@@ -830,8 +830,30 @@
   "35": {
     "description": "The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver.",
     "result": {
-      "Worker_1": null,
-      "Worker_2": null
+      "Worker_1": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "server": null,
+          "client_val": "client",
+          "role": "server",
+          "event": "TIMEOUT",
+          "result": "TIMEOUT",
+          "packets_received": null
+        }
+      },
+      "Worker_2": {
+        "State": "TIMEOUT",
+        "Variables": {
+          "ctrl": null,
+          "server": null,
+          "client_val": "client",
+          "role": "server",
+          "event": "TIMEOUT",
+          "result": "TIMEOUT",
+          "packets_received": null
+        }
+      }
     }
   },
   "36": {
