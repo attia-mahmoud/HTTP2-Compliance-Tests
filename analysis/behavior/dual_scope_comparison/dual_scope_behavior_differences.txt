@@ -1,6 +1,14 @@
 Dual-Scope Behavior Differences (Client-Only Count - Full Scope Count on Client Tests)
 =====================================================================================
 
+Proxy: Apache-2.4.63
+---------------------
+  Dropped: 5
+  Error 500: -3
+  GOAWAY: -2
+  RESET: 0
+  Accepted: 0
+
 Proxy: Cloudflare
 ---------------------
   Dropped: 8
@@ -27,7 +35,7 @@ Proxy: H2O-26b116e95
 
 Proxy: HAproxy-3.2.0
 ---------------------
-  Dropped: -7
+  Dropped: -5
   Error 500: 0
   GOAWAY: 0
   RESET: 0

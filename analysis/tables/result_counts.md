@@ -28,7 +28,7 @@ This document presents the results of HTTP/2 conformance testing across various 
 | Apache-2.4.63 | Dropped: 48 | 500 Error: 40 | GOAWAY: 67, RESET: 0 | Modified: 0, Unmodified: 1 |
 | Caddy-2.9.1 | Dropped: 50 | 500 Error: 65 | GOAWAY: 29, RESET: 0 | Modified: 6, Unmodified: 6 |
 | Cloudflare | Dropped: 73 | 500 Error: 63 | GOAWAY: 6, RESET: 5 | Modified: 7, Unmodified: 2 |
-| Envoy-1.34.1 | Dropped: 52 | 500 Error: 31 | GOAWAY: 63, RESET: 4 | Modified: 0, Unmodified: 4 |
+| Envoy-1.34.1 | Dropped: 52 | 500 Error: 31 | GOAWAY: 63, RESET: 4 | Modified: 2, Unmodified: 4 |
 | H2O-26b116e95 | Dropped: 89 | 500 Error: 7 | GOAWAY: 59, RESET: 0 | Modified: 1, Unmodified: 0 |
 | HAproxy-3.2.0 | Dropped: 40 | 500 Error: 24 | GOAWAY: 81, RESET: 1 | Modified: 5, Unmodified: 5 |
 | Mitmproxy-11.1.0 | Dropped: 21 | 500 Error: 0 | GOAWAY: 0, RESET: 4 | Modified: 0, Unmodified: 131 |
@@ -42,7 +42,7 @@ This document presents the results of HTTP/2 conformance testing across various 
 | Apache-2.4.63 | **Unmodified Tests**: 6 |
 | Caddy-2.9.1 | **Modified Tests**: 142-147<br>**Unmodified Tests**: 6, 81, 92, 136-137, 156 |
 | Cloudflare | **Modified Tests**: 3, 125, 136-137, 146, 148, 153<br>**Unmodified Tests**: 81, 92 |
-| Envoy-1.34.1 | **Unmodified Tests**: 6, 81, 136-137 |
+| Envoy-1.34.1 | **Modified Tests**: 3, 149<br>**Unmodified Tests**: 6, 81, 136-137 |
 | H2O-26b116e95 | **Modified Tests**: 78 |
 | HAproxy-3.2.0 | **Modified Tests**: 51-52, 68, 136-137<br>**Unmodified Tests**: 6, 69, 78, 81, 147 |
 | Mitmproxy-11.1.0 | **Unmodified Tests**: 2-4, 6-8, 10-15, 17-19, 25-32, 36-79, 81-85, 87, 89-92, 94-96, 103-116, 120-156 |
