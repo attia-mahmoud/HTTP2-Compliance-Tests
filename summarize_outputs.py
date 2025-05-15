@@ -196,114 +196,6 @@ def create_markdown_table(headers, data):
     
     return '\n'.join(table)
 
-def create_proxy_correlation_matrix(test_results, proxy_configs, output_directory):
-    """Create a Pearson correlation matrix visualization of proxy test results."""
-    os.makedirs(output_directory, exist_ok=True)
-    
-    # Split proxies by scope
-    full_scope_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'full' and proxy in test_results]
-    client_only_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'client-only' and proxy in test_results]
-    
-    # Create separate correlation matrices for each scope
-    for scope, proxies in [('full', full_scope_proxies), ('client-only', client_only_proxies)]:
-        if not proxies:  # Skip if no proxies in this category
-            continue
-            
-        test_ids = sorted(list(set().union(*[results.keys() for proxy, results in test_results.items() 
-                                           if proxy in proxies])),
-                         key=lambda x: int(x) if x.isdigit() else float('inf'))
-        
-        # Create matrix data with better encoding
-        matrix_data = np.zeros((len(proxies), len(test_ids)))
-        for i, proxy in enumerate(proxies):
-            for j, test_id in enumerate(test_ids):
-                # Convert result to numeric value with better separation
-                result = test_results[proxy].get(test_id, "other")
-                if result == "received":
-                    matrix_data[i][j] = 4  # Success
-                elif result == "reset":
-                    matrix_data[i][j] = 3  # Reset
-                elif result == "goaway":
-                    matrix_data[i][j] = 2  # Goaway
-                elif result == "500":
-                    matrix_data[i][j] = 1  # 500 error
-                elif result == "dropped":
-                    matrix_data[i][j] = 0  # Failure
-                else:  # other
-                    matrix_data[i][j] = np.nan  # Use NaN to exclude "other" from correlation
-        
-        # Calculate correlation matrix with NaN handling
-        correlation_matrix = np.zeros((len(proxies), len(proxies)))
-        for i in range(len(proxies)):
-            for j in range(len(proxies)):
-                # Calculate correlation for each pair, ignoring NaNs
-                valid_indices = ~(np.isnan(matrix_data[i]) | np.isnan(matrix_data[j]))
-                if np.sum(valid_indices) > 1:  # Need at least 2 valid points
-                    correlation_matrix[i, j] = np.corrcoef(
-                        matrix_data[i, valid_indices], 
-                        matrix_data[j, valid_indices]
-                    )[0, 1]
-                else:
-                    correlation_matrix[i, j] = 0
-        
-        # Create figure
-        plt.figure(figsize=(12, 10))
-        
-        # Create heatmap
-        im = plt.imshow(correlation_matrix, cmap='coolwarm', aspect='equal', vmin=-1, vmax=1)
-        
-        # Add colorbar
-        plt.colorbar(im)
-        
-        # Configure ticks and labels
-        plt.xticks(np.arange(len(proxies)), proxies, rotation=45, ha='right')
-        plt.yticks(np.arange(len(proxies)), proxies)
-        
-        # Add correlation values as text
-        for i in range(len(proxies)):
-            for j in range(len(proxies)):
-                text = plt.text(j, i, f'{correlation_matrix[i, j]:.2f}',
-                              ha='center', va='center', color='black')
-                
-                # Make text white for dark background
-                if abs(correlation_matrix[i, j]) > 0.5:
-                    text.set_color('white')
-        
-        scope_title = 'Full Test Suite' if scope == 'full' else 'Client-side Tests Only'
-        plt.title(f'Proxy Correlation Matrix ({scope_title})', fontsize=14, fontweight='bold')
-        plt.tight_layout()
-        
-        # Save the plot
-        filename = 'correlation_matrix_full.png' if scope == 'full' else 'correlation_matrix_client_only.png'
-        plt.savefig(os.path.join(output_directory, filename), 
-                    dpi=300, bbox_inches='tight')
-        plt.close()
-
-def create_proxy_result_pies(test_results, proxy_configs, output_directory):
-    """Create individual pie charts showing result proportions for each proxy.
-    Saves each chart to analysis/behavior/proxies/<proxy_name>_result_pie.png.
-    """
-    proxies_output_dir = os.path.join(output_directory, 'proxies')
-    os.makedirs(proxies_output_dir, exist_ok=True)
-    
-    colors = ['#ff6b6b', '#ffd93d', '#ff9f43', '#6c5ce7', '#6bceff', '#4ecdc4', '#2ecc71', '#95a5a6']
-    
-    for proxy, config in proxy_configs.items():
-        if proxy not in test_results:
-            print(f"Skipping pie chart for {proxy}: No results found.")
-            continue
-            
-        fig, ax = plt.subplots(figsize=(8, 8)) # Create a new figure for each proxy
-        
-        proxy_title = f"{proxy} Result Distribution"
-        create_single_pie(ax, test_results[proxy], colors, proxy_title)
-        
-        # Save the individual pie chart
-        filename = f"{proxy}_result_pie.png"
-        output_path = os.path.join(proxies_output_dir, filename)
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        plt.close(fig) # Close the figure to free memory
-
 def create_proxy_line_graphs(test_results, proxy_configs, output_directory):
     """Create line graphs showing test result categories with different proxies as lines in CDF style."""
     os.makedirs(output_directory, exist_ok=True)
@@ -428,89 +320,6 @@ def create_proxy_line_graphs(test_results, proxy_configs, output_directory):
         filename = 'result_cdf_full.png' if scope == 'full' else 'result_cdf_client_only.png'
         plt.savefig(os.path.join(output_directory, filename), dpi=300, bbox_inches='tight')
         plt.close()
-
-def create_single_pie(ax, test_results, colors, title):
-    """Create a single pie chart on the given axis."""
-    if not test_results:
-        ax.text(0.5, 0.5, "No data", ha='center', va='center', fontsize=14)
-        ax.axis('off')
-        ax.set_title(title, pad=20)
-        return
-    
-    # Count categories
-    total_tests = len(test_results)
-    dropped = sum(1 for result in test_results.values() if result == "dropped")
-    error_500 = sum(1 for result in test_results.values() if result == "500")
-    goaway = sum(1 for result in test_results.values() if result == "goaway")
-    reset = sum(1 for result in test_results.values() if result == "reset")
-    received = sum(1 for result in test_results.values() if result == "received")
-    modified = sum(1 for result in test_results.values() if result == "modified")
-    unmodified = sum(1 for result in test_results.values() if result == "unmodified")
-    other = total_tests - dropped - error_500 - goaway - reset - received - modified - unmodified
-    
-    # Calculate percentages
-    dropped_pct = (dropped / total_tests) * 100 if total_tests > 0 else 0
-    error_500_pct = (error_500 / total_tests) * 100 if total_tests > 0 else 0
-    goaway_pct = (goaway / total_tests) * 100 if total_tests > 0 else 0
-    reset_pct = (reset / total_tests) * 100 if total_tests > 0 else 0
-    received_pct = (received / total_tests) * 100 if total_tests > 0 else 0
-    modified_pct = (modified / total_tests) * 100 if total_tests > 0 else 0
-    unmodified_pct = (unmodified / total_tests) * 100 if total_tests > 0 else 0
-    other_pct = (other / total_tests) * 100 if total_tests > 0 else 0
-    
-    # Only include non-zero values
-    sizes = []
-    labels = []
-    colors_filtered = []
-    
-    if dropped > 0:
-        sizes.append(dropped_pct)
-        labels.append(f'Dropped\n{dropped} ({dropped_pct:.1f}%)')
-        colors_filtered.append(colors[0])
-    
-    if error_500 > 0:
-        sizes.append(error_500_pct)
-        labels.append(f'500 Error\n{error_500} ({error_500_pct:.1f}%)')
-        colors_filtered.append(colors[1])
-    
-    if goaway > 0:
-        sizes.append(goaway_pct)
-        labels.append(f'GOAWAY\n{goaway} ({goaway_pct:.1f}%)')
-        colors_filtered.append(colors[2])
-    
-    if reset > 0:
-        sizes.append(reset_pct)
-        labels.append(f'RESET\n{reset} ({reset_pct:.1f}%)')
-        colors_filtered.append(colors[3])
-    
-    if received > 0:
-        sizes.append(received_pct)
-        labels.append(f'Received\n{received} ({received_pct:.1f}%)')
-        colors_filtered.append(colors[4])
-        
-    if modified > 0:
-        sizes.append(modified_pct)
-        labels.append(f'Modified\n{modified} ({modified_pct:.1f}%)')
-        colors_filtered.append(colors[5])
-        
-    if unmodified > 0:
-        sizes.append(unmodified_pct)
-        labels.append(f'Unmodified\n{unmodified} ({unmodified_pct:.1f}%)')
-        colors_filtered.append(colors[6])
-    
-    if other > 0:
-        sizes.append(other_pct)
-        labels.append(f'Other\n{other} ({other_pct:.1f}%)')
-        colors_filtered.append(colors[7])
-    
-    if sizes:  # Only create pie if we have non-zero values
-        ax.pie(sizes, labels=labels, colors=colors_filtered, autopct='', 
-               startangle=90)
-    else:
-        ax.text(0.5, 0.5, "No data", ha='center', va='center', fontsize=14)
-        ax.axis('off')
-    
-    ax.set_title(title, pad=20)
 
 def create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, reset_counts, received_counts, all_test_results, proxy_configs, output_directory):
     """Create a markdown table summarizing the counts of dropped, error, reset, goaway, and received results."""
@@ -722,132 +531,6 @@ def create_test_results_matrix(all_test_results, proxy_configs, output_directory
     
     with open(os.path.join(output_directory, 'test_results_matrix.md'), 'w') as f:
         f.write(matrix_table)
-
-def extract_and_save_outliers(all_test_results, proxy_configs, output_directory):
-    """
-    Extract outliers from test results and save them to dedicated files based on test scope.
-    
-    Outliers are defined as tests where exactly one proxy behaves differently from all others
-    that have the same scope (full or client-only).
-    
-    Args:
-        all_test_results: Dictionary mapping proxy names to their test results
-        proxy_configs: Dictionary mapping proxy names to their configurations
-        output_directory: Directory to save the output report
-    """
-    # Load test descriptions
-    try:
-        with open('test_cases.json', 'r') as f:
-            test_cases = json.load(f)
-        test_descriptions = {str(case['id']): case['description'] for case in test_cases}
-    except Exception as e:
-        print(f"Warning: Could not load test descriptions from test_cases.json: {e}")
-        test_descriptions = {}
-    
-    # Get list of proxies by scope
-    full_scope_proxies = [proxy for proxy, config in proxy_configs.items() 
-                         if config['scope'] == 'full' and proxy in all_test_results]
-    client_only_proxies = [proxy for proxy, config in proxy_configs.items() 
-                         if config['scope'] == 'client-only' and proxy in all_test_results]
-    
-    # Get all test IDs
-    all_test_ids = sort_test_ids(set().union(*[results.keys() for results in all_test_results.values()]))
-    
-    # Dictionary to collect outliers by scope
-    # {test_id: {outlier_proxy, outlier_behavior, common_behavior}}
-    full_scope_outliers = {}
-    client_only_outliers = {}
-    
-    # Function to process tests for a given scope
-    def process_scope(test_id, scope_proxies, outliers_dict):
-        # Skip if we don't have at least 3 proxies to compare
-        if len(scope_proxies) < 3:
-            return
-        
-        # Collect results for this test from proxies in this scope
-        test_results = {}
-        for proxy in scope_proxies:
-            if test_id in all_test_results[proxy]:
-                test_results[proxy] = all_test_results[proxy][test_id]
-        
-        # Skip if not enough proxies have results for this test
-        if len(test_results) < 3:
-            return
-        
-        # Following the vector graph logic:
-        # Count occurrences of each result value
-        result_counts = {}
-        for result in test_results.values():
-            result_counts[result] = result_counts.get(result, 0) + 1
-        
-        # Check if there's exactly one outlier (one result value with count=1)
-        if 1 in result_counts.values() and len(result_counts) > 1:
-            # Find the outlier result(s)
-            outlier_results = [r for r, count in result_counts.items() if count == 1]
-            
-            for outlier_result in outlier_results:
-                # Find which proxy had the outlier result
-                outlier_proxy = None
-                for proxy, result in test_results.items():
-                    if result == outlier_result:
-                        outlier_proxy = proxy
-                        break
-                
-                # Find the most common result (this is the "normal" behavior)
-                common_result = max(result_counts.items(), key=lambda x: x[1])[0]
-                
-                # Store the outlier information
-                outliers_dict[test_id] = {
-                    'outlier_proxy': outlier_proxy,
-                    'outlier_behavior': outlier_result,
-                    'common_behavior': common_result
-                }
-    
-    # Process each test for both scopes
-    for test_id in all_test_ids:
-        process_scope(test_id, full_scope_proxies, full_scope_outliers)
-        process_scope(test_id, client_only_proxies, client_only_outliers)
-    
-    # Helper function to write outliers to a file
-    def write_outliers_file(outliers, filename, scope_name):
-        output_file = os.path.join(output_directory, filename)
-        
-        with open(output_file, 'w') as f:
-            f.write(f"# Outlier Behaviors in HTTP/2 Conformance Tests - {scope_name} Scope\n\n")
-            f.write("This document lists tests where exactly one proxy behaved differently than all others.\n\n")
-            f.write(f"Total outliers found: {len(outliers)}\n\n")
-            
-            # Sort outliers by proxy to group them
-            proxy_outliers = {}
-            for test_id, data in outliers.items():
-                proxy = data['outlier_proxy']
-                if proxy not in proxy_outliers:
-                    proxy_outliers[proxy] = []
-                proxy_outliers[proxy].append((test_id, data))
-            
-            # Write grouped by proxy
-            for proxy in sorted(proxy_outliers.keys()):
-                f.write(f"## Outliers for {proxy}\n\n")
-                
-                # Create table header
-                f.write("| Test ID | Description | Outlier Behavior | Common Behavior |\n")
-                f.write("|---------|-------------|------------------|----------------|\n")
-                
-                # Add each outlier for this proxy
-                for test_id, data in sorted(proxy_outliers[proxy], key=lambda x: int(x[0]) if x[0].isdigit() else float('inf')):
-                    description = test_descriptions.get(test_id, "No description available")
-                    outlier_behavior = data['outlier_behavior']
-                    common_behavior = data['common_behavior']
-                    
-                    f.write(f"| {test_id} | {description} | {outlier_behavior} | {common_behavior} |\n")
-                
-                f.write("\n")
-            
-    # Write both files
-    write_outliers_file(full_scope_outliers, "outliers_full.md", "Full")
-    write_outliers_file(client_only_outliers, "outliers_client_only.md", "Client-Only")
-    
-    return full_scope_outliers, client_only_outliers
 
 def load_client_server_classification(json_path):
     """Load the classification of tests as client-side or server-side."""
@@ -1116,65 +799,6 @@ def create_test_outcome_by_id_table(all_test_results, output_directory):
                 # Add a separator between tests
                 f.write("\n")
 
-def create_modified_unmodified_summary(all_test_results, output_directory):
-    """Create a text file listing proxies that had modified or unmodified results for each test ID."""
-    os.makedirs(output_directory, exist_ok=True)
-
-    # Load test case descriptions (keyed by ORIGINAL_IDs)
-    try:
-        with open('test_cases.json', 'r') as f:
-            test_cases = json.load(f)
-        test_descriptions = {str(case['id']): case['description'] for case in test_cases}
-    except Exception as e:
-        print(f"Warning: Could not load test descriptions from test_cases.json: {e}")
-        test_descriptions = {}
-
-    # Create a dict to organize test outcomes by test ID
-    # Keys in test_outcomes will be NEW IDs if mapping is active, as all_test_results keys are new IDs.
-    test_outcomes = defaultdict(lambda: {"modified": [], "unmodified": []})
-
-    # Process each proxy's results
-    for proxy, results in all_test_results.items():
-        for test_id, result in results.items(): # test_id here is a NEW ID if mapping is active
-            if result == "modified":
-                test_outcomes[test_id]["modified"].append(proxy)
-            elif result == "unmodified":
-                test_outcomes[test_id]["unmodified"].append(proxy)
-
-    # Create the output file
-    output_file = os.path.join(output_directory, "modified_unmodified_summary.md")
-
-    with open(output_file, 'w') as f:
-        f.write("# Modified and Unmodified Test Results Summary\\n\\n")
-        f.write("This file lists test cases where at least one proxy returned a 'modified' or 'unmodified' result.\\n\\n")
-
-        # Get new_ids from test_outcomes.keys(). These are strings.
-        # sort_test_ids sorts these new_ids numerically, which respects the reordered sequence.
-        list_of_new_ids = list(test_outcomes.keys())
-        sorted_new_ids = sort_test_ids(list_of_new_ids)
-
-        for new_id_str in sorted_new_ids: # new_id_str is a string representing the new ID
-            # Get the original ID for display and description lookup
-            original_id_str = new_id_str
-
-            description = test_descriptions.get(original_id_str, "No description available")
-            # Access outcomes using the new_id_str, as test_outcomes is keyed by new IDs
-            outcomes = test_outcomes[new_id_str]
-
-            # Only include tests that have at least one modified or unmodified result
-            if outcomes["modified"] or outcomes["unmodified"]:
-                # Display the ORIGINAL ID in the header
-                f.write(f"## Test {original_id_str}: {description}\n\n")
-
-                if outcomes["modified"]:
-                    f.write(f"**Modified by:** {', '.join(sorted(outcomes['modified']))}\n")
-
-                if outcomes["unmodified"]:
-                    f.write(f"**Unmodified by:** {', '.join(sorted(outcomes['unmodified']))}\n")
-
-                # Add a separator between tests
-                f.write("\n---\n\n")
-
 def create_client_server_proxy_line_graphs(test_results, proxy_configs, client_side_tests, server_side_tests, output_directory):
     """Create line graphs showing test result categories with different proxies as lines in CDF style,
     separated by client-side and server-side tests."""
@@ -1403,90 +1027,6 @@ def create_client_server_discrepancy_visualization(test_results, test_pairs, out
                 dpi=300, bbox_inches='tight')
     plt.close()
 
-def create_test_timeline_graphs(test_results, proxy_configs, client_side_tests, server_side_tests, output_directory):
-    """Create line graphs showing test results per test ID for each proxy,
-       optionally filtering tests for client-only scope."""
-    os.makedirs(output_directory, exist_ok=True)
-
-    # Define categories and their numerical mapping for the Y-axis (excluding 'other')
-    categories = ['dropped', '500', 'goaway', 'reset', 'unmodified', 'modified']
-    category_map = {cat: i for i, cat in enumerate(categories)}
-    
-    # Get all unique test IDs sorted using our helper function (for full scope)
-    all_test_ids_full = sort_test_ids(set().union(*(results.keys() for results in test_results.values())))
-
-    # Filter test IDs for client-side only tests
-    all_test_ids_client_only = sort_test_ids([tid for tid in all_test_ids_full if tid in client_side_tests])
-
-    # Split proxies by scope
-    full_scope_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'full' and proxy in test_results]
-    client_only_proxies = [proxy for proxy, config in proxy_configs.items() if config['scope'] == 'client-only' and proxy in test_results]
-
-    # Create graphs for each scope
-    for scope, proxies in [('full', full_scope_proxies), ('client-only', client_only_proxies)]:
-        if not proxies:
-            continue
-
-        # Select the appropriate test IDs for the current scope
-        current_test_ids = all_test_ids_full if scope == 'full' else all_test_ids_client_only
-        if not current_test_ids: # Skip if no relevant tests for this scope
-            print(f"Skipping timeline graph for {scope} scope: No relevant test IDs found.")
-            continue
-            
-        x_values = range(len(current_test_ids)) # Numerical x-axis positions
-            
-        plt.figure(figsize=(18, 10)) # Wider figure for better test ID visibility
-        
-        # Define a colormap
-        colors = plt.cm.tab20(np.linspace(0, 1, len(proxies))) # Using tab20 for more distinct colors
-
-        # Prepare plot data for this scope
-        for i, proxy in enumerate(proxies):
-            proxy_results = test_results[proxy]
-            y_values = []
-            for test_id in current_test_ids:
-                result = proxy_results.get(test_id, 'other') # Get result, default to 'other'
-                # Map result to numerical value, skip if it's 'other' or not in map
-                y_value = category_map.get(result)
-                y_values.append(y_value if y_value is not None else np.nan) # Use NaN for excluded/missing categories
-            
-            # Plot the line for this proxy, connecting non-NaN points
-            plt.plot(x_values, y_values, marker='.', linestyle='-', markersize=4, 
-                     linewidth=1.5, color=colors[i], label=proxy)
-
-        # Configure the plot
-        # Use position numbers (1, 2, 3...) instead of raw test IDs
-        position_labels = [str(i+1) for i in range(len(current_test_ids))]
-        # Only show a subset of the position labels to avoid overcrowding
-        sparse_positions = []
-        sparse_labels = []
-        label_step = max(1, len(position_labels) // 20)  # Show about 20 labels at most
-        for i in range(0, len(position_labels), label_step):
-            sparse_positions.append(i)
-            sparse_labels.append(position_labels[i])
-            
-        plt.xticks(sparse_positions, sparse_labels, rotation=90, fontsize=8)
-        plt.yticks(list(category_map.values()), list(category_map.keys())) # Use category names for Y-axis labels
-
-        plt.xlim(-0.5, len(current_test_ids) - 0.5)
-        plt.ylim(-0.5, len(categories) - 0.5) # Adjust ylim based on new categories
-        plt.grid(True, axis='both', linestyle='--', alpha=0.5) # Grid on both axes
-
-        scope_title = 'Full Test Suite Proxies' if scope == 'full' else 'Client-side Only Proxies (Client Tests Only)'
-        plt.title(f'Test Result Timeline - {scope_title}', fontsize=16, fontweight='bold')
-        plt.xlabel('Test ID', fontsize=12)
-        plt.ylabel('Result Category', fontsize=12)
-        
-        # Add legend
-        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=10) # Place legend outside plot area
-        
-        plt.tight_layout(rect=[0, 0, 0.85, 1]) # Adjust layout to make space for legend
-
-        # Save the figure
-        filename = f'test_timeline_{scope}.png'
-        plt.savefig(os.path.join(output_directory, filename), dpi=300, bbox_inches='tight')
-        plt.close()
-
 def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output_directory):
     """Creates a matrix visualization of test outcomes filtered by proxy scope.
     
@@ -1666,310 +1206,6 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
         print(f"Error saving proxy outcome matrix {output_path}: {e}")
     finally:
         plt.close(fig)
-
-# // === Start Refactor for Combined Plots ===
-
-# Define the new helper function that plots on a given Axes object
-def _plot_radar_on_ax(ax, proxies_to_plot, scope, test_results, proxy_configs, 
-                      global_tick_values_log, global_tick_labels, global_max_log_display, 
-                      title_prefix="Radar Chart"):
-    """Plots a single radar chart onto a given Matplotlib Axes object (ax)."""
-    
-    # --- This function assumes ax is already a polar subplot ---
-    # It does NOT create a figure or save it.
-
-    # Define categories and outcome map based on scope
-    if scope == 'full':
-        categories = ['Dropped', '500 Error', 'GOAWAY', 'RESET', 'Unmodified', 'Modified']
-        category_keys = ['dropped', '500', 'goaway', 'reset', 'unmodified', 'modified']
-    else: # client-only
-        categories = ['Dropped', '500 Error', 'GOAWAY', 'RESET', 'Accepted']
-        category_keys = ['dropped', '500', 'goaway', 'reset', 'accepted']
-
-    inverse_outcome_map = {
-        "dropped": "dropped", "500": "500", "goaway": "goaway", "reset": "reset",
-        "modified": "modified" if scope == 'full' else "accepted",
-        "unmodified": "unmodified" if scope == 'full' else "accepted",
-        "received": "accepted" if scope == 'client-only' else None,
-        "other": None
-    }
-    N = len(categories)
-    if N == 0: return # Should not happen if scope is valid
-
-    # Calculate counts per proxy
-    counts_per_proxy = {}
-    valid_proxies_in_plot = []
-    for proxy in proxies_to_plot:
-        if proxy not in test_results:
-            continue
-        valid_proxies_in_plot.append(proxy)
-        counts = {key: 0 for key in category_keys}
-        for test_id, result_str in test_results[proxy].items():
-            category = inverse_outcome_map.get(result_str)
-            if category in counts: counts[category] += 1
-        counts_per_proxy[proxy] = counts
-
-    if not valid_proxies_in_plot:
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.text(0.5, 0.5, "No data", horizontalalignment='center', verticalalignment='center', transform=ax.transAxes, fontsize=9)
-        ax.set_title(title_prefix + ": No Data", size=10, y=1.15)
-        return
-
-    angles = [n / float(N) * 2 * np.pi for n in range(N)]
-    angles += angles[:1] # Close the loop
-
-    # Configure ticks and labels on the passed ax
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(categories, size=9) # Smaller font for subplots
-    ax.set_yticks(global_tick_values_log)
-    ax.set_yticklabels(global_tick_labels, size=7) # Smaller font for subplots
-    ax.set_ylim(0, global_max_log_display * 1.1 if global_max_log_display > 0 else 0.1)
-
-    # Get display names and colors
-    proxy_label_map = {}
-    proxy_color_map = {}
-    default_color_idx = 0
-    # Custom fallback colors (replace orange with red)
-    custom_fallback_colors = [
-        '#1f77b4',  # tab:blue
-        '#d62728',  # tab:red (instead of orange)
-        '#2ca02c',  # tab:green
-        '#ff7f0e',  # tab:orange (moved here, was red)
-        '#9467bd',  # tab:purple
-        '#8c564b',  # tab:brown
-        '#e377c2',  # tab:pink
-        '#7f7f7f',  # tab:gray
-        '#bcbd22',  # tab:olive
-        '#17becf'   # tab:cyan
-    ]
- 
-    for proxy in valid_proxies_in_plot:
-         config = proxy_configs.get(proxy, {})
-         proxy_label_map[proxy] = config.get('label', proxy)
-         proxy_color_map[proxy] = config.get('color')
-         if not proxy_color_map[proxy]:
-             proxy_color_map[proxy] = custom_fallback_colors[default_color_idx % len(custom_fallback_colors)]
-             default_color_idx += 1
-
-    # Plot lines and annotations on the passed ax
-    for proxy_index, proxy in enumerate(valid_proxies_in_plot):
-        proxy_counts = counts_per_proxy[proxy]
-        ordered_counts = [proxy_counts.get(key, 0) for key in category_keys]
-        log_data = np.log10(np.array(ordered_counts) + 1)
-        log_data_closed = np.concatenate((log_data, [log_data[0]]))
-
-        label = proxy_label_map[proxy]
-        color = proxy_color_map[proxy]
-
-        ax.plot(angles, log_data_closed, linewidth=2.5, linestyle='solid', label=label, color=color) # Increased linewidth
-
-        proxy_radial_offset = proxy_index * (global_max_log_display * 0.015)
-        for i in range(N):
-            count = ordered_counts[i]
-            log_val = log_data[i]
-            angle = angles[i]
-            # Removed count annotation logic
-
-    # Set title and legend on the passed ax
-    plotted_labels = [proxy_label_map[p] for p in valid_proxies_in_plot]
-    if len(plotted_labels) <= 2:
-        # For pairs, just use the labels
-        title_detail = ' vs '.join(plotted_labels)
-    else:
-        # For combined, use count
-        title_detail = f"{len(plotted_labels)} Proxies"
-    
-    effective_title_prefix = title_prefix
-    # Special handling for combined remaining charts to add scope
-    if len(valid_proxies_in_plot) > 2 and 'Remaining' in title_prefix:
-         effective_title_prefix = f"{title_prefix} (Scope: {scope})"
-
-    title_str = f"{effective_title_prefix}: {title_detail}"
-    # ax.set_title(title_str, size=9, y=1.18) # REMOVED subplot titles
-    # Use a smaller legend, placed slightly differently for subplots
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=min(len(plotted_labels), 4), fontsize=10) # Increased legend fontsize
-
-# Renamed original function - this now ONLY saves single charts (for remaining)
-# It calls the helper function above.
-def _save_single_radar_chart_figure(proxies_to_plot, scope, test_results, proxy_configs, output_path, 
-                                    global_tick_values_log, global_tick_labels, global_max_log_display,
-                                    title_prefix="Radar Chart"):
-    """Creates and saves a single radar chart figure. Used for 'remaining' proxies."""
-    
-    fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(polar=True)) # Slightly smaller figure
-    
-    # Call the core plotting function to draw on the axes
-    _plot_radar_on_ax(ax, proxies_to_plot, scope, test_results, proxy_configs, 
-                      global_tick_values_log, global_tick_labels, global_max_log_display, 
-                      title_prefix=title_prefix)
-    
-    # Save and close the individual figure
-    try:
-        plt.tight_layout(pad=2.0) # Adjust padding
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        print(f"Saved single radar chart: {output_path}")
-    except Exception as e:
-        print(f"Error saving single radar chart {output_path}: {e}")
-    finally:
-        plt.close(fig) 
-
-# // === End Refactor ===
-
-# // ... function _calculate_global_radar_scale should be defined before this ...
-
-# // ... function create_proxy_radar_chart needs modification in the next step ...
-
-def _calculate_global_radar_scale(test_results, proxy_configs):
-    """Calculate global max count and corresponding log ticks across all proxies."""
-    # --- Use fixed ticks based on user request --- 
-    target_counts = [0, 1, 10, 100]
-    tick_labels = [str(c) for c in target_counts]
-    tick_values_log = [np.log10(c + 1) for c in target_counts]
-    max_log_display = tick_values_log[-1] # The log value corresponding to 166
-
-    print(f"Using Fixed Radar Scale: Counts={target_counts}, Ticks={tick_labels}")
-    return tick_values_log, tick_labels, max_log_display
-
-def create_proxy_radar_chart(test_results, proxy_configs, output_directory):
-    """Create radar charts: combined for pairs, separate for remaining."""
-    charts_directory = os.path.join(output_directory, 'radar_charts')
-    os.makedirs(charts_directory, exist_ok=True)
-
-    # Identify old/new pairs
-    print("Searching for old/new proxy pairs based on config...")
-    old_new_pairs = [] # List of tuples: (old_proxy_name, new_proxy_name, scope)
-    paired_proxies_set = set()
-    proxies_by_base_name = defaultdict(list)
-
-    for proxy_name, config in proxy_configs.items():
-        parts = proxy_name.rsplit('-', 1)
-        if len(parts) > 1:
-            base_name = parts[0]
-            proxies_by_base_name[base_name].append(proxy_name)
-        else:
-            proxies_by_base_name[proxy_name].append(proxy_name)
-
-    for base_name, proxy_list in proxies_by_base_name.items():
-        old_proxy, new_proxy = None, None
-        for proxy_name in proxy_list:
-            config = proxy_configs.get(proxy_name, {})
-            version_tag = config.get('version')
-            if version_tag == 'old': old_proxy = proxy_name
-            elif version_tag == 'new': new_proxy = proxy_name
-
-        if old_proxy and new_proxy:
-            if old_proxy in test_results and new_proxy in test_results:
-                scope_old = proxy_configs[old_proxy].get('scope')
-                scope_new = proxy_configs[new_proxy].get('scope')
-                if scope_old and scope_old == scope_new:
-                    old_new_pairs.append((old_proxy, new_proxy, scope_old))
-                    paired_proxies_set.add(old_proxy)
-                    paired_proxies_set.add(new_proxy)
-                    print(f"  Found valid pair for '{base_name}': ({old_proxy}, {new_proxy}) in scope {scope_old}")
-                else:
-                    print(f"  Skipping pair for '{base_name}': Scopes mismatch ('{scope_old}' vs '{scope_new}')")
-            else:
-                print(f"  Skipping pair for '{base_name}': One or both not in test_results.")
-
-    # Identify remaining proxies
-    print("Identifying remaining proxies...")
-    remaining_proxies = {proxy: config for proxy, config in proxy_configs.items() 
-                         if proxy in test_results and proxy not in paired_proxies_set}
-    print(f"Found {len(remaining_proxies)} remaining proxies.")
-
-    # Calculate global scale (based on all results)
-    print("Calculating global radar scale...")
-    global_tick_values_log, global_tick_labels, global_max_log_display = _calculate_global_radar_scale(test_results, proxy_configs)
-
-    # --- Generate COMBINED chart for old/new pairs --- 
-    num_pairs = len(old_new_pairs)
-    if num_pairs > 0:
-        print(f"Generating comparison radar charts for {num_pairs} pairs...")
-        
-        # Determine grid size (FIXED to 2x5)
-        ncols = 5 # Fixed at 5 columns
-        nrows = 2 # Fixed at 2 rows
-        # Check if enough pairs exist for a 2x5 grid
-        if num_pairs > nrows * ncols:
-             print(f"Warning: More than {nrows*ncols} pairs found ({num_pairs}), but grid is fixed to {nrows}x{ncols}. Only the first {nrows*ncols} will be plotted.")
-             num_pairs_to_plot = nrows * ncols
-        else:
-             num_pairs_to_plot = num_pairs # Plot all pairs if they fit
-
-        figsize_width = ncols * 4.5 # Adjust size based on more columns
-        figsize_height = nrows * 5  # Adjust size based on fewer rows
-
-        fig, axes = plt.subplots(nrows, ncols, figsize=(figsize_width, figsize_height), 
-                                 subplot_kw=dict(polar=True))
-        
-        # ... (rest of the function: flatten axes, loop through pairs up to num_pairs_to_plot, hide unused) ...
-        if isinstance(axes, np.ndarray):
-             axes_flat = axes.flatten()
-        elif isinstance(axes, plt.Axes): # Single subplot case
-             axes_flat = [axes]
-        else: 
-             axes_flat = []
-
-        # Loop only up to the number of pairs we decided to plot
-        plotted_count = 0
-        for i, (old_proxy, new_proxy, scope) in enumerate(old_new_pairs):
-            if plotted_count >= num_pairs_to_plot:
-                 break # Stop if we filled the grid
-            
-            if i < len(axes_flat):
-                ax = axes_flat[i]
-                old_label = proxy_configs.get(old_proxy, {}).get('label', old_proxy)
-                new_label = proxy_configs.get(new_proxy, {}).get('label', new_proxy)
-                # Title prefix is still needed for _plot_radar_on_ax internal logic if needed, but won't be displayed
-                title_for_helper = f"{old_label} vs {new_label}" 
-                
-                _plot_radar_on_ax(ax, [old_proxy, new_proxy], scope, test_results, proxy_configs, 
-                                  global_tick_values_log, global_tick_labels, global_max_log_display, 
-                                  title_prefix=title_for_helper)
-                plotted_count += 1
-            else:
-                 # This shouldn't be reached if num_pairs_to_plot logic is correct
-                 print("Warning: Indexing error during subplotting.")
-                 break 
-
-        # Hide unused subplots (all axes beyond the plotted count)
-        for j in range(plotted_count, len(axes_flat)):
-            axes_flat[j].axis('off')
-
-        # Adjust layout and save the combined figure
-        try:
-            # Add a main title? Optional.
-            # fig.suptitle("Old vs New Proxy Comparisons", fontsize=16)
-            plt.tight_layout(rect=[0, 0.03, 1, 0.97]) # Adjust rect to make space for suptitle if used
-            combined_output_path = os.path.join(charts_directory, "radar_comparison_all_pairs.png")
-            plt.savefig(combined_output_path, dpi=300)
-            print(f"Saved combined comparison radar chart: {combined_output_path}")
-        except Exception as e:
-            print(f"Error saving combined radar chart: {e}")
-        finally:
-            plt.close(fig)
-    else:
-        print("No old/new pairs found to generate combined chart.")
-
-    # --- Generate SEPARATE charts for remaining proxies --- 
-    print(f"Generating separate radar charts for {len(remaining_proxies)} remaining proxies...")
-    remaining_by_scope = defaultdict(list)
-    for proxy, config in remaining_proxies.items():
-         scope = config.get('scope')
-         if scope:
-             remaining_by_scope[scope].append(proxy)
-
-    for scope, proxies_in_scope in remaining_by_scope.items():
-        if proxies_in_scope:
-            print(f"  Generating chart for {len(proxies_in_scope)} remaining proxies in scope '{scope}'...")
-            output_file = os.path.join(charts_directory, f"radar_remaining_{scope}.png")
-            # Use the function that saves individual files
-            _save_single_radar_chart_figure(proxies_in_scope, scope, test_results, proxy_configs, output_file, 
-                                          global_tick_values_log, global_tick_labels, global_max_log_display,
-                                          title_prefix="Remaining Proxies") # Pass specific title prefix
-
-    print("Finished creating proxy radar charts.")
 
 def _find_old_new_pairs(proxy_configs, test_results):
     """Identifies pairs of (old_proxy, new_proxy) based on config and availability in results."""
@@ -2393,14 +1629,7 @@ def create_dual_scope_comparison_matrix(all_test_results_full, proxy_configs, cl
 
     print("Finished dual-scope comparison matrix generation.")
 
-
-# --- In main() function ---
-# Find the block where client_server_dir and client_side_tests are handled
-
-
 def main():
-    # Create base directories if they don't exist
-    # Define base directories and their subdirectories
     base_dirs_config = {
         'analysis': ['tables', 'outliers', 'cloudflare', 'behavior', 'conformance', 'correlation'],
         os.path.join('analysis', 'behavior'): ['proxies', 'radar_charts', 'matrix_graphs', 'behavior_change', 'dual_scope_comparison'] # Added 'behavior_change' and 'dual_scope_comparison'
@@ -2424,34 +1653,33 @@ def main():
 
 
     # List of proxy folders with their test scope
-    # (Adding labels and colors for better plots later, if needed)
     proxy_configs = {
         'Nghttpx-1.62.1': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
-        'HAproxy-2.9.10': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
+        'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
+        'HAproxy-3.2.0': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
         # 'HAproxy-3.2.0': {'scope': 'full', 'version': 'new'},
-        # 'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
-        'Apache-2.4.62': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
-        'Caddy-2.9.1': {'scope': 'full', 'version': 'new'},
+        'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
+        'Apache-2.4.63': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
+        'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
+        # 'Caddy-2.9.1': {'scope': 'full', 'version': 'new'},
         'Node-20.16.0': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Node-14.19.3': {'scope': 'full', 'version': 'old'},
-        'Envoy-1.32.2': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Envoy-1.21.2': {'scope': 'full', 'version': 'old'},
+        'Node-14.19.3': {'scope': 'full', 'version': 'old'},
+        'Envoy-1.34.1': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
+        'Envoy-1.21.2': {'scope': 'full', 'version': 'old'},
         'H2O-26b116e95': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'H2O-cf59e67c3': {'scope': 'full', 'version': 'old'},
-        'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
+        'H2O-cf59e67c3': {'scope': 'full', 'version': 'old'},
+        # 'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
         'Traefik-3.3.5': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Traefik-2.6.2': {'scope': 'full', 'version': 'old'},
-        'Nginx-1.26.0': {'scope': 'client-only', 'version': 'new'},
-        # 'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
+        'Traefik-2.6.2': {'scope': 'full', 'version': 'old'},
+        'Nginx-1.28.0': {'scope': 'client-only', 'version': 'new'},
+        'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
         'Lighttpd-1.4.76': {'scope': 'client-only', 'version': 'new'},
-        # 'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
+        'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
         'Varnish-7.7.0': {'scope': 'client-only', 'version': 'new'},
-        # 'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
-        'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
-        'Cloudflare': {'scope': 'full', 'version': 'N/A', 'second-scope': 'client-only'},
-        'Fastly': {'scope': 'client-only', 'version': 'N/A'},
+        'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
+        # 'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
+        # 'Cloudflare': {'scope': 'full', 'version': 'N/A', 'second-scope': 'client-only'},
+        # 'Fastly': {'scope': 'client-only', 'version': 'N/A'},
     }
     
     results_dir = 'results'
@@ -2496,30 +1724,13 @@ def main():
     create_result_counts_table(dropped_counts, error_500_counts, goaway_counts, reset_counts, received_counts, all_test_results, proxy_configs, tables_dir)
     # create_test_results_matrix(all_test_results, proxy_configs, tables_dir)
     create_test_outcome_by_id_table(all_test_results, tables_dir)
-    # create_modified_unmodified_summary(all_test_results, tables_dir) # Add call here
-    
-    # Extract and save outliers
-    outliers_dir = os.path.join('analysis', 'outliers')
-    # extract_and_save_outliers(all_test_results, proxy_configs, outliers_dir)
-
-    # Create correlation visualizations
-    correlation_dir = os.path.join('analysis', 'correlation')
-    # create_proxy_correlation_matrix(all_test_results, proxy_configs, correlation_dir)
     
     # Create distribution visualizations
     distribution_dir = os.path.join('analysis', 'behavior')
-    # create_proxy_result_pies(all_test_results, proxy_configs, distribution_dir)
-    # create_proxy_line_graphs(all_test_results, proxy_configs, distribution_dir)
-    # create_proxy_radar_chart(all_test_results, proxy_configs, distribution_dir) # Call the new function
-    # Removed call to create_test_timeline_graphs here, moved after loading client/server tests
-
-    # run cloudflare_analysis.py
-    # os.system('python cloudflare_analysis.py')
 
     all_test_results_primary = all_test_results 
     
-    # Load client-server classification and create client-server visualizations
-    client_side_tests_set = set() # Initialize to empty set
+    client_side_tests_set = set()
     server_side_tests_set = set()
     try:
         client_server_dir = os.path.join('analysis', 'behavior')
@@ -2527,7 +1738,6 @@ def main():
         
         # Run visualizations that depend on client/server classification
         # create_client_server_proxy_line_graphs(all_test_results_primary, proxy_configs, client_side_tests_set, server_side_tests_set, client_server_dir)
-        # create_test_timeline_graphs(all_test_results_primary, proxy_configs, client_side_tests_set, server_side_tests_set, client_server_dir)
         
         conformance_dir = os.path.join('analysis', 'conformance')
         # create_client_server_conformance_visualization(all_test_results_primary, client_side_tests_set, server_side_tests_set, proxy_configs, conformance_dir, scope_filter='all')
