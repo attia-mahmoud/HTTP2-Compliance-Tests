@@ -2,7 +2,7 @@ Test Outcomes by Test ID
 
 Test #3 Client preface must include a SETTINGS frame
 Received: Azure-AG, Lighttpd-1.4.76, Nginx-1.28.0, Varnish-7.7.0
-Received modified: Cloudflare
+Received modified: Cloudflare, Envoy-1.34.1
 
 Test #4 Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE
 Received: Azure-AG, Nginx-1.28.0
@@ -114,6 +114,9 @@ Received unmodified: HAproxy-3.2.0
 
 Test #148 Pseudo-header fields defined for requests MUST NOT appear in responses. (server side)
 Received modified: Cloudflare
+
+Test #149 All pseudo-header fields sent from a server MUST appear in a field block before all regular field lines. Any request or response that contains a pseudo-header field that appears in a field block after a regular field line MUST be treated as malformed (Section 8.1.1). (server side)
+Received modified: Envoy-1.34.1
 
 Test #153 For HTTP/2 responses, a single ":status" pseudo-header field is defined that carries the HTTP status code field. This pseudo-header field MUST be included in all responses, including interim responses; otherwise, the response is malformed. (server side)
 Received modified: Cloudflare
