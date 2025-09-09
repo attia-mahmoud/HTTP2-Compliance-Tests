@@ -1,0 +1,1085 @@
+{
+  "0": {
+    "description": "A normal GET request from the client, followed by small DATA. The server responds with a 200 HEADERS, some DATA, and a final set of trailers. Checks a typical request/response flow in HTTP/2.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": null
+    }
+  },
+  "1": {
+    "description": "Client must send connection preface after TLS establishment",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "REJECTED",
+        "Variables": {
+          "msg": "No initial settings received from peer at 192.168.122.69:7700"
+        }
+      }
+    }
+  },
+  "2": {
+    "description": "the connection preface starts with the string: PRI * HTTP/2.0\\r\\n\\r\\nSM\\r\\n\\r\\n",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "3": {
+    "description": "Client preface must include a SETTINGS frame",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "4": {
+    "description": "Values greater than 16,384 MUST NOT be sent unless receiver has set larger SETTINGS_MAX_FRAME_SIZE",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'payload_size': 17000, 'flags': {'END_STREAM': True}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "5": {
+    "description": "The frame type determines the format and semantics of the frame. Implementations MUST ignore and discard frames of unknown types.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": null
+    }
+  },
+  "6": {
+    "description": "A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'reserved_bit': True}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "7": {
+    "description": "Receiving any frame other than HEADERS or PRIORITY on a stream in this (idle) state MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'DATA'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "8": {
+    "description": "If an endpoint receives additional frames, other than WINDOW_UPDATE, PRIORITY, or RST_STREAM, for a stream that is in the half-closed (remote) state, it MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': True}}, {'type': 'DATA'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "9": {
+    "description": "An endpoint MUST NOT send frames other than PRIORITY on a closed stream.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 3 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM'}, {'type': 'HEADERS', 'flags': {'END_STREAM': True}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "10": {
+    "description": "Streams initiated by a client MUST use odd-numbered stream identifiers.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 2}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "11": {
+    "description": "The identifier of a newly established stream MUST be numerically greater than all streams that the initiating endpoint has opened or reserved.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 3}, {'type': 'HEADERS', 'stream_id': 1}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "12": {
+    "description": "DATA frames MUST be associated with a stream.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'DATA'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "13": {
+    "description": "If a DATA frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA', 'stream_id': 0, 'flags': {'END_STREAM': True}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "14": {
+    "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the idle state.)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'DATA'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "15": {
+    "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the half-closed (remote) state.)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': True}}, {'type': 'DATA'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "16": {
+    "description": "If a DATA frame is received whose stream is not in the 'open' or 'half-closed (local)' state, the recipient MUST respond with a stream error (Section 5.4.2) of type STREAM_CLOSED. (Tested in the closed state.)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 3 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM'}, {'type': 'DATA', 'flags': {'END_STREAM': True}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "17": {
+    "description": "A HEADERS frame without the END_HEADERS flag set MUST be followed by a CONTINUATION frame for the same stream.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'DATA'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "18": {
+    "description": "If a HEADERS frame is received whose Stream Identifier field is 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'stream_id': 0}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "19": {
+    "description": "If a PRIORITY frame is received with a stream identifier of 0x00, the recipient MUST respond with a connection error of type PROTOCOL_ERROR",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'PRIORITY', 'stream_id': 0}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "20": {
+    "description": "If a RST_STREAM frame is received with a stream identifier of 0x00, the recipient MUST treat this as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM', 'stream_id': 0}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "21": {
+    "description": "A RST_STREAM frame with a length other than 4 octets MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'RST_STREAM', 'payload_length': 5}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "22": {
+    "description": "RST_STREAM frames MUST NOT be sent for a stream in the 'idle' state.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'RST_STREAM'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "23": {
+    "description": "RST_STREAM frames MUST be associated with a stream.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'RST_STREAM'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "24": {
+    "description": "When set, the ACK flag indicates that this frame acknowledges receipt and application of the peer's SETTINGS frame. When this bit is set, the frame payload of the SETTINGS frame MUST be empty.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'SETTINGS', 'flags': {'ACK': True}, 'settings': {'MAX_CONCURRENT_STREAMS': 100}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "25": {
+    "description": "The stream identifier for a SETTINGS frame MUST be zero (0x00).",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'SETTINGS', 'stream_id': 1, 'settings': {'MAX_CONCURRENT_STREAMS': 100}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "26": {
+    "description": "A SETTINGS frame with a length other than a multiple of 6 octets MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'SETTINGS', 'extra_bytes': 5, 'settings': {'MAX_CONCURRENT_STREAMS': 100}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "27": {
+    "description": "The initial value of SETTINGS_ENABLE_PUSH is 1. Any value other than 0 or 1 MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'ENABLE_PUSH': 2}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "28": {
+    "description": "For SETTINGS_INITIAL_WINDOW_SIZE, values above the maximum flow-control window size of 2^31-1 (2147483647) MUST be treated as a connection error (Section 5.4.1) of type FLOW_CONTROL_ERROR.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'INITIAL_WINDOW_SIZE': 2147483648}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "29": {
+    "description": "The value advertised by an endpoint MUST be between initial value (2^14 = 16,384) and maximum allowed frame size (2^24-1 = 16,777,215 octets), inclusive.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'MAX_FRAME_SIZE': 16777216}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "30": {
+    "description": "An endpoint that receives a SETTINGS frame with any unknown or unsupported identifier MUST ignore that setting.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'12345': 16777216}, 'raw_payload': True}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "31": {
+    "description": "Unsupported settings MUST be ignored.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'SETTINGS', 'settings': {'12345': 16777216}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "32": {
+    "description": "If a PING frame is received with a Stream Identifier field value other than 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'PING', 'stream_id': 3}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "33": {
+    "description": "A receiver MUST treat the receipt of a WINDOW_UPDATE frame with a flow-control window increment of 0 as a stream error (Section 5.4.2) of type PROTOCOL_ERROR.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'WINDOW_UPDATE', 'increment': 0}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "34": {
+    "description": "A sender MUST NOT allow a flow-control window to exceed 2^31-1 octets. If a sender receives a WINDOW_UPDATE that causes a flow-control window to exceed this maximum, it MUST terminate either the stream or the connection, as appropriate.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'WINDOW_UPDATE', 'increment': 2147483647}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "35": {
+    "description": "The sender MUST NOT send a flow-controlled frame with a length that exceeds the space available in either of the flow-control windows advertised by the receiver.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": null
+    }
+  },
+  "36": {
+    "description": "If a CONTINUATION frame is received with a Stream Identifier field of 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'CONTINUATION', 'stream_id': 0}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "37": {
+    "description": "A CONTINUATION frame MUST be preceded by a HEADERS, PUSH_PROMISE or CONTINUATION frame without the END_HEADERS flag set. (Using HEADERS frame with END_HEADERS flag set)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': True}}, {'type': 'CONTINUATION'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "38": {
+    "description": "CONTINUATION frames MUST be associated with a stream.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'CONTINUATION'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "39": {
+    "description": "If the END_HEADERS flag is not set, this frame MUST be followed by another CONTINUATION frame. A receiver MUST treat the receipt of any other type of frame or a frame on a different stream as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'DATA'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "40": {
+    "description": "Trailers MUST NOT include pseudo-header fields (Section 8.3).",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 3 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA'}, {'type': 'TRAILERS', 'headers': {':path': '/'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "41": {
+    "description": "Other frames (from any stream) MUST NOT occur between the HEADERS frame and any CONTINUATION frames that might follow.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 3 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_HEADERS': False}}, {'type': 'DATA'}, {'type': 'CONTINUATION'}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "42": {
+    "description": "An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving the HEADERS frame that opens a request or after receiving a final (non-informational) status code MUST treat the corresponding request or response as malformed (Section 8.1.1).",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'HEADERS', 'flags': {'END_STREAM': True}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "43": {
+    "description": "Field names MUST be converted to lowercase when constructing an HTTP/2 message.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':METHOD': 'GET', ':SCHEME': 'http', ':PATH': '/', ':AUTHORITY': 'example.com'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "44": {
+    "description": "Field names MUST NOT contain control characters (0x00-0x1F)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x\\x08y': 'backspace', 'x\\ty': 'horizontal-tab', 'x\\ny': 'line-feed', 'x\\x0by': 'vertical-tab', 'x\\x0cy': 'form-feed', 'x\\ry': 'carriage-return', 'x\\x1by': 'escape'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "45": {
+    "description": "Field names MUST NOT contain ASCII SP (0x20)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'user agent': 'nopasaran'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "46": {
+    "description": "Field names MUST NOT contain DEL character (0x7F)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'user\\x7fagent': 'del-char'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "47": {
+    "description": "Field names MUST NOT contain high byte characters (0x80-0xFF)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x\u00a8y': 'diaeresis', 'x\u00b0y': 'degree-sign', 'x\u00b8y': 'cedilla', 'x\u00c0y': 'latin-a-grave', 'x\u00c8y': 'latin-e-grave', 'x\u00d0y': 'latin-eth', 'x\u00d8y': 'latin-o-stroke', 'x\u00e0y': 'latin-a-grave-small', 'x\u00e8y': 'latin-e-grave-small', 'x\u00f0y': 'latin-eth-small', 'x\u00f8y': 'latin-o-stroke-small', 'x\u00fay': 'latin-u-acute-small', 'x\u00fcy': 'latin-u-diaeresis-small', 'x\u00fey': 'latin-thorn-small', 'x\u00ffy': 'latin-y-diaeresis-small'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "48": {
+    "description": "With the exception of pseudo-header fields (Section 8.3), which have a name that starts with a single colon, field names MUST NOT include a colon (ASCII COLON, 0x3a).",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x:y': 'invalid-colon'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "49": {
+    "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the start of the value)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-lf-start': '\\nvalue'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "50": {
+    "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the start of the value)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-cr-start': '\\rvalue'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "51": {
+    "description": "A field value MUST NOT start with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-leading-space': ' value'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "52": {
+    "description": "A field value MUST NOT end with an ASCII whitespace character (ASCII SP or HTAB, 0x20 or 0x09).",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-trailing-space': 'value '}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "53": {
+    "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the middle of the value)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-lf-middle': 'val\\nue'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "54": {
+    "description": "A field value MUST NOT contain line feed (ASCII LF, 0x0a). (Tested at the end of the value)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-lf-end': 'value\\n'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "55": {
+    "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the middle of the value)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-cr-middle': 'val\\rue'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "56": {
+    "description": "A field value MUST NOT contain carriage return (ASCII CR, 0x0d). (Tested at the end of the value)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'raw_frame': True, 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-cr-end': 'value\\r'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "57": {
+    "description": "An endpoint MUST NOT generate an HTTP/2 message containing connection header field (RFC9113 Section 8.2.2)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'connection': 'keep-alive'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "58": {
+    "description": "An endpoint MUST NOT generate an HTTP/2 message containing proxy-connection header field (RFC9113 Section 8.2.2)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'proxy-connection': 'keep-alive'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "59": {
+    "description": "An endpoint MUST NOT generate an HTTP/2 message containing keep-alive header field (RFC9113 Section 8.2.2)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'keep-alive': 'timeout=5'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "60": {
+    "description": "An endpoint MUST NOT generate an HTTP/2 message containing transfer-encoding header field (RFC9113 Section 8.2.2)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'transfer-encoding': 'chunked'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "61": {
+    "description": "An endpoint MUST NOT generate an HTTP/2 message containing upgrade header field (RFC9113 Section 8.2.2)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'upgrade': 'h2c'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "62": {
+    "description": "The TE header field MAY be present in an HTTP/2 request; when it is, it MUST NOT contain any value other than 'trailers'.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'te': 'gzip'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "63": {
+    "description": "Pseudo-header fields are not HTTP header fields. Endpoints MUST NOT generate pseudo-header fields other than those defined in this document.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', ':version': '2.0'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "64": {
+    "description": "Pseudo-header fields defined for responses MUST NOT appear in requests.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', ':status': '200'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "65": {
+    "description": "All pseudo-header fields sent from a client MUST appear in a field block before all regular field lines. Any request or response that contains a pseudo-header field that appears in a field block after a regular field line MUST be treated as malformed (Section 8.1.1).",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {'accept': '*/*', ':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "66": {
+    "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with the same value.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}, 'duplicate_headers': {':authority': 'example.com'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "67": {
+    "description": "The same pseudo-header field name MUST NOT appear more than once in a field block. A field block for an HTTP request or response that contains a repeated pseudo-header field name MUST be treated as malformed (Section 8.1.1). Tested with a request frame with different values.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com'}, 'duplicate_headers': {':authority': 'nopasaran.com'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "68": {
+    "description": "Clients MUST NOT generate a request with a Host header field that differs from the \":authority\" pseudo-header field.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'host': 'nopasaran.com'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "69": {
+    "description": "':authority' MUST NOT include the deprecated userinfo subcomponent for \"http\" or \"https\" schemed URIs.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'user:pass@example.com'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "70": {
+    "description": "The \":path\" pseudo-header field MUST NOT be empty for \"http\" or \"https\" URIs; \"http\" or \"https\" URIs that do not contain a path component MUST include a value of '/'.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '', ':authority': 'example.com'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "71": {
+    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :method missing)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':scheme': 'http', ':path': '/', ':authority': 'example.com'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "72": {
+    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :scheme missing)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':path': '/', ':authority': 'example.com'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "73": {
+    "description": "All HTTP/2 requests MUST include exactly one valid value for the \":method\", \":scheme\", and \":path\" pseudo-header fields, unless they are CONNECT requests (Section 8.5). An HTTP request that omits mandatory pseudo-header fields is malformed (Section 8.1.1). (Tested with :path missing)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':authority': 'example.com'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "74": {
+    "description": "A client cannot push. Thus, servers MUST treat the receipt of a PUSH_PROMISE frame as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 2 frames.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'PUSH_PROMISE', 'flags': {'END_STREAM': True}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "75": {
+    "description": "With the CONNECT method, the \" :scheme\" and \" :path\" pseudo-header fields MUST be omitted. (Tested with only :path present)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':path': '/', ':authority': 'example.com:80'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "76": {
+    "description": "With the CONNECT method, the \" :scheme\" and \" :path\" pseudo-header fields MUST be omitted. (Tested with only :scheme present)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':scheme': 'http', ':authority': 'example.com:80'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "77": {
+    "description": "With the CONNECT method, the \":scheme\" and \":path\" pseudo-header fields MUST be omitted. (Tested with both present)",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':scheme': 'http', ':path': '/', ':authority': 'example.com:80'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  },
+  "78": {
+    "description": "With the CONNECT method, The \":authority\" pseudo-header field contains the host and port to connect to",
+    "result": {
+      "Worker_2": null,
+      "Worker_1": {
+        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_CLIENT",
+        "Variables": {
+          "result": "Successfully sent 1 frames.",
+          "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':authority': 'example.com'}}]",
+          "msg": "Server_Failed_To_Start_or_Receive_All_Frames"
+        }
+      }
+    }
+  }
+}
