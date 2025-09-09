@@ -1149,7 +1149,8 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
     x_tick_positions = []
     x_tick_labels = []
     for i in range(num_tests_display):
-        if (i+1) % 10 == 0:
+        # Include first, last, and every 10th position
+        if i == 0 or i == num_tests_display - 1 or (i+1) % 10 == 0:
             x_tick_positions.append(i * rect_width + rect_width / 2)
             x_tick_labels.append(str(i+1))
     ax_matrix.set_xticks(x_tick_positions, minor=True)
@@ -1167,6 +1168,10 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
     ax_matrix.tick_params(which='major', length=0)
     ax_matrix.grid(True, which='major', color='white', linewidth=1)
     ax_matrix.tick_params(which='minor', length=0)
+
+    # Add axis labels
+    plt.xlabel('Test ID', fontsize=16)
+    plt.ylabel('Proxy', fontsize=16)
 
     # Add legend
     outcome_display_names = {
@@ -1192,7 +1197,7 @@ def create_proxy_matrix_graph(outcomes_dict, proxy_configs, scope_filter, output
             legend_patches.append(mpatches.Patch(color=colors[key], label=display_name))
 
     fig.legend(handles=legend_patches, loc='lower center', ncol=len(legend_patches),
-               bbox_to_anchor=(0.5, 0), frameon=False, fontsize=16)
+               bbox_to_anchor=(0.5, 0.02), frameon=False, fontsize=16)
 
     # Save the visualization
     plt.tight_layout(pad=1.0, rect=[0, 0.05, 1, 0.95])
@@ -1655,30 +1660,30 @@ def main():
     # List of proxy folders with their test scope
     proxy_configs = {
         'Nghttpx-1.62.1': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
+        # 'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
         'HAproxy-3.2.0': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
         # 'HAproxy-3.2.0': {'scope': 'full', 'version': 'new'},
-        'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
+        # 'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
         'Apache-2.4.63': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
+        # 'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
         # 'Caddy-2.9.1': {'scope': 'full', 'version': 'new'},
         'Node-20.16.0': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        'Node-14.19.3': {'scope': 'full', 'version': 'old'},
+        # 'Node-14.19.3': {'scope': 'full', 'version': 'old'},
         'Envoy-1.34.1': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        'Envoy-1.21.2': {'scope': 'full', 'version': 'old'},
+        # 'Envoy-1.21.2': {'scope': 'full', 'version': 'old'},
         'H2O-26b116e95': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        'H2O-cf59e67c3': {'scope': 'full', 'version': 'old'},
+        # 'H2O-cf59e67c3': {'scope': 'full', 'version': 'old'},
         # 'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
         'Traefik-3.3.5': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        'Traefik-2.6.2': {'scope': 'full', 'version': 'old'},
-        'Nginx-1.28.0': {'scope': 'client-only', 'version': 'new'},
-        'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
-        'Lighttpd-1.4.76': {'scope': 'client-only', 'version': 'new'},
-        'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
-        'Varnish-7.7.0': {'scope': 'client-only', 'version': 'new'},
-        'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
+        # 'Traefik-2.6.2': {'scope': 'full', 'version': 'old'},
+        # 'Nginx-1.28.0': {'scope': 'client-only', 'version': 'new'},
+        # 'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
+        # 'Lighttpd-1.4.76': {'scope': 'client-only', 'version': 'new'},
+        # 'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
+        # 'Varnish-7.7.0': {'scope': 'client-only', 'version': 'new'},
+        # 'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
         # 'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
-        # 'Cloudflare': {'scope': 'full', 'version': 'N/A', 'second-scope': 'client-only'},
+        'Cloudflare': {'scope': 'full', 'version': 'N/A', 'second-scope': 'client-only'},
         # 'Fastly': {'scope': 'client-only', 'version': 'N/A'},
     }
     
@@ -1749,6 +1754,7 @@ def main():
              dual_scope_output_dir = os.path.join('analysis', 'behavior') # Output directory
             #  create_dual_scope_comparison_matrix(all_test_results_primary, proxy_configs, client_side_tests_set, results_dir, dual_scope_output_dir)
              create_dual_scope_difference_line_graph(all_test_results_primary, proxy_configs, client_side_tests_set, results_dir, dual_scope_output_dir)
+             create_dual_scope_difference_bar_graph(all_test_results_primary, proxy_configs, client_side_tests_set, results_dir, dual_scope_output_dir)
 
         else:
              print("Skipping dual-scope comparison matrix: Failed to load client-side test classification.")
@@ -1777,6 +1783,8 @@ def main():
     # create_behavior_change_matrix(all_test_results_primary, proxy_configs, distribution_dir)
     # Add the call to the new line graph function
     create_behavior_change_line_graph(all_test_results_primary, proxy_configs, distribution_dir)
+    # Add the call to the new bar graph function
+    create_behavior_change_bar_graph(all_test_results_primary, proxy_configs, distribution_dir)
 
 def create_behavior_change_line_graph(all_test_results, proxy_configs, output_directory):
     """
@@ -2012,6 +2020,216 @@ def create_behavior_change_line_graph(all_test_results, proxy_configs, output_di
     finally:
         plt.close()
 
+def create_behavior_change_bar_graph(all_test_results, proxy_configs, output_directory):
+    """
+    Creates a bar graph showing the change in proxy behavior counts (new - old) 
+    for each category across different proxy pairs. Shows positive and negative bars.
+    """
+    change_dir = os.path.join(output_directory, 'behavior_change')
+    os.makedirs(change_dir, exist_ok=True)
+
+    # 1. Define Categories and Mapping (same as line graph)
+    categories_plot = ["Dropped", "Error 500", "GOAWAY", "RESET", "Unmodified", "Modified", "Accepted"]
+    category_map_internal_to_plot = {
+        'dropped': "Dropped", '500': "Error 500", 'goaway': "GOAWAY", 'reset': "RESET",
+        'unmodified': "Unmodified", 'modified': "Modified", 'received': "Accepted"
+    }
+    num_categories = len(categories_plot)
+
+    # Define colors (using tab10 colors like the line graph)
+    colors = plt.cm.tab10(np.linspace(0, 1, 10))
+
+    # 2. Identify Pairs (same logic as line graph)
+    old_new_pairs = _find_old_new_pairs(proxy_configs, all_test_results)
+    if not old_new_pairs:
+        print("No old/new proxy pairs found for behavior change bar graph.")
+        return
+
+    # 3. Calculate Differences per Pair and Scope (same logic as line graph)
+    differences_by_proxy_base = {}
+    proxy_base_names_full = []
+    proxy_base_names_client = []
+
+    for old_proxy, new_proxy in old_new_pairs:
+        base_name = old_proxy.rsplit('-', 1)[0] if '-' in old_proxy else old_proxy
+        
+        scope_old = proxy_configs.get(old_proxy, {}).get('scope')
+        scope_new = proxy_configs.get(new_proxy, {}).get('scope')
+
+        if scope_old and scope_new and scope_old == scope_new:
+            scope = scope_old
+            
+            if base_name not in differences_by_proxy_base:
+                differences_by_proxy_base[base_name] = {}
+                if scope == 'full': 
+                    proxy_base_names_full.append(base_name)
+                else: 
+                    proxy_base_names_client.append(base_name)
+
+            if scope not in differences_by_proxy_base[base_name]:
+                differences_by_proxy_base[base_name][scope] = {cat: 0 for cat in categories_plot}
+
+            results_old = all_test_results.get(old_proxy, {})
+            results_new = all_test_results.get(new_proxy, {})
+
+            counts_old = {cat: 0 for cat in categories_plot}
+            counts_new = {cat: 0 for cat in categories_plot}
+
+            for test_id, result_str in results_old.items():
+                category = category_map_internal_to_plot.get(result_str)
+                if scope == 'client-only' and category in ["Modified", "Unmodified"]:
+                    category = "Accepted" 
+                if category in counts_old:
+                    counts_old[category] += 1
+            
+            for test_id, result_str in results_new.items():
+                category = category_map_internal_to_plot.get(result_str)
+                if scope == 'client-only' and category in ["Modified", "Unmodified"]:
+                    category = "Accepted"
+                if category in counts_new:
+                    counts_new[category] += 1
+            
+            for cat in categories_plot:
+                if scope == 'client-only' and cat in ["Modified", "Unmodified"]:
+                    diff = 0 
+                else:
+                    diff = counts_new[cat] - counts_old[cat]
+                differences_by_proxy_base[base_name][scope][cat] = diff
+
+    # 4. Prepare Data for Plotting
+    sorted_proxy_base_names = sorted(proxy_base_names_full) + sorted(proxy_base_names_client)
+    if not sorted_proxy_base_names:
+        print("No valid pairs with matching scopes found to plot.")
+        return
+        
+    plot_data = {cat: [] for cat in categories_plot}
+    proxy_labels_for_plot = []
+
+    for base_name in sorted_proxy_base_names:
+        scope_found = None
+        if base_name in proxy_base_names_full:
+            scope_found = 'full'
+        elif base_name in proxy_base_names_client:
+            scope_found = 'client-only'
+        
+        if scope_found and scope_found in differences_by_proxy_base[base_name]:
+            proxy_labels_for_plot.append(base_name)
+            diffs = differences_by_proxy_base[base_name][scope_found]
+            for cat in categories_plot:
+                plot_data[cat].append(diffs.get(cat, 0))
+
+    # 5. Create Bar Graph Visualization
+    fig, ax = plt.subplots(figsize=(max(12, len(proxy_labels_for_plot) * 1.2), 8))
+    
+    num_full = len(proxy_base_names_full)
+    num_client = len(proxy_base_names_client)
+    num_proxies = len(proxy_labels_for_plot)
+    
+    # Set up bar positions
+    x = np.arange(num_proxies)
+    # Dynamically size bars so all category bars fit within a single proxy slot
+    # Keep some gutter so vertical boundary lines fall between groups
+    max_total_width = 0.8  # portion of slot width allocated to bars (leave 0.2 for gutters)
+    bar_width = min(0.16, max_total_width / num_categories)
+    
+    # Calculate offset for centering bars around each proxy position
+    total_width = bar_width * num_categories
+    start_offset = -total_width / 2 + bar_width / 2
+
+    # Create bars for each category
+    for i, category in enumerate(categories_plot):
+        color_index = i % len(colors)
+        offset = start_offset + i * bar_width
+        
+        # Get data for this category
+        data_series = np.array(plot_data[category])
+        
+        # Determine which proxies should show this category
+        should_show = np.ones(len(data_series), dtype=bool)
+        if category in ["Modified", "Unmodified"]:
+            # Only show for full scope proxies
+            should_show[num_full:] = False
+        elif category == "Accepted":
+            # Only show for client-only scope proxies
+            should_show[:num_full] = False
+        
+        # Create masked data (NaN for bars that shouldn't show)
+        masked_data = data_series.copy().astype(float)
+        masked_data[~should_show] = np.nan
+        
+        # Only plot if there's valid data
+        if np.any(~np.isnan(masked_data)):
+            bars = ax.bar(x + offset, masked_data, bar_width, 
+                         label=category, color=colors[color_index], alpha=0.8)
+            
+
+    # Add horizontal line at y=0
+    ax.axhline(0, color='black', linestyle='-', linewidth=0.8)
+
+    # Add solid vertical separator between full scope and client-only scope proxies
+    if len(proxy_base_names_full) > 0 and len(proxy_base_names_client) > 0:
+        # Count how many full-scope proxies are actually in the final plot
+        actual_full_count = 0
+        for proxy_name in proxy_labels_for_plot:
+            if proxy_name in proxy_base_names_full:
+                actual_full_count += 1
+            else:
+                break  # Stop when we hit the first client-only proxy
+        # Position the solid line at the exact mid-gap between groups
+        separator_x = actual_full_count - 0.5
+        ax.axvline(x=separator_x, color='black', linestyle='-', linewidth=1.2, alpha=0.9, zorder=0)
+
+    # Add margins to prevent label overlap with borders
+    ymin, ymax = ax.get_ylim()
+    y_range = ymax - ymin
+    ax.set_ylim(ymin - y_range * 0.15, ymax + y_range * 0.15)
+    
+    # Add vertical dashed lines spanning full height between every proxy (behind bars)
+    ymin_final, ymax_final = ax.get_ylim()
+    for i in range(1, num_proxies):
+        ax.vlines(x=i - 0.5, ymin=ymin_final, ymax=ymax_final, colors='black', linestyles='--', linewidth=0.8, alpha=0.3, zorder=0)
+    
+    # Add scope labels (positioned higher up, after final y-limits are set)
+    if len(proxy_base_names_full) > 0 and len(proxy_base_names_client) > 0:
+        ymin_final, ymax_final = ax.get_ylim()
+        text_y_pos = ymax_final - (ymax_final - ymin_final) * 0.05  # Position near the top
+        
+        # Calculate actual counts for positioning (same logic as separator)
+        actual_full_count = 0
+        for proxy_name in proxy_labels_for_plot:
+            if proxy_name in proxy_base_names_full:
+                actual_full_count += 1
+            else:
+                break  # Stop when we hit the first client-only proxy
+        
+        actual_client_count = len(proxy_labels_for_plot) - actual_full_count
+        
+        ax.text((actual_full_count / 2.0) - 0.5, text_y_pos, 'Full Scope', ha='center', va='top', 
+               fontsize=20, color='black', backgroundcolor='white', alpha=0.9)
+        ax.text(actual_full_count + (actual_client_count / 2.0) - 0.5, text_y_pos, 'Client-Only Scope', 
+               ha='center', va='top', fontsize=20, color='black', backgroundcolor='white', alpha=0.9)
+    
+    # Customize plot
+    ax.set_xlabel('Proxy', fontsize=22)
+    ax.set_ylabel('Change in Count (New - Old)', fontsize=22)
+    ax.set_xticks(x)
+    ax.set_xticklabels(proxy_labels_for_plot, rotation=45, ha='right', fontsize=18)
+    ax.tick_params(axis='y', labelsize=18)
+    ax.grid(True, axis='y', linestyle='--', alpha=0.3)
+    ax.legend(loc='lower right', fontsize=12)
+    
+    plt.tight_layout()
+
+    # 6. Save Plot
+    output_path = os.path.join(change_dir, "behavior_change_bar_graph.png")
+    try:
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        print(f"Saved behavior change bar graph: {output_path}")
+    except Exception as e:
+        print(f"Error saving behavior change bar graph {output_path}: {e}")
+    finally:
+        plt.close()
+
 
 # Add this function definition after create_proxy_matrix_graph 
 # and before the main function or radar chart functions
@@ -2172,6 +2390,168 @@ def create_dual_scope_difference_line_graph(all_test_results_primary, proxy_conf
         print(f"Saved dual-scope behavior difference line graph: {output_path}")
     except Exception as e:
         print(f"Error saving dual-scope behavior difference line graph {output_path}: {e}")
+    finally:
+        plt.close()
+
+def create_dual_scope_difference_bar_graph(all_test_results_primary, proxy_configs, client_side_tests_set, results_dir, output_directory):
+    """
+    Creates a bar graph comparing proxy behavior between 'full' and 'client-only'
+    scopes for client-side tests. Shows positive and negative bars for the difference: client_only_count - full_scope_count.
+    """
+    comparison_dir = os.path.join(output_directory, 'dual_scope_comparison')
+    os.makedirs(comparison_dir, exist_ok=True)
+
+    # 1. Define Comparison Categories and Colors (same as line graph)
+    categories_plot = ['Dropped', 'Error 500', 'GOAWAY', 'RESET', 'Accepted']
+    num_categories = len(categories_plot)
+    colors = plt.cm.viridis(np.linspace(0, 1, num_categories))
+
+    # 2. Identify Dual-Scope Proxies (same logic as line graph)
+    dual_scope_proxies = []
+    for proxy_name, config in proxy_configs.items():
+        if config.get('scope') == 'full' and config.get('second-scope') == 'client-only':
+            if proxy_name in all_test_results_primary:
+                dual_scope_proxies.append(proxy_name)
+
+    if not dual_scope_proxies:
+        print("No dual-scope proxies with primary results found for difference bar graph.")
+        return
+    if not client_side_tests_set:
+        print("Skipping dual-scope difference bar graph: Client-side test classification missing.")
+        return
+
+    print(f"Calculating dual-scope differences for bar graph: {dual_scope_proxies}")
+    
+    # 3. Calculate Differences per Proxy (same logic as line graph)
+    differences_by_proxy = {}
+    valid_proxies_for_plot = []
+
+    for proxy_name in dual_scope_proxies:
+        # Get primary results (full scope)
+        primary_results = all_test_results_primary[proxy_name]
+        
+        # Load secondary results (client-only scope)
+        secondary_proxy_name = proxy_name + "-H2H1"
+        secondary_proxy_dir = os.path.join(results_dir, secondary_proxy_name)
+        secondary_results = {}
+        try:
+            latest_secondary_file = get_latest_file(secondary_proxy_dir)
+            if latest_secondary_file:
+                _, _, _, _, _, _, _, secondary_results, _ = analyze_results(latest_secondary_file, 'client-only')
+            else:
+                print(f"  Warning: No results file found for {secondary_proxy_name}. Skipping diff calculation for {proxy_name}.")
+                continue
+        except Exception as e:
+            print(f"  Error loading/analyzing secondary results for {secondary_proxy_name}: {e}. Skipping diff calculation for {proxy_name}.")
+            continue
+             
+        # Initialize counts
+        counts_full = {cat: 0 for cat in categories_plot}
+        counts_client = {cat: 0 for cat in categories_plot}
+
+        # Aggregate counts, filtering by client_side_tests_set (same logic as line graph)
+        for test_id, result_str in primary_results.items():
+            if test_id in client_side_tests_set:
+                if result_str in ["modified", "unmodified", "received"]:
+                    counts_full["Dropped"] += 1
+                elif result_str == "500": counts_full["Error 500"] += 1
+                elif result_str == "goaway": counts_full["GOAWAY"] += 1
+                elif result_str == "reset": counts_full["RESET"] += 1
+                elif result_str == "dropped": counts_full["Dropped"] += 1
+                 
+        for test_id, result_str in secondary_results.items():
+            if result_str in ["received", "modified", "unmodified"]:
+                counts_client["Accepted"] += 1
+            elif result_str == "500": counts_client["Error 500"] += 1
+            elif result_str == "goaway": counts_client["GOAWAY"] += 1
+            elif result_str == "reset": counts_client["RESET"] += 1
+            elif result_str == "dropped": counts_client["Dropped"] += 1
+        
+        # Calculate difference (client_only - full_scope) for each category
+        proxy_diffs = {} 
+        for cat in categories_plot:
+            proxy_diffs[cat] = counts_client[cat] - counts_full[cat]
+            
+        differences_by_proxy[proxy_name] = proxy_diffs
+        valid_proxies_for_plot.append(proxy_name)
+
+    if not valid_proxies_for_plot:
+        print("No valid data calculated for dual-scope difference bar graph.")
+        return
+
+    # 4. Prepare Plotting Data
+    plot_data = {cat: [] for cat in categories_plot}
+    proxy_labels_for_plot = sorted(valid_proxies_for_plot)
+
+    for proxy_name in proxy_labels_for_plot:
+        diffs = differences_by_proxy[proxy_name]
+        for cat in categories_plot:
+            plot_data[cat].append(diffs.get(cat, 0))
+            
+    # 5. Create Bar Graph Visualization
+    fig, ax = plt.subplots(figsize=(max(10, len(proxy_labels_for_plot) * 1.2), 8))
+    
+    num_proxies = len(proxy_labels_for_plot)
+    
+    # Set up bar positions
+    x = np.arange(num_proxies)
+    bar_width = 0.15  # Width of each bar
+    
+    # Calculate offset for centering bars around each proxy position
+    total_width = bar_width * num_categories
+    start_offset = -total_width / 2 + bar_width / 2
+
+    # Create bars for each category
+    for i, category in enumerate(categories_plot):
+        color_index = i % len(colors)
+        offset = start_offset + i * bar_width
+        
+        # Get data for this category
+        data_series = np.array(plot_data[category])
+        
+        # Adjust label for Accepted category
+        plot_label = "Accepted (U/M/A)" if category == "Accepted" else category
+        
+        bars = ax.bar(x + offset, data_series, bar_width, 
+                     label=plot_label, color=colors[color_index], alpha=0.8)
+        
+
+    # Add horizontal line at y=0
+    ax.axhline(0, color='black', linestyle='-', linewidth=0.8)
+
+    # Add margins to prevent label overlap with borders
+    ymin, ymax = ax.get_ylim()
+    y_range = ymax - ymin
+    ax.set_ylim(ymin - y_range * 0.15, ymax + y_range * 0.15)
+    
+    # Add vertical dashed lines spanning full height between every proxy (behind bars)
+    ymin_final, ymax_final = ax.get_ylim()
+    for i in range(1, num_proxies):
+        ax.vlines(x=i - 0.5, ymin=ymin_final, ymax=ymax_final, colors='black', linestyles='--', linewidth=0.8, alpha=0.3, zorder=0)
+    
+    # Customize plot
+    ax.set_xlabel('Proxy', fontsize=22)
+    ax.set_ylabel('Difference (Client-Only - Full Scope)', fontsize=22)
+    ax.set_xticks(x)
+    ax.set_xticklabels(proxy_labels_for_plot, rotation=45, ha='right', fontsize=18)
+    ax.tick_params(axis='y', labelsize=18)
+    
+    # Set y-axis to use integer ticks
+    from matplotlib.ticker import MaxNLocator
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    
+    ax.grid(True, axis='y', linestyle='--', alpha=0.3)
+    ax.legend(loc='lower right', fontsize=12)
+    
+    plt.tight_layout()
+
+    # 6. Save Plot
+    output_path = os.path.join(comparison_dir, "dual_scope_behavior_difference_bar_graph.png")
+    try:
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        print(f"Saved dual-scope behavior difference bar graph: {output_path}")
+    except Exception as e:
+        print(f"Error saving dual-scope behavior difference bar graph {output_path}: {e}")
     finally:
         plt.close()
 
