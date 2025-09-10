@@ -129,7 +129,7 @@
     "description": "A reserved 1-bit field. The semantics of this bit are undefined, and the bit MUST remain unset (0x00) when sending and MUST be ignored when receiving.",
     "result": {
       "Worker_2": {
-        "State": "RESET_RECEIVED",
+        "State": "FINAL",
         "Variables": {
           "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
@@ -138,7 +138,7 @@
         }
       },
       "Worker_1": {
-        "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
+        "State": "FINAL",
         "Variables": {
           "result": "Successfully received all 1/1 frames.",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'envoy'), ('date', 'Sun, 07 Sep 2025 16:39:14 GMT')]>]",
@@ -1373,13 +1373,13 @@
           "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'example.com'), ('x-leading-space', ' value'), ('x-forwarded-proto', 'http'), ('x-request-id', '09dc2d14-2183-4282-b3b0-68ee7057e454'), ('x-envoy-expected-rq-timeout-ms', '15000')]>]",
-          "result": "Successfully received all 1/1 frames."
+          "result": "Test result: UNMODIFIED"
         }
       },
       "Worker_1": {
         "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Successfully received all 1/1 frames.",
+          "result": "Test result: UNMODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'envoy'), ('date', 'Mon, 08 Sep 2025 09:20:03 GMT')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-leading-space': ' value'}}]",
           "msg": "Server_Received_Error_From_Proxy"
@@ -1396,13 +1396,13 @@
           "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'example.com'), ('x-trailing-space', 'value '), ('x-forwarded-proto', 'http'), ('x-request-id', '8bba3c0f-5bbb-4910-b7dd-246c23f8e18f'), ('x-envoy-expected-rq-timeout-ms', '15000')]>]",
-          "result": "Successfully received all 1/1 frames."
+          "result": "Test result: UNMODIFIED"
         }
       },
       "Worker_1": {
         "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Successfully received all 1/1 frames.",
+          "result": "Test result: UNMODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'envoy'), ('date', 'Mon, 08 Sep 2025 09:20:26 GMT')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-trailing-space': 'value '}}]",
           "msg": "Server_Received_Error_From_Proxy"
@@ -1794,13 +1794,13 @@
           "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'example.com,nopasaran.com'), ('x-forwarded-proto', 'http'), ('x-request-id', '57c3aca5-19c3-4dad-aabb-795e86e53e61'), ('x-envoy-expected-rq-timeout-ms', '15000')]>]",
-          "result": "Successfully received all 1/1 frames."
+          "result": "Test result: MODIFIED"
         }
       },
       "Worker_1": {
         "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Successfully received all 1/1 frames.",
+          "result": "Test result: MODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'envoy'), ('date', 'Mon, 08 Sep 2025 09:25:37 GMT')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'host': 'nopasaran.com'}}]",
           "msg": "Server_Received_Error_From_Proxy"
@@ -1817,13 +1817,13 @@
           "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #1 of 1: HEADERS. Error code None.",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'user:pass@example.com'), ('x-forwarded-proto', 'http'), ('x-request-id', '0c20b57b-7e10-4db2-9a98-4ebb7d798f91'), ('x-envoy-expected-rq-timeout-ms', '15000')]>]",
-          "result": "Successfully received all 1/1 frames."
+          "result": "Test result: UNMODIFIED"
         }
       },
       "Worker_1": {
         "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Successfully received all 1/1 frames.",
+          "result": "Test result: UNMODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'envoy'), ('date', 'Mon, 08 Sep 2025 09:25:57 GMT')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'user:pass@example.com'}}]",
           "msg": "Server_Received_Error_From_Proxy"

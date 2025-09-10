@@ -74,7 +74,7 @@
       "Worker_2": {
         "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_SERVER",
         "Variables": {
-          "result": "Successfully received all 2/2 frames.",
+          "result": "Test result: MODIFIED",
           "frames_received": "[<RequestReceived stream_id:3, headers:[(':authority', '192.168.122.69'), (':method', 'GET'), (':path', '/test-frame'), (':scheme', 'http'), ('x-forwarded-host', '192.168.122.69'), ('x-forwarded-for', '192.168.122.132'), ('x-forwarded-port', '80'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('x-real-ip', '192.168.122.132'), ('x-forwarded-proto', 'http'), ('x-forwarded-server', 'ilies'), ('accept-encoding', 'gzip')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
           "msg": "Client_Failed_To_Receive_All_Frames"

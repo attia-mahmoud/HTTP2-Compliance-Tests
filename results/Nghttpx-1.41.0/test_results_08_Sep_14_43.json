@@ -131,8 +131,8 @@
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: UNMODIFIED",
+          "client_result": "Test result: UNMODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/test-frame'), (':authority', '192.168.122.69'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('via', '2 nghttpx')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
@@ -140,8 +140,8 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: UNMODIFIED",
+          "server_result": "Test result: UNMODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('date', 'Mon, 08 Sep 2025 11:44:57 GMT'), ('server', 'nopasaran-http2-server'), ('via', '2 nghttpx')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'reserved_bit': True}]"
         }
@@ -1355,8 +1355,8 @@
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: UNMODIFIED",
+          "client_result": "Test result: UNMODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'example.com'), ('x-leading-space', ' value'), ('via', '2 nghttpx')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
@@ -1364,8 +1364,8 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: UNMODIFIED",
+          "server_result": "Test result: UNMODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('date', 'Mon, 08 Sep 2025 12:35:08 GMT'), ('server', 'nopasaran-http2-server'), ('via', '2 nghttpx')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-leading-space': ' value'}}]"
         }
@@ -1378,8 +1378,8 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: UNMODIFIED",
+          "server_result": "Test result: UNMODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('date', 'Mon, 08 Sep 2025 12:35:24 GMT'), ('server', 'nopasaran-http2-server'), ('via', '2 nghttpx')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-trailing-space': 'value '}}]"
         }
@@ -1387,8 +1387,8 @@
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: UNMODIFIED",
+          "client_result": "Test result: UNMODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'example.com'), ('x-trailing-space', 'value '), ('via', '2 nghttpx')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
@@ -1776,8 +1776,8 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
+          "server_result": "Test result: MODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('date', 'Mon, 08 Sep 2025 12:40:40 GMT'), ('server', 'nopasaran-http2-server'), ('via', '2 nghttpx')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'host': 'nopasaran.com'}}]"
         }
@@ -1785,8 +1785,8 @@
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: MODIFIED",
+          "client_result": "Test result: MODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'example.com'), ('via', '2 nghttpx')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
@@ -1799,8 +1799,8 @@
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: UNMODIFIED",
+          "client_result": "Test result: UNMODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/'), (':authority', 'user:pass@example.com'), ('via', '2 nghttpx')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
@@ -1808,8 +1808,8 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: UNMODIFIED",
+          "server_result": "Test result: UNMODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('date', 'Mon, 08 Sep 2025 12:40:53 GMT'), ('server', 'nopasaran-http2-server'), ('via', '2 nghttpx')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'user:pass@example.com'}}]"
         }
@@ -2032,8 +2032,8 @@
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: UNMODIFIED",
+          "client_result": "Test result: UNMODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'CONNECT'), (':authority', 'example.com'), ('via', '2 nghttpx')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
@@ -2041,7 +2041,7 @@
       "Worker_1": {
         "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_SERVER_FRAMES_SENT_CLIENT",
         "Variables": {
-          "result": "Successfully received all 1/1 frames.",
+          "result": "Test result: UNMODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('date', 'Mon, 08 Sep 2025 12:43:40 GMT'), ('server', 'nopasaran-http2-server'), ('via', '2 nghttpx')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':authority': 'example.com'}}]",
           "msg": "Server_Received_Error_From_Proxy"
@@ -2112,8 +2112,8 @@
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: UNMODIFIED",
+          "client_result": "Test result: UNMODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':path', '/test-frame'), (':authority', '192.168.122.69'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*'), ('via', '2 nghttpx')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'reserved_bit': True}]"
         }
@@ -2121,8 +2121,8 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: UNMODIFIED",
+          "server_result": "Test result: UNMODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('date', 'Mon, 08 Sep 2025 12:44:38 GMT'), ('server', 'nopasaran-http2-server'), ('via', '2 nghttpx')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
