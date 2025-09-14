@@ -165,7 +165,8 @@ def analyze_results(filename, scope):
                 unmodified_count += 1
                 test_results[test_id] = "unmodified"
             else:
-                print(f"Unknown result for proxy {filename}, test {test_id}")
+                test_results[test_id] = "dropped"
+                dropped_count += 1
     
     return dropped_count, error_500_count, goaway_count, reset_count, received_count, modified_count, unmodified_count, test_results, test_messages
 
@@ -1660,30 +1661,29 @@ def main():
     # List of proxy folders with their test scope
     proxy_configs = {
         'Nghttpx-1.62.1': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Nghttpx-1.47.0': {'scope': 'full', 'version': 'old'},
+        'Nghttpx-1.41.0': {'scope': 'full', 'version': 'old'},
         'HAproxy-3.2.0': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'HAproxy-3.2.0': {'scope': 'full', 'version': 'new'},
-        # 'HAproxy-2.6.0': {'scope': 'full', 'version': 'old'},
+        'HAproxy-2.2.0': {'scope': 'full', 'version': 'old'},
         'Apache-2.4.63': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Apache-2.4.53': {'scope': 'full', 'version': 'old'},
+        'Apache-2.4.43': {'scope': 'full', 'version': 'old'},
         # 'Caddy-2.9.1': {'scope': 'full', 'version': 'new'},
         'Node-20.16.0': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Node-14.19.3': {'scope': 'full', 'version': 'old'},
+        'Node-14.7.0': {'scope': 'full', 'version': 'old'},
         'Envoy-1.34.1': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Envoy-1.21.2': {'scope': 'full', 'version': 'old'},
+        'Envoy-1.15.0': {'scope': 'full', 'version': 'old'},
         'H2O-26b116e95': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'H2O-cf59e67c3': {'scope': 'full', 'version': 'old'},
+        'H2O-0a9ddbd': {'scope': 'full', 'version': 'old'},
         # 'Mitmproxy-11.1.0': {'scope': 'full', 'version': 'new'},
         'Traefik-3.3.5': {'scope': 'full', 'version': 'new', 'second-scope': 'client-only'},
-        # 'Traefik-2.6.2': {'scope': 'full', 'version': 'old'},
-        # 'Nginx-1.28.0': {'scope': 'client-only', 'version': 'new'},
-        # 'Nginx-1.22.0': {'scope': 'client-only', 'version': 'old'},
-        # 'Lighttpd-1.4.76': {'scope': 'client-only', 'version': 'new'},
-        # 'Lighttpd-1.4.64': {'scope': 'client-only', 'version': 'old'},
-        # 'Varnish-7.7.0': {'scope': 'client-only', 'version': 'new'},
-        # 'Varnish-7.1.0': {'scope': 'client-only', 'version': 'old'},
+        'Traefik-2.2.8': {'scope': 'full', 'version': 'old'},
+        'Nginx-1.28.0': {'scope': 'client-only', 'version': 'new'},
+        'Nginx-1.18.0': {'scope': 'client-only', 'version': 'old'},
+        'Lighttpd-1.4.76': {'scope': 'client-only', 'version': 'new'},
+        'Lighttpd-1.4.55': {'scope': 'client-only', 'version': 'old'},
+        'Varnish-7.7.0': {'scope': 'client-only', 'version': 'new'},
+        'Varnish-6.4.0': {'scope': 'client-only', 'version': 'old'},
         # 'Azure-AG': {'scope': 'client-only', 'version': 'N/A'},
-        'Cloudflare': {'scope': 'full', 'version': 'N/A', 'second-scope': 'client-only'},
+        # 'Cloudflare': {'scope': 'full', 'version': 'N/A', 'second-scope': 'client-only'},
         # 'Fastly': {'scope': 'client-only', 'version': 'N/A'},
     }
     
