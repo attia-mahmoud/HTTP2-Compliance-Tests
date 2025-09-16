@@ -3,11 +3,11 @@ Behavior Change Differences (New Count - Old Count)
 
 Proxy: Apache (Scope: full)
 -------------------------------------
-  Dropped: -75
-  Error 500: 40
-  GOAWAY: 34
+  Dropped: 2
+  Error 500: 2
+  GOAWAY: -3
   RESET: 0
-  Unmodified: 1
+  Unmodified: -1
   Modified: 0
   Accepted: 0
 
@@ -16,9 +16,9 @@ Proxy: Envoy (Scope: full)
   Dropped: -11
   Error 500: -22
   GOAWAY: 31
-  RESET: 0
-  Unmodified: 0
-  Modified: 2
+  RESET: 4
+  Unmodified: -3
+  Modified: 1
   Accepted: 0
 
 Proxy: H2O (Scope: full)
@@ -33,12 +33,12 @@ Proxy: H2O (Scope: full)
 
 Proxy: HAproxy (Scope: full)
 -------------------------------------
-  Dropped: -6
-  Error 500: 6
-  GOAWAY: 0
+  Dropped: -29
+  Error 500: 24
+  GOAWAY: 1
   RESET: 1
-  Unmodified: -3
-  Modified: 3
+  Unmodified: -1
+  Modified: 4
   Accepted: 0
 
 Proxy: Nghttpx (Scope: full)
@@ -47,51 +47,51 @@ Proxy: Nghttpx (Scope: full)
   Error 500: 0
   GOAWAY: -3
   RESET: 1
-  Unmodified: -2
+  Unmodified: -3
   Modified: 0
   Accepted: 0
 
 Proxy: Node (Scope: full)
 -------------------------------------
-  Dropped: 8
-  Error 500: 1
-  GOAWAY: -5
+  Dropped: -6
+  Error 500: 3
+  GOAWAY: -4
   RESET: -1
-  Unmodified: -1
-  Modified: -1
+  Unmodified: 1
+  Modified: 7
   Accepted: 0
 
 Proxy: Traefik (Scope: full)
 -------------------------------------
-  Dropped: 1
-  Error 500: 0
+  Dropped: 90
+  Error 500: -79
   GOAWAY: 0
-  RESET: -1
-  Unmodified: 0
-  Modified: 0
+  RESET: -9
+  Unmodified: -1
+  Modified: -1
   Accepted: 0
 
 Proxy: Lighttpd (Scope: client-only)
 -------------------------------------
-  Dropped: -5
+  Dropped: -34
   Error 500: 0
-  GOAWAY: 1
+  GOAWAY: 30
   RESET: 1
   Accepted: 3
 
 Proxy: Nginx (Scope: client-only)
 -------------------------------------
-  Dropped: 1
+  Dropped: -4
   Error 500: 0
-  GOAWAY: -1
+  GOAWAY: 2
   RESET: 0
-  Accepted: 0
+  Accepted: 2
 
 Proxy: Varnish (Scope: client-only)
 -------------------------------------
-  Dropped: 7
+  Dropped: -12
   Error 500: 0
   GOAWAY: 1
   RESET: 0
-  Accepted: -8
+  Accepted: 11
 
