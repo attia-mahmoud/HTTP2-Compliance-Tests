@@ -121,7 +121,7 @@
       "Worker_2": {
         "State": "CONTROL_CHANNEL_TIMEOUT_AFTER_CLIENT_FRAMES_SENT_SERVER",
         "Variables": {
-          "result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: UNMODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', '192.168.122.69'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
           "msg": "Client_Received_Error_From_Proxy"
         }
@@ -1222,8 +1222,8 @@
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: MODIFIED",
+          "client_result": "Test result: MODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', 'example.com'), (':path', '/'), ('x-leading-space', 'value')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
@@ -1231,8 +1231,8 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
+          "server_result": "Test result: MODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'nopasaran-http2-server'), ('date', 'Sun, 14 Sep 2025 09:34:48 GMT')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-leading-space': ' value'}}]"
         }
@@ -1245,8 +1245,8 @@
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: MODIFIED",
+          "client_result": "Test result: MODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', 'example.com'), (':path', '/'), ('x-trailing-space', 'value')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
@@ -1254,8 +1254,8 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
+          "server_result": "Test result: MODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'nopasaran-http2-server'), ('date', 'Sun, 14 Sep 2025 09:35:01 GMT')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'x-trailing-space': 'value '}}]"
         }
@@ -1639,8 +1639,8 @@
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: MODIFIED",
+          "client_result": "Test result: MODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'http'), (':authority', 'example.com'), (':path', '/')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
@@ -1648,8 +1648,8 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: MODIFIED",
+          "server_result": "Test result: MODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'nopasaran-http2-server'), ('date', 'Sun, 14 Sep 2025 09:40:11 GMT')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'GET', ':scheme': 'http', ':path': '/', ':authority': 'example.com', 'host': 'nopasaran.com'}}]"
         }
@@ -1886,8 +1886,8 @@
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: UNMODIFIED",
+          "client_result": "Test result: UNMODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'CONNECT'), (':authority', 'example.com')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
@@ -1895,8 +1895,8 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: UNMODIFIED",
+          "server_result": "Test result: UNMODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'nopasaran-http2-server'), ('date', 'Sun, 14 Sep 2025 09:43:20 GMT')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'headers': {':method': 'CONNECT', ':authority': 'example.com'}}]"
         }
@@ -1944,8 +1944,8 @@
       "Worker_2": {
         "State": "FINAL",
         "Variables": {
-          "server_result": "Successfully received all 1/1 frames.",
-          "client_result": "Successfully received all 1/1 frames.",
+          "server_result": "Test result: UNMODIFIED",
+          "client_result": "Test result: UNMODIFIED",
           "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', '192.168.122.69'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'reserved_bit': True}]"
         }
@@ -1953,8 +1953,8 @@
       "Worker_1": {
         "State": "FINAL",
         "Variables": {
-          "client_result": "Successfully received all 1/1 frames.",
-          "server_result": "Successfully received all 1/1 frames.",
+          "client_result": "Test result: UNMODIFIED",
+          "server_result": "Test result: UNMODIFIED",
           "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'nopasaran-http2-server'), ('date', 'Sun, 14 Sep 2025 09:44:06 GMT')]>]",
           "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]"
         }
@@ -2724,25 +2724,19 @@
     "description": "If a PING frame is received with a Stream Identifier field value other than 0x00, the recipient MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR. (server side)",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "GOAWAY_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Connection terminated by peer: Received GOAWAY frame after sending 1 of 1 frames. Error code 1. Additional data: None.",
+          "sent_frames": "[{'type': 'PING', 'stream_id': 3}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', '192.168.122.69'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
-        "State": "TIMEOUT",
+        "State": "REJECTED",
         "Variables": {
-          "role": "client",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "client_result": "Received 5xx status code 502 after receiving 0/1 frames.",
+          "frames_received": "<ResponseReceived stream_id:1, headers:[(':status', '502'), ('content-length', '107'), ('cache-control', 'no-cache'), ('content-type', 'text/html')]>"
         }
       }
     }
@@ -2943,25 +2937,39 @@
     "description": "Trailers MUST NOT include pseudo-header fields (Section 8.3). (server side)",
     "result": {
       "Worker_2": {
-        "State": "TIMEOUT",
+        "State": "RESET_RECEIVED",
         "Variables": {
-          "role": "server",
-          "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
-          "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "msg": "Stream 1 reset by peer: Received StreamReset frame after sending frame #3 of 3: TRAILERS. Error code None.",
+          "sent_frames": "[{'type': 'HEADERS'}, {'type': 'DATA'}, {'type': 'TRAILERS', 'headers': {':path': '/'}}]",
+          "frames_received": "[<RequestReceived stream_id:1, headers:[(':method', 'GET'), (':scheme', 'https'), (':authority', '192.168.122.69'), (':path', '/test-frame'), ('user-agent', 'nopasaran-http2-client'), ('accept', '*/*')]>]",
+          "result": "Successfully received all 1/1 frames."
         }
       },
       "Worker_1": {
         "State": "TIMEOUT",
         "Variables": {
-          "role": "client",
+          "client": null,
+          "ctrl": null,
           "client_val": "client",
-          "controller_conf_filename": "controller_configuration.json",
+          "role": "client",
+          "result": "TIMEOUT",
+          "sent_frames": "[{'type': 'HEADERS', 'flags': {'END_STREAM': 'true'}}]",
+          "server_frames": [
+            {
+              "type": "HEADERS"
+            },
+            {
+              "type": "DATA"
+            },
+            {
+              "type": "TRAILERS",
+              "headers": {
+                ":path": "/"
+              }
+            }
+          ],
           "event": "TIMEOUT",
-          "ctrl": "NULL",
-          "result": "TIMEOUT"
+          "frames_received": "[<ResponseReceived stream_id:1, headers:[(':status', '200'), ('content-type', 'text/plain'), ('server', 'nopasaran-http2-server'), ('date', 'Tue, 16 Sep 2025 13:38:54 GMT')]>, <DataReceived stream_id:None, flow_controlled_length:None, data:>]"
         }
       }
     }
