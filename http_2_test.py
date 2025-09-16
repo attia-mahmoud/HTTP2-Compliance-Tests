@@ -45,7 +45,7 @@ def fetch_data(url):
         return None
 
 # Define the endpoint URLs
-base_url = 'https://www.nopasaran.org/api/v1/tests-trees'
+base_url = 'https://www.nopasaran.org/api/v1/tests-trees'   
 
 tests_trees_url = f'{base_url}/repository'
 masters_url = f'{base_url}/operational-masters'
@@ -63,38 +63,35 @@ tests_tree = "http_2_conformance.png"
 
 list_of_proxies = [
     # {"PROXY": "Direct", "PROXY_PORT": "8080"}
-    # {"PROXY": "Apache-2.4.62", "PROXY_PORT": "7700"},
-    # {"PROXY": "Caddy-2.9.1", "PROXY_PORT": "7701"},
-    # {"PROXY": "Envoy-1.21.2", "PROXY_PORT": "8080"}
-    {"PROXY": "HAproxy-3.2.0", "PROXY_PORT": "7700"},
+    # {"PROXY": "TLS-Apache-2.4.63", "PROXY_PORT": "7700", "tls_enabled": "true"},
+    # {"PROXY": "Caddy-2.9.1-TLS", "PROXY_PORT": "7700", "tls_enabled": "false"},
+    # {"PROXY": "Envoy-1.34.1-TLS", "PROXY_PORT": "7700", "tls_enabled": "true"},
+    # {"PROXY": "HAproxy-2.2.0", "PROXY_PORT": "7700"},
     # {"PROXY": "Nginx-1.22.0", "PROXY_PORT": "7770", "tls_enabled": "true"}
-    # {"PROXY": "Nghttpx-1.62.1", "PROXY_PORT": "7706"}
-    # {"PROXY": "Node-20.16.0", "PROXY_PORT": "7707"}
+    # {"PROXY": "Nghttpx-1.41.0", "PROXY_PORT": "7700"}
+    {"PROXY": "TLS-Node-20.16.0", "PROXY_PORT": "7700", "tls_enabled": "true"},
     # {"PROXY": "Mitmproxy", "PROXY_PORT": "7708", "tls_enabled": "true"}
-    # {"PROXY": "H2O-cf59e67c3", "PROXY_PORT": "7703", "tls_enabled": "false"}
+    # {"PROXY": "H2O-0a9ddbd", "PROXY_PORT": "7700", "tls_enabled": "false"}
     # {"PROXY": "Cloudflare", "PROXY_PORT": "443", "tls_enabled": "true", "cloudflare_origin": "true"},
     # {"PROXY": "Fastly", "PROXY_PORT": "443", "tls_enabled": "true"}
-    # {"PROXY": "Traefik_old", "PROXY_PORT": "7715"},
+    # {"PROXY": "Traefik-2.2.8", "PROXY_PORT": "7700"},
     # {"PROXY": "Caddy_old", "PROXY_PORT": "7716"},
     # {"PROXY": "BunnyCDN", "PROXY_PORT": "443", "tls_enabled": "true"},
     # {"PROXY": "lighttpd-1.4.64", "PROXY_PORT": "7771"},
 ]
 
-# CLIENT_WORKER = "linodejapan.admin.worker.nopasaran.org"
-# SERVER_WORKER = "linodeaustralia.admin.worker.nopasaran.org"
-# SERVER_PORT = "8080"
-# PROXY_IP = "fastly.nopasaran.co"
-
-CLIENT_WORKER = "labworker3.admin.worker.nopasaran.org"
-SERVER_WORKER = "worker1.admin.worker.nopasaran.org"
-PROXY_IP = "192.168.122.6"
+CLIENT_WORKER = "commentsworker1.admin.worker.nopasaran.org"
+SERVER_WORKER = "commentsworker2.admin.worker.nopasaran.org"
+PROXY_IP = "192.168.122.69"
 SERVER_PORT = "8080"
 
-MASTER = "master.admin.master.nopasaran.org"
+MASTER = "commentsmaster1.admin.master.nopasaran.org"
 
 file = "test_cases.json"
 
 tests = []
+
+start_from = 1
 
 ################ VARIABLES #################
 
@@ -228,14 +225,17 @@ def has_timeout(result):
     if not isinstance(result, dict):
         return False
     
+    # Check if ALL workers have issues (None, error, or controller_conf_filename)
+    # Only return True if no worker has a valid result
     for worker, worker_data in result.items():
-        if worker_data is None:
-            return True
-        if worker_data and worker_data.get('Variables', {}).get('controller_conf_filename', False):
-            return True
-        if worker_data and worker_data.get('State', '') == 'ERROR':
-            return True
-    return False
+        # If any worker has valid data and is not in error state, it's not a timeout
+        if worker_data is not None:
+            if not worker_data.get('Variables', {}).get('controller_conf_filename', False):
+                if worker_data.get('State', '') != 'ERROR':
+                    return False
+    
+    # If we reach here, all workers either have None, error state, or controller_conf_filename
+    return True
 
 # Main execution logic
 for proxy in list_of_proxies:
@@ -244,12 +244,11 @@ for proxy in list_of_proxies:
     if not os.path.exists(proxy_dir):
         os.makedirs(proxy_dir)
 
-    timestamp = datetime.datetime.now().strftime("%d_%b_%H_%M")
-    filename = f"{proxy_dir}/test_results_{timestamp}.json"
-    
-    # If specific tests are provided, load the most recent results file
+    # Load the most recent results file only if tests are specified or start_from is not 1
     existing_results = {}
-    if tests:
+    filename = None
+    
+    if tests or (start_from and start_from != 1):
         # Find the most recent results file
         result_files = [f for f in os.listdir(proxy_dir) if f.startswith('test_results_')]
         if result_files:
@@ -258,13 +257,23 @@ for proxy in list_of_proxies:
                 existing_results = json.load(f)
             filename = os.path.join(proxy_dir, latest_file)
     
+    # If no existing file was loaded, create a new one
+    if filename is None:
+        timestamp = datetime.datetime.now().strftime("%d_%b_%H_%M")
+        filename = f"{proxy_dir}/test_results_{timestamp}.json"
+    
     all_results = existing_results.copy()
     
     # Determine which test cases to run
     test_cases_to_run = []
     if tests:
+        # If specific tests are provided, use those
         test_cases_to_run = [tc for tc in test_cases if tc['id'] in tests]
+    elif start_from:
+        # If start_from is provided, run tests from that index onwards
+        test_cases_to_run = [tc for tc in test_cases if tc['id'] >= start_from]
     else:
+        # Run all test cases
         test_cases_to_run = test_cases
 
     for test_case in test_cases_to_run:
