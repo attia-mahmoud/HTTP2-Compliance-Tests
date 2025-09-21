@@ -63,12 +63,12 @@ Proxy: Node (Scope: full)
 
 Proxy: Traefik (Scope: full)
 -------------------------------------
-  Dropped: 90
-  Error 500: -79
+  Dropped: 12
+  Error 500: -2
   GOAWAY: 0
   RESET: -9
   Unmodified: -1
-  Modified: -1
+  Modified: 0
   Accepted: 0
 
 Proxy: Lighttpd (Scope: client-only)
